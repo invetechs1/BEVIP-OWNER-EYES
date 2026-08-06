@@ -48,7 +48,22 @@
     '🏗️ مقاول إنشائي': '🏗️ Structural Contractor',
     '⚙️ الأدمن': '⚙️ Admin',
     'عينك على مشروعك — منصة الرؤية البصرية التي تربط المالك بالاستشاري والمقاول<br>وترى بها تقدم مشروعك كما لو كنت في الموقع':
-      'Your eye on your project — a visual platform connecting the owner, consultant, and contractors<br>so you can see your project\'s progress as if you were on site'
+      'Your eye on your project — a visual platform connecting the owner, consultant, and contractors<br>so you can see your project\'s progress as if you were on site',
+    'لوحة المشاريع': 'Projects Dashboard',
+    'تتبع التقديمات': 'Submissions Tracking',
+    'أوامر التغيير': 'Change Orders',
+    'وثائق المشروع': 'Project Documents',
+    'التسليم والإغلاق': 'Handover & Closeout',
+    'أرشيف المستندات': 'Document Archive',
+    'تتبع تقديماتي': 'My Submissions',
+    'ملاحظاتي وضماناتي': 'My Punch List & Warranties',
+    'أرشيف مستنداتي': 'My Document Archive',
+    'الاستفسارات والعروض RFI/RFP': 'RFIs & RFPs',
+    'مراحل المشروع': 'Project Phases',
+    'إدارة BIM': 'BIM Management',
+    'قاعدة بيانات المقاولين': 'Contractor Database',
+    'محفظة المشاريع': 'Projects Portfolio',
+    'خادم الملفات المركزي': 'Central File Server'
   });
 
   const PAGES = [
