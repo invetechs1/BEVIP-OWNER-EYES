@@ -16,6 +16,7 @@
   const COLORS = ['#ff3b30', '#ffcc00', '#2dd4a0', '#4cc9f0', '#ffffff'];
   const IMG_EXT = /\.(png|jpe?g|webp|gif|bmp)$/i;
   const PDF_EXT = /\.pdf$/i;
+  const DXF_EXT = /\.dxf$/i;
   const STAMPS = [
     ['اعتُمد ✔', '#2dd4a0'], ['اعتُمد بملاحظات', '#4cc9f0'],
     ['مرفوض ✖', '#ff3b30'], ['أعد التقديم', '#ffcc00'], ['تمت المراجعة', '#ffffff']
@@ -39,13 +40,14 @@
 
   function fileOf(item) {
     const f = item.file;
-    if (!f) return { name: '', url: '', isImage: false, isPdf: false };
-    if (typeof f === 'string') return { name: f, url: '', isImage: false, isPdf: false };
+    if (!f) return { name: '', url: '', isImage: false, isPdf: false, isDxf: false };
+    if (typeof f === 'string') return { name: f, url: '', isImage: false, isPdf: false, isDxf: false };
     const name = f.name || '', url = f.url || '';
     return {
       name: name, url: url,
       isImage: !!url && IMG_EXT.test(name || url),
-      isPdf: !!url && PDF_EXT.test(name || url)
+      isPdf: !!url && PDF_EXT.test(name || url),
+      isDxf: !!url && DXF_EXT.test(name || url)
     };
   }
 
@@ -109,10 +111,19 @@
         ? '<img id="dv-img" src="' + esc(f.url) + '" alt="" draggable="false">'
         : f.isPdf
           ? '<canvas id="dv-pdf"></canvas>'
-          : '<div class="dv-sheet" id="dv-sheet"><div class="dv-sheet-title">📐 ' + esc(item.title || 'المخطط') + '</div>' +
-            '<div class="dv-sheet-sub">' + esc(item.ref || '') + (f.name ? ' · ' + esc(f.name) : '') + '</div>' +
-            '<div class="dv-sheet-note">ورقة ترميز — الملف الأصلي بصيغة غير قابلة للمعاينة داخل المتصفح' + (f.url ? ' (حمّله من الزر أعلاه)' : '') + '</div></div>') +
-      '<canvas id="dv-canvas"></canvas>' +
+          : f.isDxf
+            ? '<div id="dv-dxf-host" style="position:absolute;inset:0;display:flex;flex-direction:column;background:#0f1720">' +
+              '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#0c141c;border-bottom:1px solid #1e2a36;color:#e8eaed;font:600 13px system-ui,sans-serif">' +
+              '<span>📐 مخطط متجه (DXF) — خطوط حقيقية قابلة للقياس</span>' +
+              '<button class="btn mutedb sm" id="dv-dxf-fit" style="margin-inline-start:auto">⤢ احتواء</button>' +
+              '<button class="btn mutedb sm" id="dv-dxf-measure">📏 قياس</button>' +
+              '<span id="dv-dxf-coord" style="color:#90a4ae;font-weight:400;font-size:12px;min-width:150px">—</span></div>' +
+              '<div style="flex:1;position:relative;min-height:0"><canvas id="dv-dxf-canvas" style="position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab"></canvas>' +
+              '<div id="dv-dxf-status" style="position:absolute;left:0;right:0;bottom:0;padding:6px 10px;background:rgba(0,0,0,.4);color:#b0bec5;font:12px system-ui,sans-serif;pointer-events:none">جارٍ تحميل المخطط…</div></div></div>'
+            : '<div class="dv-sheet" id="dv-sheet"><div class="dv-sheet-title">📐 ' + esc(item.title || 'المخطط') + '</div>' +
+              '<div class="dv-sheet-sub">' + esc(item.ref || '') + (f.name ? ' · ' + esc(f.name) : '') + '</div>' +
+              '<div class="dv-sheet-note">ورقة ترميز — الملف الأصلي بصيغة غير قابلة للمعاينة داخل المتصفح' + (f.url ? ' (حمّله من الزر أعلاه)' : '') + '</div></div>') +
+      '<canvas id="dv-canvas"' + (f.isDxf ? ' style="display:none"' : '') + '></canvas>' +
       '</div></div>' +
 
       '<div class="dv-side">' +
@@ -144,6 +155,49 @@
     const cx2 = canvas.getContext('2d');
     const img = back.querySelector('#dv-img');
     const pdfCanvas = back.querySelector('#dv-pdf');
+
+    // ============ عرض DXF متجه حقيقي داخل النظام ============
+    let dxfView = null;
+    async function openDxf() {
+      const host = back.querySelector('#dv-dxf-host');
+      const dcanvas = back.querySelector('#dv-dxf-canvas');
+      const dstatus = back.querySelector('#dv-dxf-status');
+      const dcoord = back.querySelector('#dv-dxf-coord');
+      if (!window.DxfViewer || !host || !dcanvas) {
+        if (dstatus) dstatus.textContent = 'عارض DXF غير متوفر.';
+        return;
+      }
+      function sizeCanvas() {
+        const box = dcanvas.parentElement.getBoundingClientRect();
+        dcanvas.width = Math.max(300, Math.floor(box.width));
+        dcanvas.height = Math.max(200, Math.floor(box.height));
+      }
+      try {
+        const res = await fetch(new URL(f.url, location.href).href);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const text = await res.text();
+        const model = window.DxfViewer.parse(text);
+        if (!model.entities.length) { dstatus.textContent = 'لا توجد كيانات قابلة للرسم في هذا الملف.'; return; }
+        sizeCanvas();
+        dxfView = new window.DxfViewer._DxfView(dcanvas, model);
+        dxfView._coordCb = function (w) { dcoord.textContent = 'X: ' + w.x.toFixed(2) + '  Y: ' + w.y.toFixed(2); };
+        dstatus.textContent = 'الكيانات: ' + model.entities.length +
+          ' • الطبقات: ' + Object.keys(model.layers).length +
+          ' • الأبعاد: ' + model.bounds.w.toFixed(2) + ' × ' + model.bounds.h.toFixed(2) + ' وحدة';
+        const bFit = back.querySelector('#dv-dxf-fit');
+        const bMeasure = back.querySelector('#dv-dxf-measure');
+        if (bFit) bFit.onclick = function () { dxfView.fit(); };
+        if (bMeasure) bMeasure.onclick = function () {
+          const on = dxfView.toggleMeasure();
+          bMeasure.textContent = on ? '📏 إيقاف القياس' : '📏 قياس';
+          dstatus.textContent = on ? 'وضع القياس: انقر نقطتين لقياس المسافة الحقيقية.'
+            : 'الكيانات: ' + model.entities.length + ' • الطبقات: ' + Object.keys(model.layers).length;
+        };
+        window.addEventListener('resize', function () { if (dxfView) { sizeCanvas(); dxfView.fit(); } });
+      } catch (e) {
+        dstatus.textContent = 'تعذّر تحميل مخطط DXF: ' + e.message;
+      }
+    }
 
     // ============ عرض PDF حقيقي داخل النظام ============
     async function openPdf() {
@@ -484,6 +538,7 @@
 
     if (img) { img.addEventListener('load', fit); if (img.complete) fit(); }
     else if (f.isPdf) openPdf();
+    else if (f.isDxf) setTimeout(openDxf, 30);
     else setTimeout(fit, 30);
     window.addEventListener('resize', fit);
   }
@@ -494,7 +549,7 @@
     const n = (item.annotations || []).length;
     const f = fileOf(item);
     return '<button class="btn ghost sm" data-dview="' + item.id + '"' + (extra || '') + '>' +
-      (f.isPdf ? '📄 PDF' : '🖊 المخطط') +
+      (f.isPdf ? '📄 PDF' : f.isDxf ? '📐 DXF' : '🖊 المخطط') +
       (n ? ' <span class="pill p-warn" style="font-size:10px;padding:1px 7px">' + n + '</span>' : '') + '</button>';
   }
 

@@ -688,7 +688,8 @@
       { id: 'PD3', projectId: 'P1', floor: 'F1', discipline: 'architectural', ref: 'A-102', title: 'المسقط المعماري - الدور الأول', file: { name: 'A-101-ground-floor.pdf', url: '/vendor/sample/A-101-ground-floor.pdf' }, date: '2026-05-12', by: 'دار العمران للاستشارات' },
       { id: 'PD4', projectId: 'P1', floor: 'F2', discipline: 'electrical', ref: 'E-102', title: 'مخطط القوى والإنارة - الدور الثاني', file: { name: 'A-305-section.pdf', url: '/vendor/sample/A-305-section.pdf' }, date: '2026-05-20', by: 'دار العمران للاستشارات' },
       { id: 'PD5', projectId: 'P1', floor: 'MZ', discipline: 'hvac', ref: 'M-101', title: 'مخطط الدكتات - الميزانين', file: { name: 'A-305-section.pdf', url: '/vendor/sample/A-305-section.pdf' }, date: '2026-05-22', by: 'دار العمران للاستشارات' },
-      { id: 'PD6', projectId: 'P1', floor: 'ELEV', discipline: 'architectural', ref: 'A-201', title: 'مخطط الواجهة الشمالية والجنوبية', file: { name: 'A-101-ground-floor.pdf', url: '/vendor/sample/A-101-ground-floor.pdf' }, date: '2026-05-15', by: 'دار العمران للاستشارات' }
+      { id: 'PD6', projectId: 'P1', floor: 'ELEV', discipline: 'architectural', ref: 'A-201', title: 'مخطط الواجهة الشمالية والجنوبية', file: { name: 'A-101-ground-floor.pdf', url: '/vendor/sample/A-101-ground-floor.pdf' }, date: '2026-05-15', by: 'دار العمران للاستشارات' },
+      { id: 'PD7', projectId: 'P1', floor: 'GF', discipline: 'architectural', ref: 'A-101-DXF', title: 'المسقط المعماري (DXF متجه قابل للقياس) - الأرضي', file: { name: 'A-101-ground-floor.dxf', url: '/vendor/sample/A-101-ground-floor.dxf' }, date: '2026-05-11', by: 'دار العمران للاستشارات' }
     ];
 
     // ============ التقارير الأسبوعية ============
@@ -761,7 +762,7 @@
 
     db.notifications = [];
     db.comments = [];
-    db.meta = { seq: 1000, seededAt: '2026-07-18', version: 17, docSeq: docSeq };
+    db.meta = { seq: 1000, seededAt: '2026-07-18', version: 18, docSeq: docSeq };
 
     return db;
   }
