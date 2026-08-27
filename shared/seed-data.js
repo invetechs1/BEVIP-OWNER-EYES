@@ -274,10 +274,10 @@
 
     // ============ اعتمادات المخططات (Shop Drawings) ============
     db.shopDrawings = [
-      { id: 'SD1', projectId: 'P1', contractorId: 'C2', ref: 'SD-ARC-014', title: 'مخطط تفاصيل الواجهة الشمالية', date: '2026-07-02', status: 'pending', notes: '', file: 'SD-ARC-014.pdf' },
-      { id: 'SD2', projectId: 'P1', contractorId: 'C3', ref: 'SD-ELE-009', title: 'مخطط لوحات التوزيع - الدور الثاني', date: '2026-07-05', status: 'pending', notes: '', file: 'SD-ELE-009.pdf' },
-      { id: 'SD3', projectId: 'P1', contractorId: 'C2', ref: 'SD-ARC-012', title: 'تفاصيل الأسقف المستعارة - الأرضي', date: '2026-06-20', status: 'approved', notes: 'اعتمد مع الالتزام بمناسيب التكييف', signature: 'م. خالد العمران', signDate: '2026-06-24', file: 'SD-ARC-012.pdf' },
-      { id: 'SD4', projectId: 'P1', contractorId: 'C4', ref: 'SD-HVC-006', title: 'مسارات الدكتات - الميزانين', date: '2026-06-15', status: 'rejected', notes: 'تعارض مع كمرة ساقطة محور 5-C، يعاد التنسيق', signature: 'م. خالد العمران', signDate: '2026-06-18', file: 'SD-HVC-006.pdf',
+      { id: 'SD1', projectId: 'P1', contractorId: 'C2', ref: 'SD-ARC-014', title: 'مخطط تفاصيل الواجهة الشمالية', date: '2026-07-02', status: 'pending', notes: '', file: { name: 'A-101-ground-floor.pdf', url: '/vendor/sample/A-101-ground-floor.pdf' } },
+      { id: 'SD2', projectId: 'P1', contractorId: 'C3', ref: 'SD-ELE-009', title: 'مخطط لوحات التوزيع - الدور الثاني', date: '2026-07-05', status: 'pending', notes: '', file: { name: 'A-305-section.pdf', url: '/vendor/sample/A-305-section.pdf' } },
+      { id: 'SD3', projectId: 'P1', contractorId: 'C2', ref: 'SD-ARC-012', title: 'تفاصيل الأسقف المستعارة - الأرضي', date: '2026-06-20', status: 'approved', notes: 'اعتمد مع الالتزام بمناسيب التكييف', signature: 'م. خالد العمران', signDate: '2026-06-24', file: { name: 'A-101-ground-floor.pdf', url: '/vendor/sample/A-101-ground-floor.pdf' } },
+      { id: 'SD4', projectId: 'P1', contractorId: 'C4', ref: 'SD-HVC-006', title: 'مسارات الدكتات - الميزانين', date: '2026-06-15', status: 'rejected', notes: 'تعارض مع كمرة ساقطة محور 5-C، يعاد التنسيق', signature: 'م. خالد العمران', signDate: '2026-06-18', file: { name: 'A-305-section.pdf', url: '/vendor/sample/A-305-section.pdf' },
         markupBy: 'م. خالد العمران', markupDate: '2026-06-18',
         annotations: [
           { type: 'rect', from: [0.3, 0.3], to: [0.62, 0.55], color: '#ff3b30' },
@@ -285,7 +285,7 @@
           { type: 'pin', at: [0.46, 0.42], n: 1, text: 'الدكت يتعارض مع الكمرة الساقطة محور 5-C — يخفض المنسوب 15سم', color: '#ffcc00' },
           { type: 'text', at: [0.64, 0.2], text: 'يعدل المسار', color: '#ff3b30' }
         ] },
-      { id: 'SD5', projectId: 'P1', contractorId: 'C1', ref: 'SD-STR-021', title: 'تفاصيل خزان المياه العلوي', date: '2026-06-28', status: 'approved_notes', notes: 'اعتمد مع ملاحظات: زيادة سماكة العزل', signature: 'م. خالد العمران', signDate: '2026-07-01', file: 'SD-STR-021.pdf' }
+      { id: 'SD5', projectId: 'P1', contractorId: 'C1', ref: 'SD-STR-021', title: 'تفاصيل خزان المياه العلوي', date: '2026-06-28', status: 'approved_notes', notes: 'اعتمد مع ملاحظات: زيادة سماكة العزل', signature: 'م. خالد العمران', signDate: '2026-07-01', file: { name: 'A-101-ground-floor.pdf', url: '/vendor/sample/A-101-ground-floor.pdf' } }
     ];
 
     // ============ اعتمادات المواد (Material Submittals) ============
@@ -683,12 +683,12 @@
 
     // ============ سجل مخططات المشروع (مربوطة بجدول الكميات) ============
     db.planDrawings = [
-      { id: 'PD1', projectId: 'P1', floor: 'GF', discipline: 'architectural', ref: 'A-101', title: 'المسقط المعماري - الدور الأرضي', file: 'A-101-GF.dwg', date: '2026-05-10', by: 'دار العمران للاستشارات' },
-      { id: 'PD2', projectId: 'P1', floor: 'GF', discipline: 'structural', ref: 'S-101', title: 'المسقط الإنشائي - الدور الأرضي', file: 'S-101-GF.dwg', date: '2026-05-10', by: 'دار العمران للاستشارات' },
-      { id: 'PD3', projectId: 'P1', floor: 'F1', discipline: 'architectural', ref: 'A-102', title: 'المسقط المعماري - الدور الأول', file: 'A-102-F1.dwg', date: '2026-05-12', by: 'دار العمران للاستشارات' },
-      { id: 'PD4', projectId: 'P1', floor: 'F2', discipline: 'electrical', ref: 'E-102', title: 'مخطط القوى والإنارة - الدور الثاني', file: 'E-102-F2.dwg', date: '2026-05-20', by: 'دار العمران للاستشارات' },
-      { id: 'PD5', projectId: 'P1', floor: 'MZ', discipline: 'hvac', ref: 'M-101', title: 'مخطط الدكتات - الميزانين', file: 'M-101-MZ.dwg', date: '2026-05-22', by: 'دار العمران للاستشارات' },
-      { id: 'PD6', projectId: 'P1', floor: 'ELEV', discipline: 'architectural', ref: 'A-201', title: 'مخطط الواجهة الشمالية والجنوبية', file: 'A-201-ELEV.dwg', date: '2026-05-15', by: 'دار العمران للاستشارات' }
+      { id: 'PD1', projectId: 'P1', floor: 'GF', discipline: 'architectural', ref: 'A-101', title: 'المسقط المعماري - الدور الأرضي', file: { name: 'A-101-ground-floor.pdf', url: '/vendor/sample/A-101-ground-floor.pdf' }, date: '2026-05-10', by: 'دار العمران للاستشارات' },
+      { id: 'PD2', projectId: 'P1', floor: 'GF', discipline: 'structural', ref: 'S-101', title: 'المسقط الإنشائي - الدور الأرضي', file: { name: 'A-305-section.pdf', url: '/vendor/sample/A-305-section.pdf' }, date: '2026-05-10', by: 'دار العمران للاستشارات' },
+      { id: 'PD3', projectId: 'P1', floor: 'F1', discipline: 'architectural', ref: 'A-102', title: 'المسقط المعماري - الدور الأول', file: { name: 'A-101-ground-floor.pdf', url: '/vendor/sample/A-101-ground-floor.pdf' }, date: '2026-05-12', by: 'دار العمران للاستشارات' },
+      { id: 'PD4', projectId: 'P1', floor: 'F2', discipline: 'electrical', ref: 'E-102', title: 'مخطط القوى والإنارة - الدور الثاني', file: { name: 'A-305-section.pdf', url: '/vendor/sample/A-305-section.pdf' }, date: '2026-05-20', by: 'دار العمران للاستشارات' },
+      { id: 'PD5', projectId: 'P1', floor: 'MZ', discipline: 'hvac', ref: 'M-101', title: 'مخطط الدكتات - الميزانين', file: { name: 'A-305-section.pdf', url: '/vendor/sample/A-305-section.pdf' }, date: '2026-05-22', by: 'دار العمران للاستشارات' },
+      { id: 'PD6', projectId: 'P1', floor: 'ELEV', discipline: 'architectural', ref: 'A-201', title: 'مخطط الواجهة الشمالية والجنوبية', file: { name: 'A-101-ground-floor.pdf', url: '/vendor/sample/A-101-ground-floor.pdf' }, date: '2026-05-15', by: 'دار العمران للاستشارات' }
     ];
 
     // ============ التقارير الأسبوعية ============
@@ -761,7 +761,7 @@
 
     db.notifications = [];
     db.comments = [];
-    db.meta = { seq: 1000, seededAt: '2026-07-18', version: 16, docSeq: docSeq };
+    db.meta = { seq: 1000, seededAt: '2026-07-18', version: 17, docSeq: docSeq };
 
     return db;
   }
