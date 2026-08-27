@@ -785,7 +785,10 @@
       '<div class="m-actions"><button class="btn block" id="bm-local">⬆ رفع النموذج وربطه بجدول الكميات</button></div>' +
       '<div class="small muted" id="bm-progress"></div></div></div>' +
 
-      '<div class="card mt"><h3>🏢 سجل نماذج المشروع</h3>' +
+      '<div class="card mt"><div class="flex" style="justify-content:space-between;flex-wrap:wrap">' +
+      '<h3 style="margin:0">🏢 سجل نماذج المشروع</h3>' +
+      '<button class="btn sm" id="bm-demo3d">🧊 عرض نموذج IFC ثلاثي الأبعاد (تجريبي)</button></div>' +
+      '<div class="small muted mb">عرض BIM/IFC حقيقي داخل المتصفح (بلا خدمة خارجية). ملفات DWG/RVT الأصلية تحتاج مسار Autodesk APS.</div>' +
       (models.length ?
         '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>الكود</th><th>النموذج</th><th>الإصدار</th><th>المصدر</th><th>الحجم</th><th>التاريخ</th><th>الربط</th><th></th></tr></thead><tbody>' +
         models.map(function (m) {
@@ -796,10 +799,26 @@
             '<td class="small num">' + fmtSize(m.size) + '</td>' +
             '<td class="small muted num">' + esc(m.date || '') + '</td>' +
             '<td>' + (m.linkedBoq ? '<span class="pill p-ok">مربوط بجدول الكميات ✓</span>' : '<span class="pill p-muted">غير مربوط</span>') + '</td>' +
-            '<td>' + (m.url ? '<a class="btn ghost sm" href="' + esc(m.url) + '" target="_blank">فتح ↗</a>' : '') + '</td></tr>';
+            '<td><div class="flex" style="gap:6px">' +
+            (m.url && /\.ifc$/i.test(m.url) ? '<button class="btn sm" data-bim3d="' + esc(m.url) + '" data-bimname="' + esc(m.name) + '">🧊 3D</button>' : '') +
+            (m.url ? '<a class="btn ghost sm" href="' + esc(m.url) + '" target="_blank">فتح ↗</a>' : '') + '</div></td></tr>';
         }).join('') + '</tbody></table></div>'
         : '<div class="empty"><div class="e-ico">🏢</div>لا نماذج بعد — اربط سحابياً أو ارفع من الجهاز</div>') +
       '</div>';
+
+    function open3d(o) {
+      if (window.DEMO_MODE || !window.BimViewer) { toast('العرض ثلاثي الأبعاد لنماذج IFC متاح في نسخة الخادم', true); return; }
+      window.BimViewer.open(o);
+    }
+    const demo3d = el.querySelector('#bm-demo3d');
+    if (demo3d) demo3d.addEventListener('click', function () {
+      open3d({ title: 'نموذج IFC تجريبي — بصير', url: '/vendor/bim/BassirTower-sample.ifc' });
+    });
+    el.querySelectorAll('[data-bim3d]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        open3d({ title: b.getAttribute('data-bimname') || 'نموذج BIM', url: b.getAttribute('data-bim3d') });
+      });
+    });
 
     el.querySelector('#bm-cloud').addEventListener('click', async function () {
       const name = el.querySelector('#bm-cname').value.trim();
