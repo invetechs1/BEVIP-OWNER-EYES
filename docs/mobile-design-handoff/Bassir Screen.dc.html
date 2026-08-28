@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div dir="rtl" style="height:100%;display:flex;flex-direction:column;background:#0d0f13;color:#e8eaf0;font-family:'IBM Plex Sans Arabic',sans-serif;min-height:0">
+
+  <sc-if value="{{ chrome }}" hint-placeholder-val="{{ true }}">
+  <header style="flex:none;background:#11141a;border-bottom:1px solid #1e222b;padding:10px 16px 12px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div onClick="{{ onMenu }}" style="width:34px;height:34px;border-radius:9px;background:#171b23;border:1px solid #242935;display:grid;place-items:center;cursor:pointer">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#c3c9d6" stroke-width="1.6" stroke-linecap="round"><path d="M2 4h12M2 8h12M2 12h8"/></svg>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:15.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ title }}</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.1em;color:#6f7789;direction:ltr;margin-top:2px">BASSIR TOWER / RIYADH</div>
+      </div>
+      <div onClick="{{ goNotif }}" style="width:34px;height:34px;border-radius:9px;background:#171b23;border:1px solid #242935;display:grid;place-items:center;cursor:pointer;position:relative">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#c3c9d6" stroke-width="1.5" stroke-linecap="round"><path d="M4 6.5a4 4 0 018 0c0 3 1 4 1 4H3s1-1 1-4z"/><path d="M6.5 13.2a1.8 1.8 0 003 0"/></svg>
+        <i style="position:absolute;top:6px;right:7px;width:6px;height:6px;border-radius:99px;background:#e06a5c;border:1.5px solid #171b23"></i>
+      </div>
+    </div>
+    <div style="display:flex;gap:5px;margin-top:11px;overflow-x:auto">
+      <sc-for list="{{ roles }}" as="r" hint-placeholder-count="4">
+        <span onClick="{{ r.pick }}" style="flex:none;padding:5px 11px;border-radius:99px;font-size:11.5px;font-weight:500;cursor:pointer;border:1px solid {{ r.bd }};background:{{ r.bg }};color:{{ r.fg }}">{{ r.label }}</span>
+      </sc-for>
+    </div>
+  </header>
+  </sc-if>
+
+  <sc-if value="{{ offline }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:none;background:#2a2116;border-bottom:1px solid #3a2e1c;padding:6px 16px;display:flex;align-items:center;gap:8px;font-size:11px;color:#e0a33e">
+      <i style="width:5px;height:5px;border-radius:99px;background:#e0a33e"></i>
+      وضع عدم الاتصال — 3 تقارير و12 صورة بانتظار المزامنة
+    </div>
+  </sc-if>
+
+  <main style="flex:1;min-height:0;overflow-y:auto;background:#0d0f13">
+
+    <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:34px 22px;display:flex;flex-direction:column;gap:16px;height:100%;justify-content:center">
+        <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(160deg,#3f6dff,#1d3fb0);display:grid;place-items:center;font-family:'Instrument Serif',serif;font-size:26px">B</div>
+        <div style="font-family:'Instrument Serif',serif;font-size:30px;margin-top:6px">Owner Eyes</div>
+        <div style="font-size:12.5px;color:#8b93a5;line-height:2">إدارة مشاريعك الإنشائية — الدخول برقم الجوال المسجّل لدى الاستشاري.</div>
+        <div style="border:1px solid #242935;border-radius:11px;background:#141821;padding:14px;display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;direction:ltr">+966 5X XXX XXXX</span>
+          <span style="font-size:11px;color:#6f7789">السعودية</span>
+        </div>
+        <div style="background:#3f6dff;border-radius:11px;padding:14px;text-align:center;font-size:13.5px;font-weight:600;cursor:pointer">إرسال رمز التحقق</div>
+        <div style="display:flex;gap:9px;direction:ltr;justify-content:center;margin-top:6px">
+          <span style="width:44px;height:52px;border:1px solid #2b3140;border-radius:10px;background:#141821;display:grid;place-items:center;font-family:'IBM Plex Mono',monospace;font-size:19px">4</span>
+          <span style="width:44px;height:52px;border:1px solid #2b3140;border-radius:10px;background:#141821;display:grid;place-items:center;font-family:'IBM Plex Mono',monospace;font-size:19px">8</span>
+          <span style="width:44px;height:52px;border:1px solid #3f6dff;border-radius:10px;background:#141821;display:grid;place-items:center;font-family:'IBM Plex Mono',monospace;font-size:19px">2</span>
+          <span style="width:44px;height:52px;border:1px solid #2b3140;border-radius:10px;background:#141821"></span>
+        </div>
+        <div style="text-align:center;font-size:11px;color:#6f7789">إعادة الإرسال خلال 00:42</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+      <div style="padding:16px;display:flex;flex-direction:column;gap:14px">
+        <div style="border:1px solid #242935;border-radius:14px;background:linear-gradient(160deg,#151b2b,#11141a);padding:16px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline">
+            <span style="font-size:12.5px;color:#8b93a5">نسبة الإنجاز الكلية</span>
+            <span style="font-family:'Instrument Serif',serif;font-size:34px;direction:ltr">62%</span>
+          </div>
+          <div style="height:6px;background:#1e2430;border-radius:99px;margin-top:12px;overflow:hidden"><i style="display:block;height:100%;width:62%;background:linear-gradient(90deg,#3f6dff,#6f92ff);border-radius:99px"></i></div>
+          <div style="display:flex;justify-content:space-between;margin-top:9px;font-size:11px;color:#6f7789">
+            <span>مخطط 68% — متأخر 6%</span>
+            <span style="font-family:'IBM Plex Mono',monospace;direction:ltr">DAY 412 / 640</span>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+            <div style="border:1px solid #242935;border-radius:12px;background:#141821;padding:13px">
+              <div style="font-size:11.5px;color:#8b93a5">{{ k.k }}</div>
+              <div style="font-family:'Instrument Serif',serif;font-size:25px;margin-top:5px;color:{{ k.c }};direction:ltr;text-align:right">{{ k.v }}</div>
+              <div style="font-size:10.5px;color:#6f7789;margin-top:3px">{{ k.d }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:13px;font-weight:600">بانتظار إجراء منك</span>
+          <span style="font-size:11px;color:#6f7789">4 عناصر</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{ actions }}" as="a" hint-placeholder-count="4">
+            <div onClick="{{ a.go }}" style="border:1px solid #242935;border-radius:11px;background:#141821;padding:12px 13px;display:flex;gap:11px;align-items:center;cursor:pointer">
+              <i style="width:6px;height:34px;border-radius:99px;background:{{ a.c }};flex:none"></i>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:12.5px;font-weight:500">{{ a.t }}</div>
+                <div style="font-size:10.5px;color:#6f7789;margin-top:3px">{{ a.s }}</div>
+              </div>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#4d5566" stroke-width="1.6" stroke-linecap="round"><path d="M8.5 3L4.5 7l4 4"/></svg>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isDrawings }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;gap:6px">
+          <span onClick="{{ go2d }}" style="flex:1;text-align:center;padding:8px;border-radius:9px;font-size:12.5px;font-weight:600;cursor:pointer;background:#3f6dff;color:#fff">مخططات 2D</span>
+          <span onClick="{{ go3d }}" style="flex:1;text-align:center;padding:8px;border-radius:9px;font-size:12.5px;cursor:pointer;background:#171b23;border:1px solid #242935;color:#8b93a5">نموذج 3D</span>
+        </div>
+        <div style="border:1px solid #242935;border-radius:12px;overflow:hidden;background:#0a0c10">
+          <div style="height:200px;background-image:linear-gradient(#161c27 1px,transparent 1px),linear-gradient(90deg,#161c27 1px,transparent 1px);background-size:22px 22px;display:grid;place-items:center;position:relative">
+            <div style="text-align:center">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#4d5566;direction:ltr">ARC-L07-PLAN · Rev.C</div>
+              <div style="font-size:11px;color:#6f7789;margin-top:6px">اضغط مرتين للتكبير · إصبعان للتدوير</div>
+            </div>
+            <div style="position:absolute;bottom:9px;left:9px;display:flex;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:10px;direction:ltr">
+              <span style="background:#11141aee;border:1px solid #242935;border-radius:6px;padding:4px 8px;color:#c3c9d6">1:100</span>
+              <span style="background:#11141aee;border:1px solid #242935;border-radius:6px;padding:4px 8px;color:#c3c9d6">قياس</span>
+              <span style="background:#11141aee;border:1px solid #242935;border-radius:6px;padding:4px 8px;color:#c3c9d6">طبقات</span>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:13px;font-weight:600">فهرس اللوحات</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{ drawings }}" as="d" hint-placeholder-count="4">
+            <div style="border:1px solid #242935;border-radius:11px;background:#141821;padding:11px;display:flex;gap:11px;align-items:center">
+              <div style="width:46px;height:34px;border-radius:5px;flex:none;background:repeating-linear-gradient(45deg,#1b202b,#1b202b 4px,#212734 4px,#212734 8px);border:1px solid #262c39"></div>
+              <div style="flex:1;min-width:0">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;direction:ltr;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ d.code }}</div>
+                <div style="font-size:10.5px;color:#6f7789;margin-top:3px">{{ d.disc }} · {{ d.rev }}</div>
+              </div>
+              <span style="font-size:10.5px;color:{{ d.c }};flex:none">{{ d.st }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isModel }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;gap:6px">
+          <span onClick="{{ go2d }}" style="flex:1;text-align:center;padding:8px;border-radius:9px;font-size:12.5px;cursor:pointer;background:#171b23;border:1px solid #242935;color:#8b93a5">مخططات 2D</span>
+          <span onClick="{{ go3d }}" style="flex:1;text-align:center;padding:8px;border-radius:9px;font-size:12.5px;font-weight:600;cursor:pointer;background:#3f6dff;color:#fff">نموذج 3D</span>
+        </div>
+        <div style="border:1px solid #242935;border-radius:12px;height:270px;background:radial-gradient(120% 100% at 50% 0%,#1a2033,#0a0c10 70%);position:relative;display:grid;place-items:center">
+          <div style="font-size:11.5px;color:#6f7789;text-align:center;line-height:2">عارض IFC / GLB<br><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;direction:ltr">STR_Rev04.ifc · 218MB · مُحسّن للجوال</span></div>
+          <div style="position:absolute;top:9px;left:9px;display:flex;flex-direction:column;gap:5px;font-size:10.5px">
+            <span style="background:#11141aee;border:1px solid #242935;border-radius:7px;padding:5px 9px">دوران</span>
+            <span style="background:#11141aee;border:1px solid #242935;border-radius:7px;padding:5px 9px">مقطع</span>
+            <span style="background:#11141aee;border:1px solid #242935;border-radius:7px;padding:5px 9px">قياس</span>
+          </div>
+        </div>
+        <div style="font-size:13px;font-weight:600">الطبقات</div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <sc-for list="{{ layers }}" as="l" hint-placeholder-count="4">
+            <div style="border:1px solid #242935;border-radius:10px;background:#141821;padding:10px 12px;display:flex;align-items:center;gap:10px">
+              <i style="width:9px;height:9px;border-radius:2px;background:{{ l.c }};flex:none"></i>
+              <span style="flex:1;font-size:12px">{{ l.n }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6f7789;direction:ltr">{{ l.count }}</span>
+              <div style="width:32px;height:18px;border-radius:99px;background:{{ l.tb }};position:relative;flex:none"><i style="position:absolute;top:2px;{{ l.side }}:2px;width:14px;height:14px;border-radius:99px;background:#fff"></i></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isBoq }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+        <div style="border:1px solid #242935;border-radius:11px;background:#141821;padding:12px 13px;display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px;color:#8b93a5">المقاول</span>
+          <span style="font-size:12.5px;font-weight:500">شركة الراسخون ▾</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{ boq }}" as="b" hint-placeholder-count="4">
+            <div style="border:1px solid #242935;border-radius:11px;background:#141821;padding:12px 13px">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#6f7789;direction:ltr">{{ b.no }}</span>
+                <span style="flex:1;font-size:12.5px;font-weight:500">{{ b.d }}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10.5px;color:#6f7789">
+                <span>{{ b.q }} {{ b.u }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace;direction:ltr">{{ b.pctL }}</span>
+              </div>
+              <div style="height:4px;background:#1e2430;border-radius:99px;margin-top:7px;overflow:hidden"><i style="display:block;height:100%;width:{{ b.w }};background:#3f6dff"></i></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isSchedule }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:16px;display:flex;flex-direction:column;gap:9px">
+        <sc-for list="{{ schedule }}" as="s" hint-placeholder-count="4">
+          <div style="border:1px solid #242935;border-radius:11px;background:#141821;padding:13px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline">
+              <span style="font-size:12.5px;font-weight:600">{{ s.t }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:{{ s.c }};direction:ltr">{{ s.pctL }}</span>
+            </div>
+            <div style="font-size:10.5px;color:#6f7789;margin-top:4px">{{ s.d }}</div>
+            <div style="height:4px;background:#1e2430;border-radius:99px;margin-top:9px;overflow:hidden"><i style="display:block;height:100%;width:{{ s.w }};background:{{ s.c }}"></i></div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isPayments }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:16px;display:flex;flex-direction:column;gap:9px">
+        <sc-for list="{{ payments }}" as="p" hint-placeholder-count="3">
+          <div style="border:1px solid #242935;border-radius:12px;background:#141821;padding:14px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline">
+              <span style="font-size:13px;font-weight:600">{{ p.no }}</span>
+              <span style="font-family:'Instrument Serif',serif;font-size:21px;direction:ltr">{{ p.amt }}</span>
+            </div>
+            <div style="font-size:11px;color:#6f7789;margin-top:4px">{{ p.c }} · ريال سعودي</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:11px;padding-top:11px;border-top:1px solid #1e222b">
+              <span style="font-size:11.5px;color:{{ p.col }}">{{ p.st }}</span>
+              <span style="font-size:11px;color:#7ea6ff">التفاصيل</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isContractors }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:16px;display:flex;flex-direction:column;gap:9px">
+        <sc-for list="{{ contractors }}" as="c" hint-placeholder-count="3">
+          <div style="border:1px solid #242935;border-radius:12px;background:#141821;padding:13px">
+            <div style="font-size:12.5px;font-weight:600">{{ c.n }}</div>
+            <div style="font-size:11px;color:#6f7789;margin-top:4px">{{ c.s }}</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#4d5566;direction:ltr">@{{ c.u }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#3f6dff;direction:ltr">{{ c.p }}</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isTech }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+          <sc-for list="{{ techStats }}" as="t" hint-placeholder-count="3">
+            <div style="border:1px solid #242935;border-radius:11px;background:#141821;padding:11px;text-align:center">
+              <div style="font-family:'Instrument Serif',serif;font-size:22px;color:{{ t.c }}">{{ t.v }}</div>
+              <div style="font-size:10px;color:#6f7789;margin-top:3px">{{ t.k }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="font-size:13px;font-weight:600">مهام المكتب الفني</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{ techTasks }}" as="t" hint-placeholder-count="4">
+            <div style="border:1px solid #242935;border-radius:11px;background:#141821;padding:12px 13px">
+              <div style="font-size:12.5px;font-weight:500;line-height:1.7">{{ t.t }}</div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:9px">
+                <span style="font-size:10.5px;color:#6f7789">{{ t.o }}</span>
+                <span style="font-size:10.5px;color:{{ t.col }}">{{ t.st }}</span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isReports }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:16px;display:flex;flex-direction:column;gap:9px">
+        <sc-for list="{{ reports }}" as="r" hint-placeholder-count="2">
+          <div style="border:1px solid #242935;border-radius:12px;background:#141821;padding:13px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline">
+              <span style="font-size:13px;font-weight:600">{{ r.d }}</span>
+              <span style="font-size:10.5px;color:#6f7789">{{ r.wx }}</span>
+            </div>
+            <div style="font-size:12px;color:#c3c9d6;margin-top:7px;line-height:1.8">{{ r.w }}</div>
+            <div style="font-size:10.5px;color:#6f7789;margin-top:8px">{{ r.crew }} · 6 معدات · بدون حوادث</div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isPhotos }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+        <div style="border:1.5px dashed #33405e;border-radius:12px;padding:18px;text-align:center;background:radial-gradient(120% 80% at 50% 0%,rgba(63,109,255,.12),transparent 70%)">
+          <div style="font-size:12.5px;color:#9db6ff;font-weight:500">التقاط صورة موقع</div>
+          <div style="font-size:10.5px;color:#6f7789;margin-top:5px">تُرفق تلقائياً بالموقع الجغرافي والدور واللوحة</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+          <sc-for list="{{ photos }}" as="p" hint-placeholder-count="4">
+            <div style="border:1px solid #242935;border-radius:11px;overflow:hidden;background:#141821">
+              <div style="aspect-ratio:4/3;background:repeating-linear-gradient(135deg,#1b202b,#1b202b 6px,#212734 6px,#212734 12px)"></div>
+              <div style="padding:8px 10px">
+                <div style="font-size:11px">{{ p.t }}</div>
+                <div style="font-size:9.5px;color:#6f7789;margin-top:3px">{{ p.m }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isRfi }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:16px;display:flex;flex-direction:column;gap:9px">
+        <sc-for list="{{ rfis }}" as="r" hint-placeholder-count="3">
+          <div style="border:1px solid #242935;border-radius:12px;background:#141821;padding:13px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6f7789;direction:ltr">{{ r.id }}</span>
+              <span style="font-size:10.5px;color:{{ r.col }}">{{ r.st }}</span>
+            </div>
+            <div style="font-size:12.5px;margin-top:7px;line-height:1.8">{{ r.t }}</div>
+            <div style="display:flex;justify-content:space-between;margin-top:9px;font-size:10.5px;color:#6f7789">
+              <span>المسؤول: {{ r.a }}</span>
+              <span>{{ r.dd }}</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isNotif }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:16px;display:flex;flex-direction:column;gap:8px">
+        <sc-for list="{{ notifs }}" as="n" hint-placeholder-count="3">
+          <div style="border:1px solid #242935;border-radius:11px;background:#141821;padding:12px 13px;display:flex;gap:11px;align-items:flex-start">
+            <i style="width:7px;height:7px;border-radius:99px;background:{{ n.c }};margin-top:5px;flex:none"></i>
+            <div style="flex:1">
+              <div style="font-size:12.5px;line-height:1.7">{{ n.t }}</div>
+              <div style="font-size:10px;color:#6f7789;margin-top:4px">{{ n.tm }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+        <div style="border:1px solid #242935;border-radius:14px;background:#141821;padding:18px;display:flex;gap:14px;align-items:center">
+          <div style="width:56px;height:56px;border-radius:99px;background:linear-gradient(160deg,#3f6dff,#1d3fb0);display:grid;place-items:center;font-size:20px;font-weight:600">فـ</div>
+          <div>
+            <div style="font-size:15px;font-weight:600">م. فهد الدوسري</div>
+            <div style="font-size:11.5px;color:#6f7789;margin-top:4px">{{ roleLabel }} · برج بصير</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:1px;border:1px solid #242935;border-radius:12px;overflow:hidden;background:#242935">
+          <sc-for list="{{ settings }}" as="s" hint-placeholder-count="5">
+            <div style="background:#141821;padding:13px 14px;display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:12.5px">{{ s.t }}</span>
+              <span style="font-size:11px;color:#6f7789">{{ s.v }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <div style="height:14px"></div>
+  </main>
+
+  <sc-if value="{{ chrome }}" hint-placeholder-val="{{ true }}">
+  <nav style="flex:none;background:#11141a;border-top:1px solid #1e222b;padding:8px 6px 8px;display:grid;grid-template-columns:repeat(5,1fr)">
+    <div onClick="{{ goHome }}" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:{{ t1c }}">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5L10 3l7 5.5V16a1 1 0 01-1 1H4a1 1 0 01-1-1V8.5z"/></svg>
+      <span style="font-size:9.5px">الرئيسية</span>
+    </div>
+    <div onClick="{{ go2d }}" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:{{ t2c }}">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="3" y="3" width="14" height="14" rx="2"/><path d="M3 8h14M8 8v9"/></svg>
+      <span style="font-size:9.5px">المخططات</span>
+    </div>
+    <div onClick="{{ goBoq }}" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:{{ t3c }}">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 16V9M8 16V4M12 16v-5M16 16V7"/></svg>
+      <span style="font-size:9.5px">المالية</span>
+    </div>
+    <div onClick="{{ goReports }}" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:{{ t4c }}">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M5 3h7l3 3v11a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1z"/><path d="M7 10h6M7 13h4"/></svg>
+      <span style="font-size:9.5px">الموقع</span>
+    </div>
+    <div onClick="{{ onMenu }}" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:#6f7789">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="5" cy="10" r="1.2"/><circle cx="10" cy="10" r="1.2"/><circle cx="15" cy="10" r="1.2"/></svg>
+      <span style="font-size:9.5px">المزيد</span>
+    </div>
+  </nav>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:760},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;home&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;login&quot;,&quot;home&quot;,&quot;drawings&quot;,&quot;model&quot;,&quot;boq&quot;,&quot;schedule&quot;,&quot;payments&quot;,&quot;contractors&quot;,&quot;tech&quot;,&quot;reports&quot;,&quot;photos&quot;,&quot;rfi&quot;,&quot;notif&quot;,&quot;profile&quot;]},&quot;role&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;owner&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;owner&quot;,&quot;consultant&quot;,&quot;tech&quot;,&quot;contractor&quot;]},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#3f6dff&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#3f6dff&quot;,&quot;#4ec48f&quot;,&quot;#c8873f&quot;,&quot;#8b6ff0&quot;]},&quot;offline&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;onNav&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(screen: string) =&gt; void&quot;},&quot;onRole&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(role: string) =&gt; void&quot;},&quot;onMenu&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;}}">
+class Component extends DCLogic {
+  nav(s) { const f = this.props.onNav; return () => { if (f) f(s); }; }
+
+  renderVals() {
+    const p = this.props;
+    const accent = p.accent ?? '#3f6dff';
+    const s = p.screen ?? 'home';
+    const role = p.role ?? 'owner';
+    const tabOf = { home:1, drawings:2, model:2, boq:3, payments:3, schedule:3, contractors:4, tech:4, reports:4, photos:4, rfi:4 };
+    const at = tabOf[s] || 0;
+    const tc = n => at === n ? accent : '#6f7789';
+
+    const roleDefs = [['owner','المالك'],['consultant','الاستشاري'],['tech','المكتب الفني'],['contractor','المقاول']];
+    const roles = roleDefs.map(([id, label]) => {
+      const on = role === id;
+      return { label, bg: on ? accent : '#171b23', fg: on ? '#fff' : '#8b93a5', bd: on ? accent : '#242935',
+               pick: () => { if (p.onRole) p.onRole(id); } };
+    });
+    const roleLabel = (roleDefs.find(r => r[0] === role) || roleDefs[0])[1];
+
+    const titles = { login:'تسجيل الدخول', home:'لوحة المشروع', drawings:'المخططات 2D', model:'النموذج 3D',
+      boq:'جدول الكميات', schedule:'الجدول الزمني', payments:'المستخلصات والدفعات', contractors:'المقاولون',
+      tech:'المكتب الفني', reports:'التقارير اليومية', photos:'الصور الميدانية', rfi:'الملاحظات و RFI',
+      notif:'الإشعارات', profile:'الملف الشخصي' };
+
+    const pct = v => ({ pctL: v + '%', w: v + '%' });
+
+    return {
+      title: titles[s] || '', roleLabel, roles, chrome: s !== 'login',
+      offline: (p.offline ?? true) && s !== 'login',
+      onMenu: () => { if (p.onMenu) p.onMenu(); },
+      goNotif: this.nav('notif'), goHome: this.nav('home'), go2d: this.nav('drawings'),
+      go3d: this.nav('model'), goBoq: this.nav('boq'), goReports: this.nav('reports'),
+      t1c: tc(1), t2c: tc(2), t3c: tc(3), t4c: tc(4),
+
+      isLogin: s==='login', isHome: s==='home', isDrawings: s==='drawings', isModel: s==='model',
+      isBoq: s==='boq', isSchedule: s==='schedule', isPayments: s==='payments',
+      isContractors: s==='contractors', isTech: s==='tech', isReports: s==='reports',
+      isPhotos: s==='photos', isRfi: s==='rfi', isNotif: s==='notif', isProfile: s==='profile',
+
+      kpis: [
+        { k:'المصروف', v:'41.2م', d:'من 68.0 مليون ر.س', c:'#e8eaf0' },
+        { k:'مهام متأخرة', v:'7', d:'3 حرجة', c:'#e06a5c' },
+        { k:'RFI مفتوح', v:'12', d:'4 تجاوزت المدة', c:'#e0a33e' },
+        { k:'سلامة', v:'96', d:'يوم بدون حوادث', c:'#4ec48f' }
+      ],
+      actions: [
+        { t:'مستخلص #7 بانتظار اعتمادك', s:'2,340,000 ر.س · شركة الراسخون', c:'#e0a33e', go: this.nav('payments') },
+        { t:'RFI-039 تجاوز المدة المحددة', s:'متأخر 5 أيام · المكتب الفني', c:'#e06a5c', go: this.nav('rfi') },
+        { t:'ARC-L07-PLAN Rev.C جاهز للمراجعة', s:'رُفع أمس · معماري', c:'#3f6dff', go: this.nav('drawings') },
+        { t:'تقرير 27 أغسطس بانتظار التوقيع', s:'صب سقف الدور السابع', c:'#4ec48f', go: this.nav('reports') }
+      ],
+      drawings: [
+        { code:'ARC-L07-PLAN', disc:'معماري', rev:'Rev.C', st:'معتمد', c:'#4ec48f' },
+        { code:'STR-FND-02', disc:'إنشائي', rev:'Rev.A', st:'قيد المراجعة', c:'#e0a33e' },
+        { code:'MEP-HVAC-11', disc:'ميكانيكا', rev:'Rev.B', st:'معتمد', c:'#4ec48f' },
+        { code:'ELE-STN-EXIST', disc:'كهرباء', rev:'Rev.0', st:'جديد', c:'#3f6dff' }
+      ],
+      layers: [
+        { n:'الأعمال الإنشائية', c:'#3f6dff', count:'12,480', tb:accent, side:'left' },
+        { n:'المعمارية', c:'#4ec48f', count:'8,120', tb:accent, side:'left' },
+        { n:'الميكانيكا والكهرباء', c:'#e0a33e', count:'5,640', tb:'#242935', side:'right' },
+        { n:'الموقع العام', c:'#8b93a5', count:'940', tb:'#242935', side:'right' }
+      ],
+      boq: [
+        Object.assign({ no:'02.10', d:'حفر وردم', u:'م3', q:'12,400' }, pct(78)),
+        Object.assign({ no:'03.20', d:'خرسانة مسلحة C40', u:'م3', q:'3,120' }, pct(54)),
+        Object.assign({ no:'04.10', d:'بلوك خرساني', u:'م2', q:'8,900' }, pct(31)),
+        Object.assign({ no:'08.30', d:'واجهات زجاجية', u:'م2', q:'2,450' }, pct(6))
+      ],
+      schedule: [
+        Object.assign({ t:'أعمال الأساسات', d:'12 يناير — 28 مارس', c:'#4ec48f' }, pct(100)),
+        Object.assign({ t:'الهيكل الخرساني', d:'01 أبريل — 15 سبتمبر', c:accent }, pct(64)),
+        Object.assign({ t:'الأعمال الكهروميكانيكية', d:'01 يوليو — 20 نوفمبر', c:accent }, pct(22)),
+        Object.assign({ t:'التشطيبات', d:'01 أكتوبر — 30 يناير', c:'#4d5566' }, pct(0))
+      ],
+      payments: [
+        { no:'مستخلص #7', c:'شركة الراسخون', amt:'2,340,000', st:'قيد اعتماد المالك', col:'#e0a33e' },
+        { no:'مستخلص #6', c:'شركة الراسخون', amt:'1,880,000', st:'مدفوع', col:'#4ec48f' },
+        { no:'مستخلص #3', c:'مؤسسة البناء الحديث', amt:'640,000', st:'مرفوض — نقص مرفقات', col:'#e06a5c' }
+      ],
+      contractors: [
+        { n:'شركة الراسخون للمقاولات', s:'الأعمال الإنشائية', p:'64%', u:'rasekhoon' },
+        { n:'مؤسسة البناء الحديث', s:'الأعمال الكهروميكانيكية', p:'22%', u:'modern-mep' },
+        { n:'شركة واجهات الرياض', s:'الواجهات والكلادينج', p:'6%', u:'ryd-facade' }
+      ],
+      techStats: [
+        { k:'قيد المراجعة', v:'9', c:'#e0a33e' },
+        { k:'معتمد هذا الشهر', v:'23', c:'#4ec48f' },
+        { k:'مرتجع', v:'4', c:'#e06a5c' }
+      ],
+      techTasks: [
+        { t:'مراجعة حسابات تصميم الكمرات — المحور C', o:'م. سارة الحربي', st:'قيد المراجعة', col:'#e0a33e' },
+        { t:'اعتماد الرسومات التنفيذية للواجهات', o:'م. فهد القحطاني', st:'بانتظار رد المقاول', col:accent },
+        { t:'مطابقة عينات المواد مع المواصفات', o:'م. نورة العتيبي', st:'مكتمل', col:'#4ec48f' },
+        { t:'تدقيق مستخلص #7 فنياً قبل رفعه للمالك', o:'م. سارة الحربي', st:'مكتمل', col:'#4ec48f' }
+      ],
+      reports: [
+        { d:'27 أغسطس', w:'صب سقف الدور السابع — 340 م3 خرسانة C40، تم أخذ 6 مكعبات اختبار.', crew:'84 عامل', wx:'42° صافٍ' },
+        { d:'26 أغسطس', w:'تركيب حديد التسليح للدور السابع واستكمال الشدة الخشبية.', crew:'78 عامل', wx:'41° صافٍ' }
+      ],
+      photos: [
+        { t:'صب السقف — الدور 7', m:'27 أغسطس · 14:20' },
+        { t:'حديد التسليح', m:'26 أغسطس · 09:05' },
+        { t:'واجهة الجهة الشمالية', m:'25 أغسطس · 16:40' },
+        { t:'غرفة الكهرباء', m:'24 أغسطس · 11:15' }
+      ],
+      rfis: [
+        { id:'RFI-042', t:'تعارض بين مسار الدكت وكمرة المحور C-4', st:'مفتوح', col:'#e0a33e', a:'الاستشاري', dd:'خلال 3 أيام' },
+        { id:'RFI-039', t:'طلب اعتماد بديل لبلاط الأرضيات', st:'متأخر', col:'#e06a5c', a:'المكتب الفني', dd:'متأخر 5 أيام' },
+        { id:'RFI-035', t:'تأكيد منسوب فتحات المصعد', st:'مغلق', col:'#4ec48f', a:'—', dd:'—' }
+      ],
+      notifs: [
+        { t:'مستخلص #7 بانتظار اعتمادك', tm:'قبل 12 دقيقة', c:'#e0a33e' },
+        { t:'RFI-039 تجاوز المدة المحددة', tm:'قبل ساعتين', c:'#e06a5c' },
+        { t:'رفع مخطط جديد ARC-L07-PLAN Rev.C', tm:'أمس', c:accent },
+        { t:'اكتمال مزامنة 12 صورة ميدانية', tm:'أمس', c:'#4ec48f' }
+      ],
+      settings: [
+        { t:'الدور الحالي', v: roleLabel },
+        { t:'اللغة', v:'العربية' },
+        { t:'التنزيل للعمل دون اتصال', v:'مفعّل · 1.2GB' },
+        { t:'الإشعارات', v:'الكل' },
+        { t:'تسجيل الخروج', v:'' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
