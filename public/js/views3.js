@@ -981,6 +981,27 @@
       }).length;
     }
 
+    /* عدد الأنشطة المتأخرة (§6-1، §9-2/9): بنود بانتظار إجراء تجاوزت مدة المراجعة (SLA).
+       يحل محل عدّاد «ملفات المستودع» عديم الدلالة القراري. */
+    function overdueFor(pid) {
+      const sla = (VS.thresholds((Sall.projects.find(function (p) { return p.id === pid; }) || {})).slaReviewDays) || 7;
+      const now = Date.now();
+      function pastSla(x) {
+        const d = x.date || x.submittedDate || x.createdAt;
+        if (!d) return false;
+        const t = new Date(d).getTime();
+        return !isNaN(t) && (now - t) > sla * 86400000;
+      }
+      let n = 0;
+      ['shopDrawings', 'materials', 'scheduleSubmittals', 'wirs', 'changeOrders', 'payments'].forEach(function (c) {
+        n += countFor(pid, c, function (x) { return x.status === 'pending' && pastSla(x); });
+      });
+      ['rfis', 'ncrs'].forEach(function (c) {
+        n += countFor(pid, c, function (x) { return x.status === 'open' && pastSla(x); });
+      });
+      return n;
+    }
+
     el.innerHTML =
       '<div class="card mb"><h3>🗂️ لوحة المشاريع <span class="hint">اختر المشروع لتعمل عليه — كل الصفحات والبيانات تتبع المشروع المحدد</span></h3></div>' +
       '<div class="grid g2">' +
@@ -989,18 +1010,22 @@
         const nCont = countFor(p.id, 'contractors');
         const nPend = ['shopDrawings', 'materials', 'scheduleSubmittals', 'wirs', 'changeOrders', 'payments']
           .reduce(function (a, c) { return a + countFor(p.id, c, function (x) { return x.status === 'pending'; }); }, 0);
-        const nFiles = countFor(p.id, 'files');
+        const nOverdue = overdueFor(p.id);
         const prog = p.progressActual || 0;
+        const planned = p.progressPlanned != null ? p.progressPlanned : null;
+        const zc = function (v) { return v ? 'num' : 'num zero'; };
         return '<div class="card" style="border-color:' + (active ? 'var(--accent)' : 'var(--border)') + '">' +
           '<div class="flex" style="justify-content:space-between">' +
           '<h3 style="margin:0">🏗️ ' + esc(p.name) + '</h3>' +
-          (active ? '<span class="pill p-ok">المشروع الحالي ✓</span>' : '<button class="btn sm" data-selproj="' + p.id + '">فتح والعمل عليه ←</button>') + '</div>' +
+          (active ? VS.statusPill('p-ok', 'المشروع الحالي', '✓') : '<button class="btn sm" data-selproj="' + p.id + '">فتح والعمل عليه ←</button>') + '</div>' +
           '<div class="small muted" style="margin:8px 0">' + esc(p.location || '—') + ' · 👨‍💼 ' + esc(p.consultantName || 'لم يعيّن استشاري') + '</div>' +
-          '<div class="flex" style="gap:8px;margin:10px 0"><div class="bar" style="flex:1"><i style="width:' + prog + '%"></i></div><b class="num small">' + prog + '%</b></div>' +
+          '<div class="flex" style="gap:8px;margin:10px 0">' + VS.progressBar(prog, planned, p) +
+          '<b class="num small">' + prog + '%</b>' +
+          (planned != null ? '<span class="small muted num">/ ' + I18n.t('المخطط') + ' ' + planned + '%</span>' : '') + '</div>' +
           '<div class="grid g3 small" style="gap:8px;text-align:center">' +
-          '<div class="card" style="padding:10px"><b class="num">' + nCont + '</b><div class="muted" style="font-size:11px">مقاول</div></div>' +
-          '<div class="card" style="padding:10px"><b class="num" style="color:' + (nPend ? 'var(--warn)' : 'var(--ok)') + '">' + nPend + '</b><div class="muted" style="font-size:11px">بانتظار الاعتماد</div></div>' +
-          '<div class="card" style="padding:10px"><b class="num">' + nFiles + '</b><div class="muted" style="font-size:11px">ملف بالمستودع</div></div>' +
+          '<div class="card" style="padding:10px"><b class="' + zc(nCont) + '">' + nCont + '</b><div class="muted" style="font-size:11px">مقاول</div></div>' +
+          '<div class="card" style="padding:10px"><b class="' + zc(nPend) + '"' + (nPend ? ' style="color:var(--status-warning)"' : '') + '>' + nPend + '</b><div class="muted" style="font-size:11px">بانتظار الاعتماد</div></div>' +
+          '<div class="card" style="padding:10px"><b class="' + zc(nOverdue) + '"' + (nOverdue ? ' style="color:var(--status-critical)"' : '') + '>' + nOverdue + '</b><div class="muted" style="font-size:11px">نشاط متأخر</div></div>' +
           '</div>' +
           '<div class="small muted mt num">الميزانية: ' + VS.millions(p.budgetPlanned || 0) + (p.startPlanned ? ' · ' + esc(p.startPlanned) + ' ← ' + esc(p.endPlanned || '') : '') + '</div>' +
           '</div>';

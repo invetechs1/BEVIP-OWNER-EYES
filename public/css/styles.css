@@ -9,10 +9,23 @@
   --accent2: #f2c078;
   --text: #e9ecf3;
   --muted: #8b95a8;
-  --ok: #2dd4a0;
-  --warn: #f2c94c;
-  --danger: #ef5d75;
-  --info: #4cc9f0;
+
+  /* ============ نظام الألوان الدلالي (Semantic Palette · §7-1) ============
+     القاعدة: اللون يتبع القيمة لا العنصر. اللون الذهبي للهوية والأزرار فقط،
+     ولا يُستخدم أبداً كحالة. */
+  --status-critical: #e5484d; /* أحمر: حرِج · متوقف · تجاوز الحد · إجراء اليوم */
+  --status-warning:  #f5a524; /* كهرماني: متأخر · يحتاج متابعة · يقترب من الحد */
+  --status-ok:       #30a46c; /* أخضر: ضمن الخطة · معتمد · مكتمل · سليم */
+  --status-info:     #4c8df6; /* أزرق: قيد المراجعة · معلوماتي · محايد */
+  --status-none:     #8b949e; /* رمادي: لم يبدأ · لا بيانات · غير منطبق */
+  --brand:           #e0a458; /* ذهبي (الهوية): الشعار · الزر الأساسي · العنصر النشط — لا للحالات */
+
+  /* روابط توافقية: الأكواد القديمة (--ok/--warn/--danger/--info) تشير الآن للنظام الدلالي */
+  --ok: var(--status-ok);
+  --warn: var(--status-warning);
+  --danger: var(--status-critical);
+  --info: var(--status-info);
+
   --radius: 14px;
   --shadow: 0 10px 30px rgba(0, 0, 0, .35);
 }
@@ -164,17 +177,24 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 .tbl tr:hover td { background: rgba(224, 164, 88, .04); }
 .tbl-wrap { overflow-x: auto; }
 
-.pill { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 11.5px; font-weight: 700; }
-.pill.p-ok { background: rgba(45, 212, 160, .14); color: var(--ok); }
-.pill.p-warn { background: rgba(242, 201, 76, .14); color: var(--warn); }
-.pill.p-danger { background: rgba(239, 93, 117, .14); color: var(--danger); }
-.pill.p-info { background: rgba(76, 201, 240, .14); color: var(--info); }
-.pill.p-muted { background: rgba(139, 149, 168, .14); color: var(--muted); }
+.pill { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+.pill .pico { margin-inline-end: 4px; font-weight: 700; }
+.pill.p-ok { background: color-mix(in srgb, var(--status-ok) 16%, transparent); color: var(--status-ok); }
+.pill.p-warn { background: color-mix(in srgb, var(--status-warning) 16%, transparent); color: var(--status-warning); }
+.pill.p-danger { background: color-mix(in srgb, var(--status-critical) 16%, transparent); color: var(--status-critical); }
+.pill.p-info { background: color-mix(in srgb, var(--status-info) 18%, transparent); color: var(--status-info); }
+.pill.p-muted, .pill.p-none { background: color-mix(in srgb, var(--status-none) 16%, transparent); color: var(--status-none); }
 
 .bar { height: 8px; background: #1a2234; border-radius: 99px; overflow: hidden; min-width: 90px; }
-.bar > i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
-.bar.b-ok > i { background: linear-gradient(90deg, #1fae85, var(--ok)); }
-.bar.b-danger > i { background: linear-gradient(90deg, #d4405c, var(--danger)); }
+/* افتراضياً يتلوّن الشريط حسب الانحراف عن الخطة (§7-2)؛ الذهبي لم يعد لون تقدّم. */
+.bar > i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, color-mix(in srgb, var(--status-none) 70%, #000), var(--status-none)); transition: width .6s ease-out; }
+.bar.b-ok > i { background: linear-gradient(90deg, color-mix(in srgb, var(--status-ok) 78%, #000), var(--status-ok)); }
+.bar.b-warn > i { background: linear-gradient(90deg, color-mix(in srgb, var(--status-warning) 80%, #000), var(--status-warning)); }
+.bar.b-danger > i { background: linear-gradient(90deg, color-mix(in srgb, var(--status-critical) 80%, #000), var(--status-critical)); }
+.bar.b-none > i { background: linear-gradient(90deg, #2a3550, var(--status-none)); }
+
+/* عدّاد بقيمة صفر يُعرض رمادياً باهتاً كي لا يجذب العين (§7-2) */
+.num.zero, .val.zero { color: var(--status-none); opacity: .75; }
 
 .btn {
   display: inline-flex; align-items: center; gap: 8px;
