@@ -110,8 +110,40 @@ html, body {
   background: linear-gradient(90deg, rgba(224, 164, 88, .16), rgba(224, 164, 88, .04));
   border-color: rgba(224, 164, 88, .35); color: var(--accent2); font-weight: 700;
 }
+.nav-item { text-decoration: none; }
 .nav-item .ico { width: 22px; text-align: center; }
-.nav-item .badge { margin-inline-start: auto; background: var(--danger); color: #fff; border-radius: 999px; font-size: 11px; padding: 1px 8px; }
+.nav-item .badge { margin-inline-start: auto; background: var(--status-critical); color: #fff; border-radius: 999px; font-size: 11px; padding: 1px 8px; }
+
+/* رابط «كل المشاريع» فوق القائمة (مستوى أعلى · §9-1/14) */
+.all-projects {
+  display: block; text-decoration: none; color: var(--muted);
+  font-size: 12.5px; padding: 6px 10px; margin: 2px 0 6px; border-radius: 8px;
+  border: 1px dashed var(--border); transition: .15s;
+}
+.all-projects:hover { color: var(--accent2); border-color: rgba(224, 164, 88, .4); }
+
+/* بحث سريع في القائمة (§10-9) */
+.nav-search {
+  width: 100%; box-sizing: border-box; margin: 4px 0 8px; padding: 8px 10px;
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 9px;
+  color: var(--text); font-size: 12.5px; font-family: inherit;
+}
+.nav-search::placeholder { color: var(--muted); }
+
+/* شريط تبويبات الشاشات الأب (§4-1/§5) */
+.tabbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+.tab {
+  background: var(--panel); border: 1px solid var(--border); color: var(--muted);
+  padding: 7px 15px; border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer;
+  font-family: inherit; transition: .15s;
+}
+.tab:hover { color: var(--text); border-color: rgba(224, 164, 88, .3); }
+.tab.active { background: var(--brand); border-color: var(--brand); color: #1a1206; }
+
+/* فتات المسار (§10-5) */
+.crumbs { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 10px 22px 0; color: var(--muted); font-size: 12px; }
+.crumbs .crumb-sep { opacity: .6; }
+.crumbs .crumb-cur { color: var(--text); font-weight: 600; }
 
 .side-user { margin-top: auto; border-top: 1px solid var(--border); padding-top: 14px; }
 .side-user .who { font-size: 13px; font-weight: 700; }
