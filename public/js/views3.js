@@ -787,7 +787,7 @@
 
       '<div class="card mt"><div class="flex" style="justify-content:space-between;flex-wrap:wrap">' +
       '<h3 style="margin:0">🏢 سجل نماذج المشروع</h3>' +
-      '<button class="btn sm" id="bm-demo3d">🧊 عرض نموذج IFC ثلاثي الأبعاد (تجريبي)</button></div>' +
+      '<button class="btn sm" id="bm-demo3d">🧊 عرض نموذج BIM ثلاثي الأبعاد (برج بصير)</button></div>' +
       '<div class="small muted mb">عرض BIM/IFC حقيقي داخل المتصفح (بلا خدمة خارجية). ملفات DWG/RVT الأصلية تحتاج مسار Autodesk APS.</div>' +
       (models.length ?
         '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>الكود</th><th>النموذج</th><th>الإصدار</th><th>المصدر</th><th>الحجم</th><th>التاريخ</th><th>الربط</th><th></th></tr></thead><tbody>' +
@@ -807,12 +807,13 @@
       '</div>';
 
     function open3d(o) {
-      if (window.DEMO_MODE || !window.BimViewer) { toast('العرض ثلاثي الأبعاد لنماذج IFC متاح في نسخة الخادم', true); return; }
+      // عرض IFC ثلاثي الأبعاد يعمل داخل المتصفح بالكامل (web-ifc + three.js) — بلا خادم
+      if (!window.BimViewer) { toast('عارض النماذج غير متوفر', true); return; }
       window.BimViewer.open(o);
     }
     const demo3d = el.querySelector('#bm-demo3d');
     if (demo3d) demo3d.addEventListener('click', function () {
-      open3d({ title: 'نموذج IFC تجريبي — بصير', url: '/vendor/bim/BassirTower-sample.ifc' });
+      open3d({ title: 'برج بصير التجاري — نموذج BIM ثلاثي الأبعاد', url: '/vendor/bim/BassirTower.ifc' });
     });
     el.querySelectorAll('[data-bim3d]').forEach(function (b) {
       b.addEventListener('click', function () {

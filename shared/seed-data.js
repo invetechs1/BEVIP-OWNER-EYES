@@ -412,7 +412,10 @@
     db.bimModels = [
       { id: 'BM1', projectId: 'P1', name: 'BassirTower_Rev03.ifc', rev: 'Rev-03', discipline: 'federated',
         source: 'cloud', url: 'https://acc.autodesk.com/models/bassir-tower-rev03', size: 486000000,
-        date: '2026-06-12', by: 'دار العمران للاستشارات', linkedBoq: true }
+        date: '2026-06-12', by: 'دار العمران للاستشارات', linkedBoq: true },
+      { id: 'BM2', projectId: 'P1', name: 'BassirTower.ifc', rev: 'Rev-04', discipline: 'federated',
+        source: 'device', url: '/vendor/bim/BassirTower.ifc', size: 152568,
+        date: '2026-07-01', by: 'دار العمران للاستشارات', linkedBoq: true }
     ];
 
     // وثائق BIM (خطة تنفيذ BIM كمثال)
@@ -762,7 +765,7 @@
 
     db.notifications = [];
     db.comments = [];
-    db.meta = { seq: 1000, seededAt: '2026-07-18', version: 18, docSeq: docSeq };
+    db.meta = { seq: 1000, seededAt: '2026-07-18', version: 19, docSeq: docSeq };
 
     return db;
   }
