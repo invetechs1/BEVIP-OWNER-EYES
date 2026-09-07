@@ -684,7 +684,7 @@
       '<div class="flex"><span style="font-size:40px;filter:drop-shadow(0 0 14px rgba(224,164,88,.7))">👁</span>' +
       '<div><b style="font-size:17px">' + I18n.t('عين المالك') + '</b><div class="small muted" style="margin-top:4px">' + I18n.t('حالة مشاريعك بنظرة واحدة: الإنجاز، الزمن، التكلفة — دون الحاجة لقراءة التقارير') + '</div></div>' +
       '<span class="spacer"></span>' +
-      '<button class="btn ghost sm" data-nav="vision">👁 ' + I18n.t('رؤية المشروع') + '</button>' +
+      '<button class="btn ghost sm" data-nav="vision">👁 ' + I18n.t('خريطة الإنجاز') + '</button>' +
       '<button class="btn ghost sm" data-nav="cameras">🎥 ' + I18n.t('الكاميرات') + '</button></div></div>' + html;
 
     el.querySelectorAll('[data-nav]').forEach(function (b) {

@@ -540,7 +540,7 @@
       '</div>' +
 
       '<div class="card"><div class="flex" style="justify-content:space-between;flex-wrap:wrap;margin-bottom:12px">' +
-      '<h3 style="margin:0">🗄️ خادم الملفات المركزي <span class="hint">استرجاع سهل، سجل نسخ لكل ملف، وتنظيم بالفئات</span></h3>' +
+      '<h3 style="margin:0">🗄️ المستندات <span class="hint">خزانة موحّدة بالفئات، استرجاع سهل، وسجل نسخ لكل ملف</span></h3>' +
       '<div class="flex"><input class="inp" id="fs-upfile" type="file" style="max-width:220px">' +
       '<select class="inp" id="fs-upcat" style="max-width:170px">' +
       DOC_CATEGORIES.map(function (c) { return '<option>' + c + '</option>'; }).join('') + '</select>' +

@@ -2104,7 +2104,7 @@
     el.innerHTML =
       '<div class="card">' +
       '<div class="flex" style="justify-content:space-between;flex-wrap:wrap;margin-bottom:12px">' +
-      '<h3 style="margin:0">📚 أرشيف المستندات <span class="hint">كل مستند مُكوَّد بصيغة BSR-المشروع-النوع-السنة-التسلسل — ' + all.length + ' مستند مؤرشف</span></h3></div>' +
+      '<h3 style="margin:0">📚 سجل كل المعاملات <span class="hint">العرض الافتراضي لكل السجلات (RFI · أوامر تغيير · مستخلصات · طلبات استلام…) — ' + all.length + ' سجل</span></h3></div>' +
       '<div class="grid" style="grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;margin-bottom:14px">' +
       '<input class="inp" id="ar-q" placeholder="🔍 بحث بالكود (BSR-...) أو المرجع أو العنوان أو الجهة..." value="' + esc(archState.q) + '">' +
       '<select class="inp" id="ar-type"><option value="all">كل الأنواع</option>' +

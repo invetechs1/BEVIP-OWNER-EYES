@@ -468,6 +468,7 @@
           '<div><label class="fl">مهلة المراجعة (SLA) — يوم</label><input class="inp num" id="th-sla" type="number" min="1" value="' + th.slaReviewDays + '"></div>' +
           '<div><label class="fl">تنبيه قرب انتهاء الضمان — يوم</label><input class="inp num" id="th-warr" type="number" min="1" value="' + th.warrantyWarnDays + '"></div>' +
           '<div><label class="fl">حد تأخر المقاول — %</label><input class="inp num" id="th-delay" type="number" min="0" value="' + th.contractorDelayPct + '"></div>' +
+          '<div><label class="fl">حد انحراف التقدّم (كهرماني/أحمر) — نقطة</label><input class="inp num" id="th-dev" type="number" min="1" value="' + th.progressAmberPct + '"></div>' +
           '<div><label class="fl">درجة تنبيه الصحة (عند/دون)</label><select class="inp" id="th-grade">' +
           ['A', 'B', 'C', 'D'].map(function (g) { return '<option value="' + g + '"' + (th.healthAlertGrade === g ? ' selected' : '') + '>' + g + (g === 'B' ? ' — جيد فأدنى' : g === 'C' ? ' — مقبول فأدنى' : g === 'D' ? ' — حرج فقط' : ' — أي هبوط') + '</option>'; }).join('') + '</select></div>' +
           '</div>' +
@@ -494,6 +495,7 @@
             slaReviewDays: Math.max(1, Number(el.querySelector('#th-sla').value) || 7),
             warrantyWarnDays: Math.max(1, Number(el.querySelector('#th-warr').value) || 90),
             contractorDelayPct: Math.max(0, Number(el.querySelector('#th-delay').value) || 3),
+            progressAmberPct: Math.max(1, Number(el.querySelector('#th-dev').value) || 10),
             healthAlertGrade: el.querySelector('#th-grade').value || 'C'
           }
         });
