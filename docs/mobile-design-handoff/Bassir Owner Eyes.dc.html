@@ -1,0 +1,2403 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/three@0.137.0/build/three.min.js"></script>
+<style>
+  body { margin: 0; background: #0d0f13; }
+  a { color: #7ea6ff; text-decoration: none; }
+  a:hover { color: #a6c1ff; }
+  @keyframes pulse { 0%,100% { opacity: .3 } 50% { opacity: 1 } }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
+  @keyframes sway { 0%,100% { transform: rotate(-2deg) } 50% { transform: rotate(2deg) } }
+  @keyframes scan { 0% { transform: translateY(-100%) } 100% { transform: translateY(100%) } }
+  ::-webkit-scrollbar { width: 9px; height: 9px }
+  ::-webkit-scrollbar-thumb { background: #262c39; border-radius: 9px }
+  ::-webkit-scrollbar-track { background: transparent }
+  input[type=range] { accent-color: #3f6dff }
+</style>
+</helmet>
+<div dir="{{ dir }}" style="min-height:100vh;background:#0d0f13;color:#e8eaf0;font-family:'IBM Plex Sans Arabic','Instrument Sans',sans-serif;font-size:14px">
+
+<sc-if value="{{ isLogin }}" hint-placeholder-val="{{ false }}">
+  <div style="min-height:100vh;display:grid;place-items:center;padding:30px;position:relative;background:radial-gradient(900px 520px at 78% -8%,rgba(63,109,255,.16),transparent 62%),radial-gradient(700px 480px at 8% 108%,rgba(78,196,143,.07),transparent 60%),#0d0f13">
+    <div style="position:absolute;top:20px;inset-inline-end:20px;display:flex;gap:3px;background:#171b23;border:1px solid #242935;border-radius:8px;padding:3px;font-family:'IBM Plex Mono',monospace;font-size:11px">
+      <button onClick="{{ setAr }}" style="border:0;background:{{ arBg }};color:{{ arCol }};font-family:inherit;font-size:11px;padding:6px 11px;border-radius:5px;cursor:pointer">AR</button>
+      <button onClick="{{ setEn }}" style="border:0;background:{{ enBg }};color:{{ enCol }};font-family:inherit;font-size:11px;padding:6px 11px;border-radius:5px;cursor:pointer">EN</button>
+    </div>
+    <div style="width:430px;max-width:100%;background:#11141a;border:1px solid #1e222b;border-radius:18px;padding:34px 32px;box-shadow:0 30px 80px rgba(0,0,0,.5)">
+      <div style="display:flex;align-items:center;gap:11px;margin-bottom:24px">
+        <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(160deg,#3f6dff,#1d3fb0);display:grid;place-items:center;font-family:'Instrument Serif',serif;font-size:19px;color:#fff">B</div>
+        <div>
+          <div style="font-weight:600;font-size:16px">{{ t.brand }}</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.15em;color:#6f7789;direction:ltr">BASSIR · OWNER EYES</div>
+        </div>
+      </div>
+      <div style="font-family:'Instrument Serif',serif;font-style:italic;font-size:24px;color:#9db6ff;line-height:1.4">{{ t.loginTitle }}</div>
+      <div style="font-size:12.5px;color:#8b93a5;margin-top:9px;line-height:1.95">{{ t.loginSub }}</div>
+      <label style="display:block;font-size:12px;color:#8b93a5;margin:22px 0 7px">{{ t.username }}</label>
+      <input value="{{ loginUser }}" onChange="{{ onUser }}" style="width:100%;box-sizing:border-box;background:#0f1218;border:1px solid #242935;border-radius:9px;padding:11px 13px;color:#e8eaf0;font-family:'IBM Plex Mono',monospace;font-size:13px;direction:ltr;outline:none">
+      <label style="display:block;font-size:12px;color:#8b93a5;margin:14px 0 7px">{{ t.password }}</label>
+      <input type="password" value="••••••••" style="width:100%;box-sizing:border-box;background:#0f1218;border:1px solid #242935;border-radius:9px;padding:11px 13px;color:#e8eaf0;font-family:'IBM Plex Mono',monospace;font-size:13px;direction:ltr;outline:none">
+      <button onClick="{{ signIn }}" style="width:100%;margin-top:22px;border:0;background:#3f6dff;color:#fff;font-family:inherit;font-size:13.5px;font-weight:600;padding:13px;border-radius:9px;cursor:pointer">{{ t.login }}</button>
+      <div style="margin-top:22px;padding-top:17px;border-top:1px dashed #242935">
+        <div style="font-size:11.5px;color:#6f7789;margin-bottom:10px">{{ t.demoAccounts }}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <sc-for list="{{ demoChips }}" as="d" hint-placeholder-count="6">
+            <button onClick="{{ d.go }}" style="border:1px solid #242935;background:#0f1218;color:#c3c9d6;font-family:inherit;font-size:11.5px;padding:7px 13px;border-radius:99px;cursor:pointer">{{ d.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isApp }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;min-height:100vh">
+
+  <aside style="width:262px;flex-shrink:0;background:#11141a;border-inline-end:1px solid #1e222b;padding:18px 13px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;gap:10px;padding:4px 8px 16px;border-bottom:1px solid #1e222b;margin-bottom:12px">
+      <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(160deg,#3f6dff,#1d3fb0);display:grid;place-items:center;font-family:'Instrument Serif',serif;font-size:17px;color:#fff">B</div>
+      <div style="line-height:1.3">
+        <div style="font-weight:600;font-size:15px">{{ t.brandShort }}</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.15em;color:#6f7789;direction:ltr">OWNER EYES</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:3px;background:#0f1218;border:1px solid #242935;border-radius:8px;padding:3px;margin-bottom:14px;font-family:'IBM Plex Mono',monospace;font-size:10.5px">
+      <button onClick="{{ setAr }}" style="flex:1;border:0;background:{{ arBg }};color:{{ arCol }};font-family:inherit;font-size:10.5px;padding:6px;border-radius:5px;cursor:pointer">العربية</button>
+      <button onClick="{{ setEn }}" style="flex:1;border:0;background:{{ enBg }};color:{{ enCol }};font-family:inherit;font-size:10.5px;padding:6px;border-radius:5px;cursor:pointer">English</button>
+    </div>
+
+    <nav style="display:flex;flex-direction:column;gap:1px">
+      <sc-for list="{{ navList }}" as="n" hint-placeholder-count="14">
+        <div>
+          <sc-if value="{{ n.isSection }}" hint-placeholder-val="{{ false }}">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.14em;color:#5f6878;padding:14px 10px 6px">{{ n.label }}</div>
+          </sc-if>
+          <sc-if value="{{ n.isPage }}" hint-placeholder-val="{{ true }}">
+            <div onClick="{{ n.go }}" style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;cursor:pointer;font-size:13px;background:{{ n.bg }};color:{{ n.col }};font-weight:{{ n.fw }};box-shadow:{{ n.shadow }}">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.06em;color:{{ n.codeCol }};border:1px solid {{ n.codeBd }};border-radius:3px;padding:2px 4px;width:24px;text-align:center;flex-shrink:0;direction:ltr">{{ n.code }}</span>
+              <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ n.label }}</span>
+              <sc-if value="{{ n.hasBadge }}" hint-placeholder-val="{{ false }}">
+                <span style="margin-inline-start:auto;background:#ef5d75;color:#fff;border-radius:99px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;padding:1px 6px;flex-shrink:0">{{ n.badge }}</span>
+              </sc-if>
+            </div>
+          </sc-if>
+        </div>
+      </sc-for>
+    </nav>
+
+    <div style="margin-top:auto;border-top:1px solid #1e222b;padding-top:13px">
+      <div style="font-size:12.5px;font-weight:600">{{ userName }}</div>
+      <div style="font-size:11px;color:#9db6ff;margin:3px 0 10px">{{ roleName }} · {{ t.demoMode }}</div>
+      <button onClick="{{ signOut }}" style="width:100%;border:1px solid #2b313d;background:#171b23;color:#e8eaf0;font-family:inherit;font-size:12px;padding:8px;border-radius:7px;cursor:pointer">{{ t.logout }}</button>
+      <button onClick="{{ resetDemo }}" style="width:100%;margin-top:6px;border:1px solid rgba(63,109,255,.4);background:transparent;color:#9db6ff;font-family:inherit;font-size:12px;padding:8px;border-radius:7px;cursor:pointer">{{ t.resetDemo }}</button>
+    </div>
+  </aside>
+
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:14px 24px;border-bottom:1px solid #1e222b;background:rgba(17,20,26,.92);backdrop-filter:blur(8px);position:sticky;top:0;z-index:30">
+      <h1 style="margin:0;font-size:19px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ pageTitle }}</h1>
+      <select value="{{ project }}" onChange="{{ onProject }}" style="background:#0f1218;border:1px solid #242935;border-radius:8px;color:#c3c9d6;font-family:inherit;font-size:12.5px;padding:8px 11px;max-width:260px;min-width:120px;flex-shrink:1;outline:none">
+        <sc-for list="{{ projects }}" as="p" hint-placeholder-count="3">
+          <option value="{{ p.id }}">{{ p.name }}</option>
+        </sc-for>
+      </select>
+      <div style="flex:1"></div>
+      <div style="display:flex;gap:3px;background:#171b23;border:1px solid #242935;border-radius:8px;padding:3px;flex-shrink:1;min-width:0;overflow-x:auto">
+        <sc-for list="{{ roleTabs }}" as="r" hint-placeholder-count="5">
+          <button onClick="{{ r.go }}" style="border:0;background:{{ r.bg }};color:{{ r.col }};font-family:inherit;font-size:11.5px;padding:5px 10px;border-radius:5px;cursor:pointer;white-space:nowrap">{{ r.label }}</button>
+        </sc-for>
+      </div>
+      <sc-for list="{{ pageActions }}" as="pa" hint-placeholder-count="1">
+        <button onClick="{{ pa.go }}" style="border:{{ pa.bd }};background:{{ pa.bg }};color:{{ pa.col }};font-family:inherit;font-size:12.5px;font-weight:{{ pa.fw }};padding:9px 16px;border-radius:8px;cursor:pointer;white-space:nowrap">{{ pa.label }}</button>
+      </sc-for>
+      <button onClick="{{ toggleBell }}" style="position:relative;border:1px solid #242935;background:#171b23;color:#c3c9d6;font-family:'IBM Plex Mono',monospace;font-size:11px;padding:8px 12px;border-radius:8px;cursor:pointer;flex-shrink:0;order:-1">
+        {{ t.notif }}
+        <sc-if value="{{ hasUnread }}" hint-placeholder-val="{{ true }}">
+          <span style="position:absolute;top:-6px;inset-inline-end:-6px;background:#ef5d75;color:#fff;border-radius:99px;font-size:9.5px;font-weight:600;padding:1px 5px">{{ unread }}</span>
+        </sc-if>
+      </button>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6f7789;direction:ltr;white-space:nowrap;flex-shrink:0">{{ today }}</span>
+    </header>
+
+    <sc-if value="{{ bellOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="position:fixed;top:66px;inset-inline-end:22px;z-index:60;width:min(420px,92vw);background:#11141a;border:1px solid #242935;border-radius:12px;box-shadow:0 24px 60px rgba(0,0,0,.55);overflow:hidden;animation:rise .18s">
+        <div style="display:flex;align-items:center;gap:9px;padding:12px 14px;border-bottom:1px solid #1e222b">
+          <b style="font-size:13px">{{ t.notifTitle }}</b>
+          <span style="background:rgba(239,93,117,.16);color:#ef5d75;border-radius:99px;font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 8px">{{ unread }}</span>
+          <div style="flex:1"></div>
+          <button onClick="{{ openNotifSettings }}" style="border:1px solid rgba(63,109,255,.4);background:transparent;color:#9db6ff;font-family:inherit;font-size:11.5px;padding:5px 10px;border-radius:6px;cursor:pointer">{{ t.settings }}</button>
+          <button onClick="{{ toggleBell }}" style="border:1px solid #2b313d;background:#171b23;color:#c3c9d6;font-family:inherit;font-size:11.5px;padding:5px 9px;border-radius:6px;cursor:pointer">✕</button>
+        </div>
+        <div style="max-height:52vh;overflow-y:auto">
+          <sc-for list="{{ notifs }}" as="n" hint-placeholder-count="4">
+            <div style="padding:11px 14px;border-bottom:1px solid #171b23;background:{{ n.bg }};border-inline-start:{{ n.mark }}">
+              <div style="font-size:12.5px;line-height:1.85;color:#c3c9d6">{{ n.text }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6f7789;margin-top:5px;direction:ltr">{{ n.time }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ addOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="position:fixed;inset:0;background:rgba(5,8,14,.72);backdrop-filter:blur(4px);z-index:85;display:flex;align-items:flex-start;justify-content:center;padding:22px;overflow-y:auto">
+        <div style="width:560px;max-width:100%;max-height:88vh;overflow-y:auto;background:#11141a;border:1px solid #242935;border-radius:16px;padding:26px;animation:rise .18s">
+          <h3 style="margin:0;font-size:16px;font-weight:600">{{ addTitle }}</h3>
+          <div style="font-size:12.5px;color:#8b93a5;margin-top:8px;line-height:1.9">{{ addSub }}</div>
+
+          <sc-for list="{{ formFields }}" as="fd" hint-placeholder-count="4">
+            <div style="margin-top:15px">
+              <label style="display:block;font-size:12px;color:#8b93a5;margin-bottom:7px">{{ fd.label }}</label>
+              <sc-if value="{{ fd.isText }}" hint-placeholder-val="{{ true }}">
+                <input value="{{ fd.value }}" onChange="{{ fd.onChange }}" placeholder="{{ fd.ph }}" style="width:100%;box-sizing:border-box;background:#0f1218;border:1px solid #242935;border-radius:9px;padding:11px 13px;color:#e8eaf0;font-family:inherit;font-size:13.5px;outline:none">
+              </sc-if>
+              <sc-if value="{{ fd.isArea }}" hint-placeholder-val="{{ false }}">
+                <textarea value="{{ fd.value }}" onChange="{{ fd.onChange }}" placeholder="{{ fd.ph }}" style="width:100%;box-sizing:border-box;min-height:78px;resize:vertical;background:#0f1218;border:1px solid #242935;border-radius:9px;padding:11px 13px;color:#e8eaf0;font-family:inherit;font-size:13.5px;line-height:1.8;outline:none"></textarea>
+              </sc-if>
+              <sc-if value="{{ fd.isSelect }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;gap:6px;flex-wrap:wrap">
+                  <sc-for list="{{ fd.options }}" as="o" hint-placeholder-count="3">
+                    <button onClick="{{ o.go }}" style="border:1px solid {{ o.bd }};background:{{ o.bg }};color:{{ o.col }};font-family:inherit;font-size:12px;padding:7px 14px;border-radius:99px;cursor:pointer">{{ o.label }}</button>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ fd.isFile }}" hint-placeholder-val="{{ false }}">
+                <div onClick="{{ pickFormFile }}" style="border:1.5px dashed #33405e;border-radius:10px;padding:14px;text-align:center;cursor:pointer">
+                  <div style="font-size:12.5px;color:#9db6ff">{{ fd.ph }}</div>
+                  <div style="font-size:11.5px;color:#6f7789;margin-top:5px;font-family:'IBM Plex Mono',monospace;direction:ltr">{{ formFileName }}</div>
+                  <input ref="{{ formFileInput }}" type="file" multiple="{{ true }}" onChange="{{ onFormFile }}" style="display:none">
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+
+          <div style="display:flex;gap:9px;margin-top:20px">
+            <button onClick="{{ saveAdd }}" style="border:0;background:#3f6dff;color:#fff;font-family:inherit;font-size:13px;font-weight:600;padding:11px 20px;border-radius:8px;cursor:pointer">{{ addSaveLabel }}</button>
+            <button onClick="{{ closeAdd }}" style="border:1px solid #2b313d;background:#171b23;color:#e8eaf0;font-family:inherit;font-size:13px;padding:11px 20px;border-radius:8px;cursor:pointer">{{ t.cancel }}</button>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+      <div style="position:fixed;bottom:24px;inset-inline-end:24px;z-index:120;background:#141821;border:1px solid #242935;border-inline-start:3px solid #4ec48f;border-radius:11px;padding:13px 18px;font-size:13px;box-shadow:0 18px 44px rgba(0,0,0,.5);animation:rise .2s">{{ toast }}</div>
+    </sc-if>
+
+    <sc-if value="{{ notifSettingsOpen }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ closeNotifSettings }}" style="position:fixed;inset:0;background:rgba(5,8,14,.72);backdrop-filter:blur(4px);z-index:80;display:flex;align-items:flex-start;justify-content:center;padding:22px;overflow-y:auto">
+        <div style="width:520px;max-width:100%;max-height:88vh;overflow-y:auto;background:#11141a;border:1px solid #242935;border-radius:16px;padding:26px">
+          <h3 style="margin:0;font-size:16px;font-weight:600">{{ t.notifSettings }}</h3>
+          <div style="font-size:12.5px;color:#8b93a5;margin-top:8px;line-height:1.9">{{ t.notifSettingsSub }}</div>
+          <label style="display:block;font-size:12px;color:#8b93a5;margin:18px 0 7px">{{ t.email }}</label>
+          <input value="owner@bassir.sa" style="width:100%;box-sizing:border-box;background:#0f1218;border:1px solid #242935;border-radius:9px;padding:11px 13px;color:#e8eaf0;font-family:'IBM Plex Mono',monospace;font-size:13px;direction:ltr;outline:none">
+          <label style="display:block;font-size:12px;color:#8b93a5;margin:14px 0 7px">{{ t.phone }}</label>
+          <input value="0555 000 111" style="width:100%;box-sizing:border-box;background:#0f1218;border:1px solid #242935;border-radius:9px;padding:11px 13px;color:#e8eaf0;font-family:'IBM Plex Mono',monospace;font-size:13px;direction:ltr;outline:none">
+          <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px">
+            <sc-for list="{{ notifChannels }}" as="c" hint-placeholder-count="2">
+              <div onClick="{{ c.toggle }}" style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:12.5px;color:{{ c.col }}">
+                <span style="width:28px;height:15px;border-radius:99px;background:{{ c.track }};position:relative;flex-shrink:0"><i style="position:absolute;top:2px;inset-inline-start:{{ c.knob }};width:11px;height:11px;border-radius:50%;background:{{ c.knobCol }};transition:.15s"></i></span>
+                {{ c.label }}
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-size:11.5px;color:#6f7789;margin-top:14px;line-height:1.85">{{ t.notifFallback }}</div>
+          <div style="display:flex;gap:9px;margin-top:20px">
+            <button onClick="{{ closeNotifSettings }}" style="border:0;background:#3f6dff;color:#fff;font-family:inherit;font-size:13px;font-weight:600;padding:11px 20px;border-radius:8px;cursor:pointer">{{ t.save }}</button>
+            <button onClick="{{ closeNotifSettings }}" style="border:1px solid #2b313d;background:#171b23;color:#e8eaf0;font-family:inherit;font-size:13px;padding:11px 20px;border-radius:8px;cursor:pointer">{{ t.cancel }}</button>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isDrawings }}" hint-placeholder-val="{{ false }}">
+    <div style="display:grid;grid-template-columns:300px minmax(560px,1fr) 292px;flex:1;min-height:0;overflow-x:auto">
+      <aside style="border-inline-end:1px solid #1e222b;background:#11141a;padding:16px;display:flex;flex-direction:column;gap:15px;min-width:0">
+        <div onDrop="{{ onDrop }}" onDragOver="{{ onDragOver }}" onDragLeave="{{ onDragLeave }}" onClick="{{ pickFiles }}" style="border:1.5px dashed {{ dropBorder }};border-radius:11px;background:{{ dropBg }};padding:19px 14px;text-align:center;cursor:pointer;transition:.15s">
+          <div style="font-family:'Instrument Serif',serif;font-style:italic;font-size:19px;color:#9db6ff">{{ t.dropTitle }}</div>
+          <div style="font-size:11.5px;color:#8b93a5;margin-top:6px;line-height:1.9">{{ t.dropSub }}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:9px;direction:ltr;color:#7c86a0">
+            <span style="border:1px solid #262c39;border-radius:3px;padding:3px 6px">DWG</span>
+            <span style="border:1px solid #262c39;border-radius:3px;padding:3px 6px">DXF</span>
+            <span style="border:1px solid #262c39;border-radius:3px;padding:3px 6px">PDF</span>
+            <span style="border:1px solid #262c39;border-radius:3px;padding:3px 6px">IFC</span>
+            <span style="border:1px solid #262c39;border-radius:3px;padding:3px 6px">RVT</span>
+            <span style="border:1px solid #262c39;border-radius:3px;padding:3px 6px">NWD</span>
+            <span style="border:1px solid #262c39;border-radius:3px;padding:3px 6px">GLB</span>
+            <span style="border:1px solid #262c39;border-radius:3px;padding:3px 6px">OBJ</span>
+            <span style="border:1px solid #262c39;border-radius:3px;padding:3px 6px">STEP</span>
+            <span style="border:1px solid #262c39;border-radius:3px;padding:3px 6px">E57</span>
+          </div>
+          <input ref="{{ fileInput }}" type="file" multiple="{{ true }}" onChange="{{ onPicked }}" style="display:none">
+        </div>
+
+        <sc-if value="{{ hasUploads }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:7px">
+            <sc-for list="{{ uploads }}" as="u" hint-placeholder-count="2">
+              <div style="border:1px solid #242935;border-radius:8px;background:#141821;padding:10px 12px;animation:rise .25s">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#9db6ff;background:rgba(63,109,255,.12);border-radius:3px;padding:3px 6px;direction:ltr">{{ u.ext }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;direction:ltr;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ u.name }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#6f7789;direction:ltr">{{ u.size }}</span>
+                </div>
+                <div style="height:3px;background:#1e2430;border-radius:99px;margin-top:9px;overflow:hidden"><i style="display:block;height:100%;width:{{ u.pctCss }};background:{{ u.barCol }};transition:width .3s"></i></div>
+                <div style="font-size:10.5px;color:{{ u.statusCol }};margin-top:6px;line-height:1.7">{{ u.statusText }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <div style="border-top:1px solid #1e222b;padding-top:13px;display:flex;flex-direction:column;gap:6px;min-height:0">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.13em;color:#5f6878">{{ t.sheetIndex }}</span>
+            <span style="margin-inline-start:auto;font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#6f7789">{{ fileCount }}</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;overflow-y:auto;max-height:44vh">
+            <sc-for list="{{ files }}" as="f" hint-placeholder-count="6">
+              <div onClick="{{ f.select }}" style="display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:9px;align-items:center;padding:6px;border-radius:8px;background:{{ f.bg }};border:1px solid {{ f.bd }};cursor:pointer">
+                <div style="aspect-ratio:4/3;border-radius:3px;background:{{ f.thumb }};border:1px solid #262c39"></div>
+                <div style="min-width:0">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;direction:ltr;text-align:{{ ltrAlign }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ f.name }}</div>
+                  <div style="font-size:10.5px;color:#8b93a5;margin-top:3px">{{ f.disc }} · {{ f.kind }}</div>
+                </div>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:{{ f.revCol }};direction:ltr">{{ f.rev }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </aside>
+
+      <section style="min-width:0;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:center;gap:7px;padding:10px 16px;border-bottom:1px solid #1e222b;background:#11141a;flex-wrap:wrap">
+          <div style="display:flex;gap:4px">
+            <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="3">
+              <button onClick="{{ tb.go }}" style="border:0;background:{{ tb.bg }};color:{{ tb.col }};font-family:inherit;font-size:12.5px;font-weight:{{ tb.fw }};padding:6px 13px;border-radius:6px;cursor:pointer;white-space:nowrap">{{ tb.label }}</button>
+            </sc-for>
+          </div>
+          <div style="width:1px;height:20px;background:#242935;margin:0 5px"></div>
+          <div style="display:flex;gap:4px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;direction:ltr">
+            <sc-for list="{{ tools }}" as="tl" hint-placeholder-count="4">
+              <button onClick="{{ tl.go }}" style="border:1px solid {{ tl.bd }};background:{{ tl.bg }};color:{{ tl.col }};font-family:'IBM Plex Mono',monospace;font-size:10.5px;border-radius:5px;padding:5px 9px;cursor:pointer">{{ tl.label }}</button>
+            </sc-for>
+          </div>
+          <div style="flex:1"></div>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#6f7789;direction:ltr">{{ stageMeta }}</span>
+        </div>
+
+        <sc-if value="{{ is3d }}" hint-placeholder-val="{{ true }}">
+          <div style="flex:1;position:relative;min-height:540px;background:radial-gradient(900px 520px at 50% 6%,#182033,#0b0d12 72%)">
+            <div ref="{{ viewportRef }}" onClick="{{ onStageClick }}" style="position:absolute;inset:0;cursor:crosshair"></div>
+            <div style="position:absolute;top:14px;inset-inline-start:14px;background:rgba(17,20,26,.88);border:1px solid #242935;border-radius:9px;padding:11px 13px;width:184px;backdrop-filter:blur(6px)">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.12em;color:#5f6878;margin-bottom:8px">{{ t.layers }}</div>
+              <sc-for list="{{ layerRows }}" as="l" hint-placeholder-count="3">
+                <div onClick="{{ l.toggle }}" style="display:flex;align-items:center;gap:8px;padding:5px 0;cursor:pointer;font-size:12px;color:{{ l.col }}">
+                  <span style="width:26px;height:14px;border-radius:99px;background:{{ l.track }};position:relative;flex-shrink:0"><i style="position:absolute;top:2px;inset-inline-start:{{ l.knob }};width:10px;height:10px;border-radius:50%;background:{{ l.knobCol }};transition:.15s"></i></span>
+                  {{ l.label }}
+                </div>
+              </sc-for>
+              <div style="border-top:1px solid #242935;margin-top:9px;padding-top:10px">
+                <div style="display:flex;justify-content:space-between;font-size:11.5px;color:#8b93a5"><span>{{ t.section }}</span><span style="font-family:'IBM Plex Mono',monospace;color:#9db6ff;direction:ltr">{{ sectionLabel }}</span></div>
+                <input type="range" min="10" max="100" value="{{ section }}" onChange="{{ onSection }}" onInput="{{ onSection }}" style="width:100%;margin-top:8px">
+              </div>
+            </div>
+            <div style="position:absolute;bottom:14px;inset-inline-start:14px;display:flex;flex-direction:column-reverse;gap:4px">
+              <sc-for list="{{ floorChips }}" as="fc" hint-placeholder-count="6">
+                <div onClick="{{ fc.go }}" style="display:flex;align-items:center;gap:9px;background:{{ fc.bg }};border:1px solid {{ fc.bd }};border-radius:6px;padding:4px 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;direction:ltr;cursor:pointer;color:{{ fc.col }}">{{ fc.label }}<span style="color:#6f7789">{{ fc.pct }}</span></div>
+              </sc-for>
+            </div>
+            <div style="position:absolute;top:14px;inset-inline-end:14px;background:rgba(17,20,26,.9);border:1px solid #242935;border-radius:9px;padding:12px 14px;width:214px;backdrop-filter:blur(6px)">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.12em;color:#5f6878;margin-bottom:8px">{{ t.selected }}</div>
+              <div style="font-size:13.5px;font-weight:600">{{ selName }}</div>
+              <div style="display:flex;flex-direction:column;gap:7px;margin-top:11px;font-size:12px">
+                <div style="display:flex;justify-content:space-between"><span style="color:#8b93a5">{{ t.boqItem }}</span><a href="#boq" style="font-family:'IBM Plex Mono',monospace;direction:ltr">{{ selBoq }}</a></div>
+                <div style="display:flex;justify-content:space-between"><span style="color:#8b93a5">{{ t.concrete }}</span><span style="font-family:'IBM Plex Mono',monospace;direction:ltr">{{ selVol }}</span></div>
+                <div style="display:flex;justify-content:space-between"><span style="color:#8b93a5">{{ t.progress }}</span><span style="color:{{ selCol }}">{{ selPct }}</span></div>
+              </div>
+              <sc-if value="{{ hasMeasure }}" hint-placeholder-val="{{ false }}">
+                <div style="border-top:1px solid #242935;margin-top:11px;padding-top:10px;font-size:12px;display:flex;justify-content:space-between"><span style="color:#8b93a5">{{ t.distance }}</span><span style="font-family:'IBM Plex Mono',monospace;color:#f2c94c;direction:ltr">{{ measureLabel }}</span></div>
+              </sc-if>
+            </div>
+            <div style="position:absolute;bottom:14px;inset-inline-end:14px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#5f6a80;direction:ltr;text-align:end;line-height:1.9">WEBGL · IFC/GLB/OBJ<br><span style="color:#3f6dff;animation:pulse 2.4s infinite">● live</span></div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ is2d }}" hint-placeholder-val="{{ false }}">
+          <div style="flex:1;min-height:540px;background:#0b0d12;padding:16px 20px 20px;display:flex;flex-direction:column;align-items:center;gap:12px">
+            <div style="width:min(860px,100%);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <sc-if value="{{ sheetHasFile }}" hint-placeholder-val="{{ false }}">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#9db6ff;background:rgba(63,109,255,.12);border-radius:4px;padding:4px 8px;direction:ltr">{{ sheetExt }}</span>
+              </sc-if>
+              <sc-if value="{{ sheetHasFile }}" hint-placeholder-val="{{ false }}">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;direction:ltr;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ sheetName }}</span>
+              </sc-if>
+              <sc-if value="{{ sheetHasUrl }}" hint-placeholder-val="{{ false }}">
+                <a href="{{ sheetHref }}" target="_blank" style="font-size:11.5px;border:1px solid #2b313d;border-radius:6px;padding:5px 10px;margin-inline-start:auto;white-space:nowrap">{{ t.openTab }}</a>
+              </sc-if>
+              <span style="font-size:11.5px;color:#6f7789">{{ sheetMeta }}</span>
+            </div>
+            <div onClick="{{ onSheetClick }}" style="position:relative;width:min(860px,100%);aspect-ratio:1.42;background:{{ sheetBg }};border-radius:4px;box-shadow:0 20px 60px rgba(0,0,0,.5);cursor:crosshair;overflow:hidden">
+              <sc-if value="{{ sheetIsMedia }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;inset:0;background:#fff">{{ sheetMedia }}</div>
+              </sc-if>
+              <sc-if value="{{ sheetIsCad }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;inset:0;background:#0f1218;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:30px;text-align:center">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;color:#9db6ff;direction:ltr">{{ sheetExt }} · SERVER CONVERSION</div>
+                  <div style="font-size:14px;color:#e8eaf0;font-family:'IBM Plex Mono',monospace;direction:ltr;max-width:90%;overflow-wrap:anywhere">{{ sheetName }}</div>
+                  <div style="font-size:12.5px;color:#8b93a5;line-height:1.95;max-width:460px">{{ t.cadNote }}</div>
+                  <a href="{{ sheetHref }}" download="{{ sheetName }}" style="font-size:12.5px;border:1px solid rgba(63,109,255,.45);border-radius:8px;padding:8px 16px">{{ t.download }}</a>
+                </div>
+              </sc-if>
+              <sc-if value="{{ sheetIsDemo }}" hint-placeholder-val="{{ true }}">
+                <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(90,110,150,.13) 1px,transparent 1px),linear-gradient(90deg,rgba(90,110,150,.13) 1px,transparent 1px);background-size:26px 26px"></div>
+                <div style="position:absolute;inset:34px 34px 74px;border:2px solid #4a5673"></div>
+                <div style="position:absolute;top:34px;inset-inline-start:34px;width:33%;height:44%;border:1.5px solid #6b7796;background:repeating-linear-gradient(45deg,transparent,transparent 7px,rgba(107,119,150,.16) 7px,rgba(107,119,150,.16) 14px)"></div>
+                <div style="position:absolute;top:34px;inset-inline-end:34px;width:38%;height:30%;border:1.5px solid #6b7796"></div>
+                <div style="position:absolute;bottom:74px;inset-inline-start:34px;width:52%;height:26%;border:1.5px solid #6b7796"></div>
+                <div style="position:absolute;bottom:16px;inset-inline-end:34px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#4a5673;direction:ltr;text-align:end;line-height:1.8">ARC-L07-PLAN · REV 02<br>SCALE 1:100 · A1</div>
+              </sc-if>
+              <div style="position:absolute;bottom:12px;inset-inline-start:16px;font-size:11.5px;color:{{ sheetHintCol }};background:rgba(13,15,19,.5);border-radius:6px;padding:4px 9px">{{ t.clickToPin }}</div>
+              <sc-for list="{{ pins }}" as="p" hint-placeholder-count="0">
+                <div style="position:absolute;top:{{ p.top }};inset-inline-start:{{ p.left }};transform:translate(50%,-50%);width:24px;height:24px;border-radius:50%;background:{{ p.col }};color:#0d0f13;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;display:grid;place-items:center;box-shadow:0 3px 10px rgba(0,0,0,.4);animation:rise .2s">{{ p.n }}</div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isCompare }}" hint-placeholder-val="{{ false }}">
+          <div style="flex:1;min-height:540px;background:#0b0d12;padding:20px;display:flex;flex-direction:column;gap:13px;align-items:center;justify-content:center">
+            <div style="position:relative;width:min(860px,100%);aspect-ratio:1.42;border-radius:4px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+              <div style="position:absolute;inset:0;background:#f4f2ec;background-image:linear-gradient(rgba(90,110,150,.13) 1px,transparent 1px),linear-gradient(90deg,rgba(90,110,150,.13) 1px,transparent 1px);background-size:26px 26px"></div>
+              <div style="position:absolute;inset:30px;border:2px solid #8d97ad"></div>
+              <div style="position:absolute;top:30px;inset-inline-start:30px;width:34%;height:46%;border:1.5px solid #8d97ad"></div>
+              <div style="position:absolute;inset:0;clip-path:inset(0 0 0 {{ comparePct }});background:#eef2ff;background-image:linear-gradient(rgba(63,109,255,.16) 1px,transparent 1px),linear-gradient(90deg,rgba(63,109,255,.16) 1px,transparent 1px);background-size:26px 26px"></div>
+              <div style="position:absolute;inset:0;clip-path:inset(0 0 0 {{ comparePct }})">
+                <div style="position:absolute;inset:30px;border:2px solid #3f6dff"></div>
+                <div style="position:absolute;top:30px;inset-inline-start:30px;width:41%;height:46%;border:2px solid #ef5d75;background:rgba(239,93,117,.1)"></div>
+                <div style="position:absolute;bottom:30px;inset-inline-end:30px;width:26%;height:30%;border:2px solid #ef5d75;background:rgba(239,93,117,.1)"></div>
+              </div>
+              <div style="position:absolute;top:0;bottom:0;inset-inline-start:{{ comparePct }};width:2px;background:#3f6dff;box-shadow:0 0 14px rgba(63,109,255,.7)"></div>
+              <div style="position:absolute;top:10px;inset-inline-start:14px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#5b6480;direction:ltr">REV 03</div>
+              <div style="position:absolute;top:10px;inset-inline-end:14px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#3f6dff;direction:ltr">REV 04</div>
+            </div>
+            <input type="range" min="0" max="100" value="{{ compare }}" onChange="{{ onCompare }}" onInput="{{ onCompare }}" style="width:min(860px,100%)">
+            <div style="font-size:12.5px;color:#8b93a5">{{ t.compareHint }}</div>
+          </div>
+        </sc-if>
+      </section>
+
+      <aside style="border-inline-start:1px solid #1e222b;background:#11141a;padding:16px;display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <h2 style="margin:0;font-size:14px;font-weight:600">{{ t.reviewTitle }}</h2>
+          <span style="margin-inline-start:auto;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6f7789">{{ noteCount }}</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:9px;overflow-y:auto">
+          <sc-for list="{{ notes }}" as="n" hint-placeholder-count="3">
+            <div style="border:1px solid #242935;border-inline-start:2px solid {{ n.col }};border-radius:8px;background:#141821;padding:11px 12px">
+              <div style="display:flex;align-items:center;gap:7px">
+                <span style="width:18px;height:18px;border-radius:50%;background:{{ n.col }};color:#0d0f13;font-family:'IBM Plex Mono',monospace;font-size:10px;display:grid;place-items:center;flex-shrink:0">{{ n.n }}</span>
+                <span style="font-size:12.5px;font-weight:600">{{ n.who }}</span>
+                <span style="margin-inline-start:auto;font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#6f7789;direction:ltr">{{ n.time }}</span>
+              </div>
+              <p style="margin:8px 0 0;font-size:12.5px;line-height:1.85;color:#c3c9d6">{{ n.txt }}</p>
+            </div>
+          </sc-for>
+        </div>
+        <div style="margin-top:auto;border-top:1px solid #1e222b;padding-top:13px">
+          <div style="font-size:12px;color:#8b93a5;line-height:1.95;margin-bottom:11px">{{ approvalHint }}</div>
+          <div style="display:flex;gap:8px">
+            <button onClick="{{ approve }}" style="flex:1;border:0;background:{{ approveBg }};color:#fff;font-family:inherit;font-size:12.5px;font-weight:600;padding:10px;border-radius:8px;cursor:pointer">{{ approveLabel }}</button>
+            <button onClick="{{ addNote }}" style="flex:1;border:1px solid #2b313d;background:#171b23;color:#e8eaf0;font-family:inherit;font-size:12.5px;padding:10px;border-radius:8px;cursor:pointer">{{ t.addNote }}</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ isOwnerEye }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 26px 46px;display:flex;flex-direction:column;gap:18px;max-width:1560px;width:100%;box-sizing:border-box;margin:0 auto">
+        <div style="background:#11141a;border:1px solid #1e222b;border-radius:13px;padding:20px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:15px">
+            <h2 style="margin:0;font-size:15px;font-weight:600">{{ t.eyeFloors }}</h2>
+            <span style="font-size:12px;color:#6f7789">{{ t.eyeFloorsHint }}</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:6px">
+            <sc-for list="{{ eyeFloors }}" as="e" hint-placeholder-count="12">
+              <div onClick="{{ e.go }}" style="text-align:center;padding:12px 6px;border-radius:9px;border:1px solid {{ e.bd }};background:{{ e.bg }};cursor:pointer;display:flex;flex-direction:column;gap:4px">
+                <b style="font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:500;color:{{ e.col }};direction:ltr">{{ e.label }}</b>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:{{ e.col }};direction:ltr">{{ e.pct }}</span>
+                <span style="font-size:10.5px;color:#6f7789">{{ e.state }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:13px">
+          <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+            <div style="background:#11141a;border:1px solid #1e222b;border-radius:12px;padding:17px 19px;position:relative;overflow:hidden">
+              <div style="position:absolute;top:0;bottom:0;inset-inline-start:0;width:3px;background:{{ k.col }}"></div>
+              <div style="font-size:12px;color:#8b93a5">{{ k.label }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:500;margin:9px 0 4px;direction:ltr;text-align:{{ ltrAlign }}">{{ k.val }}</div>
+              <div style="font-size:11.5px;color:{{ k.col }}">{{ k.sub }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div style="background:#11141a;border:1px solid #1e222b;border-radius:12px;padding:19px">
+            <h2 style="margin:0 0 14px;font-size:15px;font-weight:600">{{ t.sitePhotos }}</h2>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">
+              <sc-for list="{{ photos }}" as="p" hint-placeholder-count="4">
+                <div style="border:1px solid #242935;border-radius:10px;overflow:hidden;background:#141821">
+                  <div style="height:96px;background:{{ p.fill }};position:relative;overflow:hidden">
+                    <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent,rgba(76,201,240,.12),transparent);animation:scan 3s infinite"></div>
+                  </div>
+                  <div style="padding:10px 11px">
+                    <div style="font-size:12px">{{ p.title }}</div>
+                    <div style="font-size:11px;color:#4cc9f0;margin-top:5px;line-height:1.7">{{ p.ai }}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="background:#11141a;border:1px solid #1e222b;border-radius:12px;padding:19px">
+            <h2 style="margin:0 0 14px;font-size:15px;font-weight:600">{{ t.timeline }}</h2>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <sc-for list="{{ timeline }}" as="tl" hint-placeholder-count="5">
+                <div style="display:grid;grid-template-columns:auto minmax(0,1fr);gap:11px;align-items:start">
+                  <span style="width:9px;height:9px;border-radius:50%;background:{{ tl.col }};margin-top:5px;box-shadow:0 0 0 3px {{ tl.halo }}"></span>
+                  <div>
+                    <div style="font-size:12.5px;line-height:1.75">{{ tl.txt }}</div>
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6f7789;margin-top:4px;direction:ltr">{{ tl.time }}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isDash }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 26px 46px;display:flex;flex-direction:column;gap:18px;max-width:1560px;margin:0 auto;width:100%;box-sizing:border-box">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:13px">
+          <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+            <div style="background:#11141a;border:1px solid #1e222b;border-radius:12px;padding:17px 19px;position:relative;overflow:hidden">
+              <div style="position:absolute;top:0;bottom:0;inset-inline-start:0;width:3px;background:{{ k.col }}"></div>
+              <div style="font-size:12px;color:#8b93a5">{{ k.label }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:500;margin:9px 0 4px;direction:ltr;text-align:{{ ltrAlign }}">{{ k.val }}</div>
+              <div style="font-size:11.5px;color:{{ k.col }}">{{ k.sub }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:grid;grid-template-columns:1.55fr 1fr;gap:16px;align-items:start">
+          <div style="background:#11141a;border:1px solid #1e222b;border-radius:12px;padding:19px">
+            <h2 style="margin:0 0 15px;font-size:15px;font-weight:600">{{ t.floorProgress }}</h2>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <sc-for list="{{ progressRows }}" as="p" hint-placeholder-count="12">
+                <div style="display:grid;grid-template-columns:50px minmax(0,1fr) 52px;gap:12px;align-items:center">
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8b93a5;direction:ltr">{{ p.label }}</span>
+                  <div style="height:7px;background:#1a1f29;border-radius:99px;overflow:hidden"><i style="display:block;height:100%;width:{{ p.pctCss }};background:{{ p.col }};border-radius:99px"></i></div>
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:{{ p.col }};direction:ltr;text-align:end">{{ p.pct }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="background:#11141a;border:1px solid #1e222b;border-radius:12px;padding:19px">
+            <h2 style="margin:0 0 13px;font-size:15px;font-weight:600">{{ t.alerts }}</h2>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <sc-for list="{{ alerts }}" as="a" hint-placeholder-count="3">
+                <div style="border:1px solid {{ a.bd }};background:{{ a.bg }};border-radius:9px;padding:12px 13px">
+                  <div style="font-size:12.5px;font-weight:600;color:{{ a.col }}">{{ a.title }}</div>
+                  <p style="margin:7px 0 0;font-size:12.5px;line-height:1.85;color:#c3c9d6">{{ a.txt }}</p>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+        <div style="background:#11141a;border:1px solid #1e222b;border-radius:12px;padding:19px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:13px">
+            <h2 style="margin:0;font-size:15px;font-weight:600">{{ t.latestFiles }}</h2>
+            <button onClick="{{ goDrawings }}" style="margin-inline-start:auto;border:1px solid #2b313d;background:#171b23;color:#c3c9d6;font-family:inherit;font-size:12px;padding:7px 13px;border-radius:7px;cursor:pointer">{{ t.openHub }}</button>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:11px">
+            <sc-for list="{{ files }}" as="f" hint-placeholder-count="6">
+              <div onClick="{{ f.select }}" style="border:1px solid #242935;border-radius:10px;overflow:hidden;background:#141821;cursor:pointer">
+                <div style="aspect-ratio:4/3;background:{{ f.thumb }};border-bottom:1px solid #242935;position:relative">
+                  <span style="position:absolute;top:7px;inset-inline-end:7px;font-family:'IBM Plex Mono',monospace;font-size:9px;background:rgba(13,15,19,.8);border:1px solid #2b313d;border-radius:3px;padding:2px 5px;direction:ltr">{{ f.ext }}</span>
+                </div>
+                <div style="padding:10px 11px">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;direction:ltr;text-align:{{ ltrAlign }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ f.name }}</div>
+                  <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:10.5px;color:#8b93a5"><span>{{ f.disc }}</span><span style="font-family:'IBM Plex Mono',monospace;direction:ltr">{{ f.rev }}</span></div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isVision }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 26px 46px;display:grid;grid-template-columns:minmax(0,1fr) 336px;gap:18px;max-width:1560px;margin:0 auto;width:100%;box-sizing:border-box;align-items:start">
+        <div style="display:flex;flex-direction:column;gap:15px">
+          <div style="display:flex;gap:5px;flex-wrap:wrap">
+            <sc-for list="{{ discChips }}" as="d" hint-placeholder-count="5">
+              <div style="display:inline-flex;align-items:center;gap:8px;background:{{ d.bg }};border:1px solid {{ d.bd }};border-radius:9px;padding:8px 13px;font-size:12.5px;color:{{ d.col }}">
+                <span style="width:9px;height:9px;border-radius:50%;background:{{ d.dot }}"></span>{{ d.label }}
+              </div>
+            </sc-for>
+          </div>
+          <div style="background:#0b0d12;border:1px solid #1e222b;border-radius:12px;padding:18px">
+            <div style="position:relative;aspect-ratio:1.7;background:#0f1218;border:1px solid #242935;border-radius:8px;overflow:hidden">
+              <div style="position:absolute;inset:0;background-image:linear-gradient(#161c28 1px,transparent 1px),linear-gradient(90deg,#161c28 1px,transparent 1px);background-size:40px 40px"></div>
+              <sc-for list="{{ zones }}" as="z" hint-placeholder-count="4">
+                <div style="position:absolute;top:{{ z.top }};inset-inline-start:{{ z.left }};width:{{ z.w }};height:{{ z.h }};border:1.5px solid {{ z.col }};background:{{ z.fill }};border-radius:4px;padding:9px 11px;box-sizing:border-box">
+                  <div style="font-size:12px;font-weight:600;color:{{ z.col }}">{{ z.name }}</div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#8b93a5;margin-top:4px;direction:ltr;text-align:{{ ltrAlign }}">{{ z.pct }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex;gap:18px;margin-top:13px;font-size:11.5px;color:#8b93a5;flex-wrap:wrap">
+              <span><i style="display:inline-block;width:22px;height:9px;border-radius:3px;background:#4ec48f;margin-inline-end:7px;vertical-align:middle"></i>{{ t.done }}</span>
+              <span><i style="display:inline-block;width:22px;height:9px;border-radius:3px;background:#f2c94c;margin-inline-end:7px;vertical-align:middle"></i>{{ t.inProgress }}</span>
+              <span><i style="display:inline-block;width:22px;height:9px;border-radius:3px;background:#3f6dff;margin-inline-end:7px;vertical-align:middle"></i>{{ t.planned }}</span>
+            </div>
+          </div>
+        </div>
+        <div style="background:#11141a;border:1px solid #1e222b;border-radius:12px;padding:19px">
+          <h2 style="margin:0 0 14px;font-size:15px;font-weight:600">{{ t.boqLinked }}</h2>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <sc-for list="{{ boq }}" as="b" hint-placeholder-count="5">
+              <div style="border-bottom:1px solid #1a1f29;padding-bottom:10px">
+                <div style="display:flex;align-items:center;gap:9px">
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#9db6ff;direction:ltr">{{ b.code }}</span>
+                  <span style="font-size:12.5px">{{ b.name }}</span>
+                  <span style="margin-inline-start:auto;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8b93a5;direction:ltr">{{ b.qty }}</span>
+                </div>
+                <div style="height:5px;background:#1a1f29;border-radius:99px;margin-top:8px;overflow:hidden"><i style="display:block;height:100%;width:{{ b.pctCss }};background:{{ b.col }};border-radius:99px"></i></div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isCameras }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 26px 46px;max-width:1560px;margin:0 auto;width:100%;box-sizing:border-box;display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+        <sc-for list="{{ cameras }}" as="c" hint-placeholder-count="6">
+          <div style="background:#11141a;border:1px solid #1e222b;border-radius:12px;overflow:hidden">
+            <div style="display:flex;align-items:center;gap:8px;padding:12px 14px">
+              <span style="width:8px;height:8px;border-radius:50%;background:{{ c.dot }};animation:pulse 1.4s infinite"></span>
+              <span style="font-size:13px;font-weight:600">{{ c.name }}</span>
+              <span style="margin-inline-start:auto;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6f7789;direction:ltr">{{ c.res }}</span>
+            </div>
+            <div style="height:186px;position:relative;background:{{ c.bg }};border-top:1px solid #1e222b;border-bottom:1px solid #1e222b;overflow:hidden">
+              <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(90,110,150,.07) 1px,transparent 1px);background-size:100% 4px"></div>
+              <div style="position:absolute;bottom:22px;inset-inline-start:22%;width:52px;height:74px;background:rgba(63,109,255,.16);border:1px solid rgba(63,109,255,.4);border-radius:2px"></div>
+              <div style="position:absolute;bottom:22px;inset-inline-start:44%;width:88px;height:104px;background:rgba(78,196,143,.12);border:1px solid rgba(78,196,143,.35);border-radius:2px"></div>
+              <div style="position:absolute;bottom:96px;inset-inline-start:14%;width:2px;height:64px;background:#3d4658;transform-origin:bottom;animation:sway 6s ease-in-out infinite"></div>
+              <div style="position:absolute;inset-inline:0;bottom:0;display:flex;justify-content:space-between;padding:6px 12px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#9fe8c9;background:linear-gradient(0deg,rgba(5,8,14,.85),transparent);direction:ltr">
+                <span>{{ c.code }}</span><span>{{ c.stamp }}</span>
+              </div>
+            </div>
+            <div style="padding:12px 14px;display:flex;align-items:center;gap:9px">
+              <span style="font-size:11.5px;color:#8b93a5">{{ c.status }}</span>
+              <button style="margin-inline-start:auto;border:1px solid #2b313d;background:#171b23;color:#c3c9d6;font-family:inherit;font-size:11.5px;padding:6px 11px;border-radius:6px;cursor:pointer">{{ t.snapshot }}</button>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isAi }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 26px 46px;max-width:1180px;margin:0 auto;width:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:12px">
+        <sc-for list="{{ aiItems }}" as="a" hint-placeholder-count="5">
+          <div style="display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:15px;align-items:start;border:1px solid {{ a.bd }};background:{{ a.bg }};border-radius:12px;padding:16px 18px">
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:{{ a.col }};border:1px solid {{ a.bd }};border-radius:4px;padding:4px 7px;direction:ltr">{{ a.tag }}</span>
+            <div>
+              <div style="font-size:13.5px;font-weight:600;color:{{ a.col }}">{{ a.title }}</div>
+              <p style="margin:7px 0 0;font-size:13px;line-height:1.9;color:#c3c9d6">{{ a.txt }}</p>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#6f7789;margin-top:8px;direction:ltr">{{ a.meta }}</div>
+            </div>
+            <button style="border:1px solid #2b313d;background:#171b23;color:#c3c9d6;font-family:inherit;font-size:11.5px;padding:7px 12px;border-radius:7px;cursor:pointer;white-space:nowrap">{{ t.details }}</button>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isContractors }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 26px 46px;display:grid;grid-template-columns:336px minmax(560px,1fr);gap:18px;max-width:1560px;margin:0 auto;width:100%;box-sizing:border-box;align-items:start;overflow-x:auto">
+        <aside style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ contractorCards }}" as="c" hint-placeholder-count="4">
+            <div onClick="{{ c.go }}" style="background:{{ c.bg }};border:1px solid {{ c.bd }};border-radius:12px;padding:15px 16px;cursor:pointer">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-size:13.5px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.name }}</span>
+                <span style="margin-inline-start:auto;font-size:10.5px;padding:3px 9px;border-radius:99px;background:{{ c.tradeBg }};color:{{ c.tradeCol }};white-space:nowrap">{{ c.trade }}</span>
+              </div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#c3c9d6;margin-top:9px;direction:ltr;text-align:{{ ltrAlign }}">{{ c.value }}</div>
+              <div style="height:6px;background:#1a1f29;border-radius:99px;margin-top:9px;overflow:hidden"><i style="display:block;height:100%;width:{{ c.pctCss }};background:{{ c.col }};border-radius:99px"></i></div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:11px;color:#8b93a5">
+                <span>{{ c.items }}</span>
+                <span style="margin-inline-start:auto;font-family:'IBM Plex Mono',monospace;color:{{ c.col }};direction:ltr">{{ c.pctCss }}</span>
+              </div>
+              <sc-if value="{{ c.hasNotice }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top:9px;font-size:11px;color:#ef5d75;border-top:1px solid #1e222b;padding-top:8px">{{ c.notice }}</div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </aside>
+
+        <section style="background:#11141a;border:1px solid #1e222b;border-radius:13px;overflow:hidden">
+          <div style="display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid #1e222b;flex-wrap:wrap">
+            <h2 style="margin:0;font-size:16px;font-weight:600">{{ cName }}</h2>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6f7789;direction:ltr">{{ cContractNo }}</span>
+            <div style="flex:1"></div>
+            <div style="display:flex;gap:4px;flex-wrap:wrap">
+              <sc-for list="{{ cTabs }}" as="ct" hint-placeholder-count="5">
+                <button onClick="{{ ct.go }}" style="border:0;background:{{ ct.bg }};color:{{ ct.col }};font-family:inherit;font-size:12.5px;font-weight:{{ ct.fw }};padding:7px 13px;border-radius:7px;cursor:pointer;white-space:nowrap">{{ ct.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+
+          <sc-if value="{{ cIsContract }}" hint-placeholder-val="{{ true }}">
+            <div style="padding:20px">
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px">
+                <sc-for list="{{ cContractCards }}" as="k" hint-placeholder-count="4">
+                  <div style="background:#141821;border:1px solid #242935;border-radius:11px;padding:15px 16px">
+                    <div style="font-size:11.5px;color:#8b93a5">{{ k.label }}</div>
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:500;margin-top:8px;direction:ltr;text-align:{{ ltrAlign }};color:{{ k.col }}">{{ k.val }}</div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px">
+                <div style="background:#141821;border:1px solid #242935;border-radius:11px;padding:16px 18px">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.12em;color:#5f6878;margin-bottom:11px">{{ t.cScope }}</div>
+                  <div style="font-size:13px;line-height:1.9;color:#c3c9d6">{{ cScope }}</div>
+                </div>
+                <div style="background:#141821;border:1px solid #242935;border-radius:11px;padding:16px 18px">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.12em;color:#5f6878;margin-bottom:11px">{{ t.cLinked }}</div>
+                  <div style="display:flex;flex-direction:column;gap:8px;font-size:12.5px">
+                    <div style="display:flex;justify-content:space-between"><span style="color:#8b93a5">{{ t.cBoqItems }}</span><span style="font-family:'IBM Plex Mono',monospace;direction:ltr">{{ cItemCount }}</span></div>
+                    <div style="display:flex;justify-content:space-between"><span style="color:#8b93a5">{{ t.cExecuted }}</span><span style="color:{{ cCol }}">{{ cPct }}</span></div>
+                    <div style="display:flex;justify-content:space-between"><span style="color:#8b93a5">{{ t.cPaid }}</span><span style="font-family:'IBM Plex Mono',monospace;direction:ltr">{{ cPaid }}</span></div>
+                    <div style="display:flex;justify-content:space-between"><span style="color:#8b93a5">{{ t.cNotices }}</span><span style="color:#ef5d75">{{ cNoticeCount }}</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ cIsBoq }}" hint-placeholder-val="{{ false }}">
+            <table style="width:100%;border-collapse:collapse;font-size:13px">
+              <thead>
+                <tr style="color:#5f6878;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.1em">
+                  <th style="text-align:start;font-weight:400;padding:12px 20px;border-bottom:1px solid #1e222b">CODE</th>
+                  <th style="text-align:start;font-weight:400;padding:12px 14px;border-bottom:1px solid #1e222b">{{ t.thItem }}</th>
+                  <th style="text-align:start;font-weight:400;padding:12px 14px;border-bottom:1px solid #1e222b">{{ t.thQty }}</th>
+                  <th style="text-align:start;font-weight:400;padding:12px 14px;border-bottom:1px solid #1e222b">{{ t.thValue }}</th>
+                  <th style="text-align:start;font-weight:400;padding:12px 14px;border-bottom:1px solid #1e222b">{{ t.thProgress }}</th>
+                  <th style="text-align:start;font-weight:400;padding:12px 20px;border-bottom:1px solid #1e222b">{{ t.thModel }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ cBoq }}" as="b" hint-placeholder-count="3">
+                  <tr style="border-bottom:1px solid #171b23">
+                    <td style="padding:13px 20px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#9db6ff;direction:ltr">{{ b.code }}</td>
+                    <td style="padding:13px 14px">{{ b.name }}</td>
+                    <td style="padding:13px 14px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#8b93a5;direction:ltr">{{ b.qty }}</td>
+                    <td style="padding:13px 14px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#c3c9d6;direction:ltr">{{ b.value }}</td>
+                    <td style="padding:13px 14px">
+                      <div style="display:flex;align-items:center;gap:9px">
+                        <div style="width:96px;height:6px;background:#1a1f29;border-radius:99px;overflow:hidden"><i style="display:block;height:100%;width:{{ b.pctCss }};background:{{ b.col }};border-radius:99px"></i></div>
+                        <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:{{ b.col }};direction:ltr">{{ b.pctCss }}</span>
+                      </div>
+                    </td>
+                    <td style="padding:13px 20px"><a href="#model" onClick="{{ goDrawings }}" style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;direction:ltr">{{ b.model }}</a></td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </sc-if>
+
+          <sc-if value="{{ cIsSchedule }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:20px;display:flex;flex-direction:column;gap:11px">
+              <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#5f6878;direction:ltr;padding-inline:150px 0">
+                <span>{{ cStart }}</span><span>{{ cEnd }}</span>
+              </div>
+              <sc-for list="{{ cSchedule }}" as="a" hint-placeholder-count="4">
+                <div style="display:grid;grid-template-columns:150px minmax(0,1fr) 52px;gap:12px;align-items:center">
+                  <span style="font-size:12.5px;color:#c3c9d6;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ a.name }}</span>
+                  <div style="position:relative;height:20px;background:#141821;border:1px solid #1e222b;border-radius:6px">
+                    <div style="position:absolute;top:3px;bottom:3px;inset-inline-start:{{ a.left }};width:{{ a.width }};background:{{ a.col }};border-radius:4px;opacity:.85"></div>
+                  </div>
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:{{ a.col }};direction:ltr;text-align:end">{{ a.pct }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ cIsPayments }}" hint-placeholder-val="{{ false }}">
+            <div>
+              <div style="display:flex;align-items:center;gap:12px;padding:15px 20px;border-bottom:1px solid #1e222b;flex-wrap:wrap">
+                <div style="font-size:12.5px;color:#8b93a5;line-height:1.9">{{ t.cPaymentsHint }}</div>
+                <button onClick="{{ issuePayment }}" style="margin-inline-start:auto;border:0;background:#3f6dff;color:#fff;font-family:inherit;font-size:12.5px;font-weight:600;padding:9px 16px;border-radius:8px;cursor:pointer;white-space:nowrap">{{ t.cIssue }}</button>
+              </div>
+              <table style="width:100%;border-collapse:collapse;font-size:13px">
+                <thead>
+                  <tr style="color:#5f6878;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.1em">
+                    <th style="text-align:start;font-weight:400;padding:12px 20px;border-bottom:1px solid #1e222b">NO</th>
+                    <th style="text-align:start;font-weight:400;padding:12px 14px;border-bottom:1px solid #1e222b">{{ t.cPeriod }}</th>
+                    <th style="text-align:start;font-weight:400;padding:12px 14px;border-bottom:1px solid #1e222b">{{ t.cExecuted }}</th>
+                    <th style="text-align:start;font-weight:400;padding:12px 14px;border-bottom:1px solid #1e222b">{{ t.thValue }}</th>
+                    <th style="text-align:start;font-weight:400;padding:12px 20px;border-bottom:1px solid #1e222b">{{ t.thStatus }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <sc-for list="{{ cPayments }}" as="p" hint-placeholder-count="4">
+                    <tr style="border-bottom:1px solid #171b23">
+                      <td style="padding:13px 20px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#9db6ff;direction:ltr">{{ p.no }}</td>
+                      <td style="padding:13px 14px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#8b93a5;direction:ltr">{{ p.period }}</td>
+                      <td style="padding:13px 14px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;direction:ltr">{{ p.pct }}</td>
+                      <td style="padding:13px 14px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#c3c9d6;direction:ltr">{{ p.amount }}</td>
+                      <td style="padding:13px 20px"><span style="font-size:11.5px;padding:3px 10px;border-radius:99px;background:{{ p.tint }};color:{{ p.tone }}">{{ p.status }}</span></td>
+                    </tr>
+                  </sc-for>
+                </tbody>
+              </table>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ cIsLogin }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:20px">
+              <div style="background:#141821;border:1px solid #242935;border-radius:11px;padding:18px 20px;max-width:520px">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.12em;color:#5f6878;margin-bottom:13px">{{ t.cAccess }}</div>
+                <div style="display:flex;flex-direction:column;gap:11px;font-size:13px">
+                  <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:#8b93a5">{{ t.username }}</span><span style="font-family:'IBM Plex Mono',monospace;direction:ltr">{{ cUser }}</span></div>
+                  <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:#8b93a5">{{ t.password }}</span><span style="font-family:'IBM Plex Mono',monospace;direction:ltr">{{ cPass }}</span></div>
+                  <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:#8b93a5">{{ t.thStatus }}</span><span style="font-size:11.5px;padding:3px 10px;border-radius:99px;background:rgba(78,196,143,.14);color:#4ec48f">{{ t.cActive }}</span></div>
+                  <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:#8b93a5">{{ t.cSees }}</span><span style="color:#c3c9d6">{{ t.cSeesVal }}</span></div>
+                </div>
+                <div style="font-size:11.5px;color:#6f7789;margin-top:14px;line-height:1.85">{{ t.cAccessHint }}</div>
+                <div style="display:flex;gap:8px;margin-top:15px">
+                  <button onClick="{{ resetPass }}" style="border:1px solid #2b313d;background:#171b23;color:#e8eaf0;font-family:inherit;font-size:12.5px;padding:9px 16px;border-radius:8px;cursor:pointer">{{ t.cResetPass }}</button>
+                  <button onClick="{{ enterAsContractor }}" style="border:1px solid rgba(63,109,255,.45);background:transparent;color:#9db6ff;font-family:inherit;font-size:12.5px;padding:9px 16px;border-radius:8px;cursor:pointer">{{ t.cViewAs }}</button>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+        </section>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isBoq }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 26px 46px;max-width:1560px;margin:0 auto;width:100%;box-sizing:border-box">
+        <div style="background:#11141a;border:1px solid #1e222b;border-radius:12px;overflow:hidden">
+          <div style="display:flex;align-items:center;gap:10px;padding:15px 20px;border-bottom:1px solid #1e222b;flex-wrap:wrap">
+            <h2 style="margin:0;font-size:15px;font-weight:600">{{ t.boqTitle }}</h2>
+            <span style="font-size:12px;color:#6f7789">{{ t.boqSub }}</span>
+            <div style="flex:1"></div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap">
+              <sc-for list="{{ boqFilters }}" as="bf" hint-placeholder-count="5">
+                <button onClick="{{ bf.go }}" style="border:1px solid {{ bf.bd }};background:{{ bf.bg }};color:{{ bf.col }};font-family:inherit;font-size:11.5px;padding:6px 12px;border-radius:99px;cursor:pointer;white-space:nowrap">{{ bf.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+              <tr style="color:#5f6878;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.1em">
+                <th style="text-align:start;font-weight:400;padding:12px 20px;border-bottom:1px solid #1e222b">CODE</th>
+                <th style="text-align:start;font-weight:400;padding:12px 14px;border-bottom:1px solid #1e222b">{{ t.thItem }}</th>
+                <th style="text-align:start;font-weight:400;padding:12px 14px;border-bottom:1px solid #1e222b">{{ t.thContractor }}</th>
+                <th style="text-align:start;font-weight:400;padding:12px 14px;border-bottom:1px solid #1e222b">{{ t.thQty }}</th>
+                <th style="text-align:start;font-weight:400;padding:12px 14px;border-bottom:1px solid #1e222b">{{ t.thProgress }}</th>
+                <th style="text-align:start;font-weight:400;padding:12px 20px;border-bottom:1px solid #1e222b">{{ t.thModel }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{ boq }}" as="b" hint-placeholder-count="5">
+                <tr style="border-bottom:1px solid #171b23">
+                  <td style="padding:13px 20px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#9db6ff;direction:ltr">{{ b.code }}</td>
+                  <td style="padding:13px 14px">{{ b.name }}</td>
+                  <td style="padding:13px 14px"><a href="#c" onClick="{{ b.goContractor }}" style="font-size:12.5px">{{ b.contractor }}</a></td>
+                  <td style="padding:13px 14px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8b93a5;direction:ltr">{{ b.qty }}</td>
+                  <td style="padding:13px 14px">
+                    <div style="display:flex;align-items:center;gap:9px">
+                      <div style="width:110px;height:6px;background:#1a1f29;border-radius:99px;overflow:hidden"><i style="display:block;height:100%;width:{{ b.pctCss }};background:{{ b.col }};border-radius:99px"></i></div>
+                      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:{{ b.col }};direction:ltr">{{ b.pctCss }}</span>
+                    </div>
+                  </td>
+                  <td style="padding:13px 20px"><a href="#model" onClick="{{ goDrawings }}" style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;direction:ltr">{{ b.model }}</a></td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isApprovals }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 26px 46px;max-width:1180px;margin:0 auto;width:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:12px">
+        <sc-for list="{{ approvals }}" as="a" hint-placeholder-count="5">
+          <div style="border:1px solid #242935;background:#11141a;border-radius:12px;padding:17px 19px">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#9db6ff;direction:ltr">{{ a.code }}</span>
+              <span style="font-size:13.5px;font-weight:600">{{ a.title }}</span>
+              <span style="font-size:11.5px;padding:3px 10px;border-radius:99px;background:{{ a.tint }};color:{{ a.tone }}">{{ a.status }}</span>
+              <span style="margin-inline-start:auto;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#6f7789;direction:ltr">{{ a.date }}</span>
+            </div>
+            <div style="font-size:12.5px;color:#8b93a5;margin-top:8px;line-height:1.9">{{ a.by }} · {{ a.disc }}</div>
+            <div style="display:flex;gap:8px;margin-top:14px">
+              <button onClick="{{ a.approve }}" style="border:0;background:{{ a.btnBg }};color:#fff;font-family:inherit;font-size:12.5px;font-weight:600;padding:9px 18px;border-radius:7px;cursor:pointer">{{ a.btnLabel }}</button>
+              <button style="border:1px solid rgba(239,93,117,.45);background:transparent;color:#ef5d75;font-family:inherit;font-size:12.5px;padding:9px 18px;border-radius:7px;cursor:pointer">{{ t.reject }}</button>
+              <button onClick="{{ goDrawings }}" style="border:1px solid #2b313d;background:#171b23;color:#c3c9d6;font-family:inherit;font-size:12.5px;padding:9px 18px;border-radius:7px;cursor:pointer">{{ t.openDrawing }}</button>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isDocs }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 26px 46px;max-width:1560px;margin:0 auto;width:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:16px">
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">
+          <sc-for list="{{ docCats }}" as="c" hint-placeholder-count="10">
+            <div style="background:#11141a;border:1px solid #1e222b;border-radius:12px;padding:15px 17px">
+              <div style="font-size:13px;font-weight:600">{{ c.name }}</div>
+              <div style="display:flex;align-items:baseline;gap:6px;margin-top:8px">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:500;direction:ltr">{{ c.n }}</span>
+                <span style="font-size:11px;color:#8b93a5">{{ t.filesWord }}</span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="background:#11141a;border:1px solid #1e222b;border-radius:12px;overflow:hidden">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+              <tr style="color:#5f6878;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.1em">
+                <th style="text-align:start;font-weight:400;padding:12px 20px;border-bottom:1px solid #1e222b">{{ t.thFile }}</th>
+                <th style="text-align:start;font-weight:400;padding:12px 14px;border-bottom:1px solid #1e222b">{{ t.thDisc }}</th>
+                <th style="text-align:start;font-weight:400;padding:12px 14px;border-bottom:1px solid #1e222b">{{ t.thRev }}</th>
+                <th style="text-align:start;font-weight:400;padding:12px 14px;border-bottom:1px solid #1e222b">{{ t.thStatus }}</th>
+                <th style="text-align:start;font-weight:400;padding:12px 20px;border-bottom:1px solid #1e222b">{{ t.thDate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{ files }}" as="f" hint-placeholder-count="6">
+                <tr style="border-bottom:1px solid #171b23">
+                  <td style="padding:13px 20px">
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#8b93a5;border:1px solid #2b313d;border-radius:3px;padding:3px 6px;direction:ltr">{{ f.ext }}</span>
+                      <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;direction:ltr">{{ f.name }}</span>
+                    </div>
+                  </td>
+                  <td style="padding:13px 14px;color:#c3c9d6">{{ f.disc }}</td>
+                  <td style="padding:13px 14px;font-family:'IBM Plex Mono',monospace;color:#8b93a5;direction:ltr">{{ f.rev }}</td>
+                  <td style="padding:13px 14px"><span style="font-size:11.5px;padding:3px 10px;border-radius:99px;background:{{ f.tint }};color:{{ f.tone }}">{{ f.status }}</span></td>
+                  <td style="padding:13px 20px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#6f7789;direction:ltr">{{ f.date }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isGen }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 26px 46px;max-width:1560px;margin:0 auto;width:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <div style="font-size:12.5px;color:#8b93a5;line-height:1.9;max-width:640px">{{ genSub }}</div>
+          <div style="flex:1"></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <sc-for list="{{ genChips }}" as="c" hint-placeholder-count="3">
+              <div style="font-size:12px;padding:6px 13px;border-radius:99px;background:{{ c.bg }};border:1px solid {{ c.bd }};color:{{ c.col }}">{{ c.label }}</div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="background:#11141a;border:1px solid #1e222b;border-radius:12px;overflow:hidden">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+              <tr style="color:#5f6878;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.1em">
+                <th style="text-align:start;font-weight:400;padding:12px 20px;border-bottom:1px solid #1e222b">CODE</th>
+                <th style="text-align:start;font-weight:400;padding:12px 14px;border-bottom:1px solid #1e222b">{{ t.thItem }}</th>
+                <th style="text-align:start;font-weight:400;padding:12px 14px;border-bottom:1px solid #1e222b">{{ t.thOwnerCol }}</th>
+                <th style="text-align:start;font-weight:400;padding:12px 14px;border-bottom:1px solid #1e222b">{{ t.thStatus }}</th>
+                <th style="text-align:start;font-weight:400;padding:12px 20px;border-bottom:1px solid #1e222b">{{ t.thDate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{ genRows }}" as="r" hint-placeholder-count="4">
+                <tr style="border-bottom:1px solid #171b23">
+                  <td style="padding:13px 20px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#9db6ff;direction:ltr">{{ r.code }}</td>
+                  <td style="padding:13px 14px">{{ r.name }}</td>
+                  <td style="padding:13px 14px;color:#8b93a5">{{ r.who }}</td>
+                  <td style="padding:13px 14px"><span style="font-size:11.5px;padding:3px 10px;border-radius:99px;background:{{ r.tint }};color:{{ r.tone }}">{{ r.status }}</span></td>
+                  <td style="padding:13px 20px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#6f7789;direction:ltr">{{ r.date }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1600,&quot;height&quot;:1000}}">
+const T2 = {
+  ar: {
+    brand: 'بصير · عيون المالك', brandShort: 'بصير',
+    loginTitle: 'عينك على مشروعك.', loginSub: 'منصة الرؤية البصرية التي تربط المالك بالاستشاري والمقاول، وترى بها تقدم مشروعك كما لو كنت في الموقع.',
+    username: 'اسم المستخدم', password: 'كلمة المرور', login: 'دخول', demoAccounts: 'حسابات تجريبية — اضغط للدخول:',
+    logout: 'تسجيل الخروج', resetDemo: '↺ إعادة ضبط بيانات الديمو', demoMode: 'وضع الديمو',
+    notif: 'الإشعارات', notifTitle: 'الإشعارات', settings: 'الإعدادات', notifSettings: 'إعدادات الإشعارات',
+    notifSettingsSub: 'تصلك تنبيهات دورة المراجعة داخل النظام، ويمكنك استلامها أيضاً على بريدك أو واتساب.',
+    email: 'البريد الإلكتروني', phone: 'رقم الجوال (واتساب)', chEmail: 'استلام الإشعارات على البريد', chWa: 'استلام الإشعارات على واتساب',
+    notifFallback: 'إن لم تكن قناة البريد أو واتساب مهيأة على الخادم، تُسجَّل المحاولة كمحاكاة موثقة وتظل الإشعارات داخل النظام تعمل دائماً.',
+    save: 'حفظ', cancel: 'إلغاء',
+    dropTitle: 'اسحب المخططات والنماذج', dropSub: 'يُصنّف النظام التخصص والدور ورقم النسخة تلقائياً',
+    sheetIndex: 'فهرس اللوحات', layers: 'الطبقات', section: 'المقطع', selected: 'العنصر المحدد',
+    boqItem: 'بند الكميات', concrete: 'الخرسانة', progress: 'التنفيذ', distance: 'المسافة',
+    tab3d: 'نموذج 3D', tab2d: 'مخطط 2D', tabCompare: 'مقارنة النسخ',
+    layerStr: 'الهيكل الإنشائي', layerFac: 'الواجهات', layerMep: 'الميكانيكا والكهرباء',
+    reviewTitle: 'الملاحظات والاعتماد', addNote: 'ملاحظة', approve: 'اعتماد النسخة', approved: 'تم الاعتماد ✓',
+    clickToPin: 'انقر على المخطط لإضافة ملاحظة', compareHint: 'اسحب الفاصل لمقارنة النسخة 03 بالنسخة 04 — الفروقات بالأحمر',
+    floorProgress: 'نسب التنفيذ حسب الدور', alerts: 'تنبيهات ذكاء بصير', latestFiles: 'أحدث الملفات', openHub: 'فتح مركز المخططات',
+    eyeFloors: 'عين المالك — الأدوار', eyeFloorsHint: 'اضغط أي دور لعرض نموذجه ومخططاته',
+    sitePhotos: 'صور الموقع وتحليل الذكاء الاصطناعي', timeline: 'آخر الأحداث',
+    done: 'مكتمل', inProgress: 'جارٍ', planned: 'مخطط', boqLinked: 'بنود مرتبطة بالنموذج',
+    boqTitle: 'جدول الكميات', boqSub: 'كل بند مرتبط بعنصر في النموذج ثلاثي الأبعاد',
+    filesWord: 'ملف', thFile: 'الملف', thDisc: 'التخصص', thRev: 'النسخة', thStatus: 'الحالة', thDate: 'التاريخ',
+    thItem: 'البند', thQty: 'الكمية', thProgress: 'التنفيذ', thModel: 'في النموذج', thOwnerCol: 'الجهة',
+    snapshot: 'لقطة', details: 'التفاصيل', reject: 'إعادة للتعديل', openDrawing: 'فتح المخطط',
+    queued: 'في قائمة التحويل على الخادم', classified: 'صُنّف تلقائياً', loaded: 'مُحمّل في العارض', uploading: 'جارٍ الرفع',
+    add: '+ إضافة', addSave: 'حفظ وإضافة', attach: 'إرفاق ملف (اختياري) — اضغط للاختيار', noFile: 'لا ملف مرفق',
+    fName: 'العنوان', fParty: 'الجهة المسؤولة', fQty: 'الكمية', fLoc: 'الموقع',
+    phName: 'مثال: مخطط تنفيذي — واجهة زجاجية', phParty: 'مثال: مقاول معماري', phQty: 'مثال: 1,240 m³', phLoc: 'مثال: البوابة الجنوبية',
+    upFiles: '+ رفع ملفات', addBoq: '+ إضافة بند', addSub: '+ تقديم جديد', addCam: '+ إضافة كاميرا',
+    reqReport: '+ طلب تقرير', addDoc: '+ إضافة وثيقة', addAi: '+ تحليل صورة',
+    subGen: 'يُضاف السجل فوراً لقائمة الصفحة ويصل إشعار للجهة المسؤولة.',
+    subBoq: 'البند الجديد يظهر في جدول الكميات ويمكن ربطه بعنصر في النموذج.',
+    subSub: 'التقديم يدخل دورة المراجعة لدى الاستشاري.',
+    subCam: 'تُضاف الكاميرا لمدخل الكاميرات ويبدأ سحب اللقطات.',
+    subReport: 'يُنشأ طلب تقرير في صفحة التقارير والإرسال.',
+    subDoc: 'الوثيقة تُرفع لخادم الملفات وتُصنّف تلقائياً.',
+    subAi: 'تُحلَّل الصورة وتظهر النتيجة في ذكاء بصير.',
+    tAdded: '✅ تمت الإضافة إلى النظام', tUpload: '✅ جارٍ الرفع والتصنيف',
+    thValue: 'القيمة', thContractor: 'المقاول', cAll: 'كل المقاولين',
+    cadNote: 'ملفات DWG و DXF و IFC و RVT تُحوَّل على الخادم أولاً لتُعرض داخل النظام. الملف محفوظ ومربوط بالمشروع، ويمكنك تنزيله الآن أو انتظار انتهاء التحويل.', download: 'تنزيل الملف', openTab: 'فتح الملف الأصلي ↗', sheetDemo: 'مخطط تجريبي — ارفع ملفك ليُعرض هنا',
+    tContract: 'العقد', tBoqTab: 'جدول الكميات', tSchedule: 'الجدول الزمني', tPayments: 'المستخلصات', tAccess: 'بيانات الدخول',
+    cScope: 'نطاق العمل المسند', cLinked: 'الربط والتنفيذ', cBoqItems: 'بنود الكميات', cExecuted: 'المنفَّذ',
+    cPaid: 'المصروف', cNotices: 'الإنذارات', cRemaining: 'المتبقي', cValue: 'قيمة العقد', cDuration: 'المدة',
+    cPaymentsHint: 'قيمة المستخلص تُحسب من نسب التنفيذ المعتمدة لبنود المقاول ناقص المصروف سابقاً.',
+    cIssue: '+ إصدار مستخلص', cPeriod: 'الفترة',
+    cAccess: 'حساب المقاول في النظام', cActive: 'نشط', cSees: 'يرى', cSeesVal: 'لوحته، تقديماته، ملاحظاته، أرشيفه فقط',
+    cAccessHint: 'الحساب يُنشأ عند إضافة المقاول، ويصله اسم المستخدم وكلمة المرور على البريد وواتساب. لا يرى بيانات المقاولين الآخرين.',
+    cResetPass: 'إعادة تعيين كلمة المرور', cViewAs: 'الدخول بحسابه',
+    tIssued: '✅ صُدر المستخلص وأُرسل للمكتب الفني', tPassReset: '✅ أُعيد تعيين كلمة المرور وأُرسلت للمقاول',
+    tContractorAdded: '✅ أُضيف المقاول مع عقده وجدول كمياته وحسابه'
+  },
+  en: {
+    brand: 'Bassir · Owner Eyes', brandShort: 'Bassir',
+    loginTitle: 'Your eye on your project.', loginSub: 'The visual platform connecting owner, consultant and contractors, so you see progress as if you were on site.',
+    username: 'Username', password: 'Password', login: 'Login', demoAccounts: 'Demo accounts — click to enter:',
+    logout: 'Logout', resetDemo: '↺ Reset demo data', demoMode: 'Demo mode',
+    notif: 'Alerts', notifTitle: 'Notifications', settings: 'Settings', notifSettings: 'Notification settings',
+    notifSettingsSub: 'Review-cycle alerts reach you inside the system, and can also be delivered by email or WhatsApp.',
+    email: 'Email', phone: 'Mobile (WhatsApp)', chEmail: 'Receive alerts by email', chWa: 'Receive alerts on WhatsApp',
+    notifFallback: 'If email or WhatsApp is not configured on the server, the attempt is logged as a documented simulation and in-system alerts keep working.',
+    save: 'Save', cancel: 'Cancel',
+    dropTitle: 'Drop drawings & models', dropSub: 'Discipline, floor and revision are detected automatically',
+    sheetIndex: 'Sheet index', layers: 'Layers', section: 'Section', selected: 'Selected element',
+    boqItem: 'BOQ item', concrete: 'Concrete', progress: 'Progress', distance: 'Distance',
+    tab3d: '3D model', tab2d: '2D drawing', tabCompare: 'Compare revisions',
+    layerStr: 'Structure', layerFac: 'Facade', layerMep: 'MEP',
+    reviewTitle: 'Review & approval', addNote: 'Note', approve: 'Approve revision', approved: 'Approved ✓',
+    clickToPin: 'Click the sheet to drop a markup pin', compareHint: 'Drag the divider to compare REV 03 with REV 04 — changes in red',
+    floorProgress: 'Progress by floor', alerts: 'Bassir AI alerts', latestFiles: 'Latest files', openHub: 'Open drawings hub',
+    eyeFloors: "Owner's Eye — floors", eyeFloorsHint: 'Click any floor to open its model and drawings',
+    sitePhotos: 'Site photos & AI analysis', timeline: 'Latest activity',
+    done: 'Complete', inProgress: 'In progress', planned: 'Planned', boqLinked: 'BOQ items linked to the model',
+    boqTitle: 'Bill of quantities', boqSub: 'Every item is linked to an element in the 3D model',
+    filesWord: 'files', thFile: 'File', thDisc: 'Discipline', thRev: 'Rev', thStatus: 'Status', thDate: 'Date',
+    thItem: 'Item', thQty: 'Quantity', thProgress: 'Progress', thModel: 'In model', thOwnerCol: 'Party',
+    snapshot: 'Snapshot', details: 'Details', reject: 'Return for revision', openDrawing: 'Open drawing',
+    queued: 'Queued for server conversion', classified: 'Auto-classified', loaded: 'Loaded in viewer', uploading: 'Uploading',
+    add: '+ Add', addSave: 'Save & add', attach: 'Attach a file (optional) — click to choose', noFile: 'No file attached',
+    fName: 'Title', fParty: 'Responsible party', fQty: 'Quantity', fLoc: 'Location',
+    phName: 'e.g. Shop drawing — curtain wall', phParty: 'e.g. Arch contractor', phQty: 'e.g. 1,240 m³', phLoc: 'e.g. South gate',
+    upFiles: '+ Upload files', addBoq: '+ Add item', addSub: '+ New submission', addCam: '+ Add camera',
+    reqReport: '+ Request report', addDoc: '+ Add document', addAi: '+ Analyse photo',
+    subGen: 'The record is added to this page immediately and the responsible party is notified.',
+    subBoq: 'The new item appears in the BOQ and can be linked to a model element.',
+    subSub: 'The submission enters the consultant review cycle.',
+    subCam: 'The camera is added to the gateway and snapshots start pulling.',
+    subReport: 'A report request is created in Reports & Sending.',
+    subDoc: 'The document is uploaded to the file server and auto-classified.',
+    subAi: 'The photo is analysed and the finding appears in Bassir AI.',
+    tAdded: '✅ Added to the system', tUpload: '✅ Uploading and classifying',
+    thValue: 'Value', thContractor: 'Contractor', cAll: 'All contractors',
+    cadNote: 'DWG, DXF, IFC and RVT files are converted on the server before they can be displayed. The file is stored and linked to the project — download it now or wait for conversion.', download: 'Download file', openTab: 'Open original ↗', sheetDemo: 'Demo sheet — upload your file to see it here',
+    tContract: 'Contract', tBoqTab: 'BOQ', tSchedule: 'Schedule', tPayments: 'Payments', tAccess: 'Access',
+    cScope: 'Assigned scope', cLinked: 'Linkage & execution', cBoqItems: 'BOQ items', cExecuted: 'Executed',
+    cPaid: 'Paid to date', cNotices: 'Notices', cRemaining: 'Remaining', cValue: 'Contract value', cDuration: 'Duration',
+    cPaymentsHint: 'The certificate value is computed from approved progress on the contractor BOQ items, less amounts already paid.',
+    cIssue: '+ Issue certificate', cPeriod: 'Period',
+    cAccess: 'Contractor account', cActive: 'Active', cSees: 'Sees', cSeesVal: 'Only their dashboard, submissions, snags and archive',
+    cAccessHint: 'The account is created when the contractor is added; credentials are sent by email and WhatsApp. They cannot see other contractors data.',
+    cResetPass: 'Reset password', cViewAs: 'Enter as this contractor',
+    tIssued: '✅ Certificate issued and sent to the technical office', tPassReset: '✅ Password reset and sent to the contractor',
+    tContractorAdded: '✅ Contractor added with contract, BOQ and account'
+  }
+};
+
+const SEC = {
+  watch: { ar: 'المتابعة', en: 'Monitoring' }, mine: { ar: 'أعمالي', en: 'My Work' },
+  tech: { ar: 'المكتب الفني', en: 'Technical Office' }, admin: { ar: 'الإدارة', en: 'Administration' }
+};
+const ROLES = {
+  owner: { ar: 'المالك', en: 'Owner', name: { ar: 'عبدالله الراجحي', en: 'Abdullah Al-Rajhi' } },
+  owner_rep: { ar: 'ممثل المالك', en: "Owner's Rep", name: { ar: 'سعود المطيري', en: 'Saud Al-Mutairi' } },
+  consultant: { ar: 'استشاري المشروع', en: 'Consultant', name: { ar: 'م. خالد العمري', en: 'Eng. Khalid Al-Omari' } },
+  contractor: { ar: 'مقاول', en: 'Contractor', name: { ar: 'شركة الإنشاء المتحدة', en: 'United Construction Co.' } },
+  admin: { ar: 'مدير النظام', en: 'System Admin', name: { ar: 'إدارة بصير', en: 'Bassir Admin' } }
+};
+
+const ST = {
+  pending: { ar: 'بانتظار الاعتماد', en: 'Pending', tint: 'rgba(242,201,76,.14)', tone: '#f2c94c' },
+  open: { ar: 'مفتوح', en: 'Open', tint: 'rgba(76,201,240,.14)', tone: '#4cc9f0' },
+  ok: { ar: 'معتمد', en: 'Approved', tint: 'rgba(78,196,143,.14)', tone: '#4ec48f' },
+  done: { ar: 'منجز', en: 'Closed', tint: 'rgba(78,196,143,.14)', tone: '#4ec48f' },
+  late: { ar: 'متأخر', en: 'Overdue', tint: 'rgba(239,93,117,.14)', tone: '#ef5d75' },
+  draft: { ar: 'مسودة', en: 'Draft', tint: 'rgba(139,147,165,.14)', tone: '#8b93a5' },
+  review: { ar: 'قيد المراجعة', en: 'In review', tint: 'rgba(242,201,76,.14)', tone: '#f2c94c' }
+};
+
+// id, code, ar, en, section, roles, kind, badge, sub{ar,en}, chips[[ar,en]], rows[[code,ar,en,who_ar,who_en,status,date]]
+const PAGES = [
+  { id: 'owner-eye', code: 'EYE', ar: 'عين المالك', en: "Owner's Eye", sec: 'watch', roles: ['admin', 'owner', 'owner_rep'], kind: 'ownereye' },
+  { id: 'projects', code: 'PRJ', ar: 'لوحة المشاريع', en: 'Projects Board', sec: 'watch', roles: ['admin', 'owner', 'owner_rep', 'consultant'], kind: 'gen',
+    sub: { ar: 'كل مشاريع المحفظة بنِسَب التنفيذ والصرف والمخاطر.', en: 'All portfolio projects with progress, spend and risk.' },
+    chips: [['4 مشاريع', '4 projects'], ['2 متأخرة', '2 behind']],
+    rows: [['P-01', 'برج بصير — الرياض', 'Bassir Tower — Riyadh', 'المكتب الفني', 'Technical office', 'open', '2026-08-27'],
+      ['P-02', 'مجمع الواحة السكني', 'Al-Waha Residential', 'استشاري', 'Consultant', 'late', '2026-08-25'],
+      ['P-03', 'مركز الأعمال الشمالي', 'North Business Center', 'استشاري', 'Consultant', 'ok', '2026-08-19'],
+      ['P-04', 'مستودعات المنطقة الثانية', 'Zone 2 Warehouses', 'مقاول', 'Contractor', 'pending', '2026-08-12']] },
+  { id: 'dashboard', code: 'DSH', ar: 'لوحة القيادة', en: 'Dashboard', sec: 'watch', roles: ['admin', 'owner', 'owner_rep', 'consultant'], kind: 'dash' },
+  { id: 'vision', code: 'VIS', ar: 'رؤية المشروع', en: 'Project Vision', sec: 'watch', roles: ['admin', 'owner', 'owner_rep', 'consultant'], kind: 'vision' },
+  { id: 'cameras', code: 'CAM', ar: 'كاميرات الموقع', en: 'Site Cameras', sec: 'watch', roles: ['admin', 'owner', 'owner_rep', 'consultant'], kind: 'cameras' },
+  { id: 'contractors', code: 'CON', ar: 'المقاولون والأداء', en: 'Contractors & Performance', sec: 'watch', roles: ['admin', 'owner', 'owner_rep', 'consultant'], kind: 'contractors',
+    sub: { ar: 'تقييم أداء كل مقاول: الالتزام بالجدول، الجودة، السلامة.', en: 'Performance per contractor: schedule, quality, safety.' },
+    chips: [['5 مقاولين', '5 contractors'], ['تقييم شهري', 'Monthly scoring']],
+    rows: [['C-11', 'شركة الإنشاء المتحدة', 'United Construction', 'إنشائي', 'Structural', 'ok', '92%'],
+      ['C-14', 'مؤسسة البناء الحديث', 'Modern Build Est.', 'معماري', 'Architectural', 'pending', '78%'],
+      ['C-19', 'الخليج للتكييف', 'Gulf HVAC', 'ميكانيكا', 'Mechanical', 'late', '64%'],
+      ['C-23', 'النور للكهرباء', 'Al-Noor Electric', 'كهرباء', 'Electrical', 'ok', '88%']] },
+  { id: 'ai', code: 'AI', ar: 'ذكاء بصير الاصطناعي', en: 'Bassir AI', sec: 'watch', roles: ['admin', 'owner', 'owner_rep', 'consultant'], kind: 'ai' },
+  { id: 'reports', code: 'RPT', ar: 'التقارير والإرسال', en: 'Reports & Sending', sec: 'watch', roles: ['admin', 'owner', 'owner_rep', 'consultant'], kind: 'gen',
+    sub: { ar: 'تقارير PDF بالعربية والإنجليزية، وإرسالها بالبريد أو واتساب.', en: 'Bilingual PDF reports, sent by email or WhatsApp.' },
+    chips: [['PDF', 'PDF'], ['بريد', 'Email'], ['واتساب', 'WhatsApp']],
+    rows: [['R-88', 'تقرير التقدم الأسبوعي', 'Weekly progress report', 'المكتب الفني', 'Technical office', 'done', '2026-08-26'],
+      ['R-87', 'تقرير السلامة الشهري', 'Monthly HSE report', 'مسؤول السلامة', 'HSE officer', 'done', '2026-08-24'],
+      ['R-86', 'ملخص المالك التنفيذي', 'Owner executive summary', 'ممثل المالك', "Owner's rep", 'review', '2026-08-22'],
+      ['R-85', 'تقرير مستخلص الدفعة 7', 'Payment 7 certificate', 'الاستشاري', 'Consultant', 'pending', '2026-08-20']] },
+  { id: 'submissions', code: 'SUB', ar: 'تتبع التقديمات', en: 'Submissions', sec: 'watch', roles: ['admin', 'owner', 'owner_rep', 'consultant'], kind: 'gen',
+    sub: { ar: 'مخططات تنفيذية، عينات مواد، طلبات فحص — من التقديم للاعتماد.', en: 'Shop drawings, material samples, inspection requests — submit to approve.' },
+    chips: [['12 مفتوح', '12 open'], ['3 متأخرة', '3 overdue']],
+    rows: [['SD-114', 'مخطط تنفيذي — واجهة زجاجية', 'Shop drawing — curtain wall', 'مقاول معماري', 'Arch contractor', 'pending', '2026-08-26'],
+      ['MS-052', 'عينة مواد — بلاط أرضيات', 'Material sample — floor tiles', 'مقاول معماري', 'Arch contractor', 'ok', '2026-08-23'],
+      ['WIR-231', 'طلب فحص — صب سقف L09', 'Inspection — L09 slab pour', 'مقاول إنشائي', 'Str contractor', 'open', '2026-08-27'],
+      ['SD-108', 'مخطط تنفيذي — مجاري تكييف', 'Shop drawing — HVAC ducts', 'مقاول ميكانيكا', 'MEP contractor', 'late', '2026-08-18']] },
+  { id: 'variations', code: 'VAR', ar: 'أوامر التغيير', en: 'Variation Orders', sec: 'watch', roles: ['admin', 'owner', 'owner_rep', 'consultant'], kind: 'gen',
+    sub: { ar: 'أوامر التغيير وأثرها على الكلفة والمدة قبل اعتماد المالك.', en: 'Variations and their cost/time impact before owner approval.' },
+    chips: [['أثر الكلفة +1.8%', 'Cost impact +1.8%']],
+    rows: [['VO-07', 'تغيير نوع رخام المدخل', 'Change lobby marble', 'ممثل المالك', "Owner's rep", 'pending', '2026-08-25'],
+      ['VO-06', 'إضافة غرفة كهرباء بالدور 3', 'Add electrical room L03', 'الاستشاري', 'Consultant', 'ok', '2026-08-14'],
+      ['VO-05', 'تعديل مسار مجاري التكييف', 'Reroute HVAC ducts', 'الاستشاري', 'Consultant', 'ok', '2026-08-09'],
+      ['VO-04', 'زيادة سماكة عزل السطح', 'Increase roof insulation', 'المالك', 'Owner', 'late', '2026-07-30']] },
+  { id: 'project-docs', code: 'DOC', ar: 'وثائق المشروع', en: 'Project Documents', sec: 'watch', roles: ['admin', 'owner', 'owner_rep', 'consultant'], kind: 'docs' },
+  { id: 'handover', code: 'HND', ar: 'التسليم والإغلاق', en: 'Handover & Closeout', sec: 'watch', roles: ['admin', 'owner', 'owner_rep', 'consultant'], kind: 'gen',
+    sub: { ar: 'قائمة الملاحظات، الضمانات، كتب التسليم الابتدائي والنهائي.', en: 'Snag list, warranties, provisional and final handover certificates.' },
+    chips: [['18 ملاحظة', '18 snags'], ['6 ضمانات', '6 warranties']],
+    rows: [['SN-231', 'تشطيب جبس ممر الدور 6', 'Gypsum finish L06 corridor', 'مقاول معماري', 'Arch contractor', 'open', '2026-08-26'],
+      ['WR-012', 'ضمان المصاعد — 5 سنوات', 'Elevators warranty — 5 yrs', 'المورد', 'Supplier', 'ok', '2026-08-20'],
+      ['HO-002', 'كتاب التسليم الابتدائي', 'Provisional handover', 'الاستشاري', 'Consultant', 'pending', '2026-08-18'],
+      ['SN-228', 'تسريب في سطح الخزان', 'Tank roof leak', 'مقاول إنشائي', 'Str contractor', 'late', '2026-08-11']] },
+  { id: 'archive', code: 'ARC', ar: 'أرشيف المستندات', en: 'Document Archive', sec: 'watch', roles: ['admin', 'owner', 'owner_rep', 'consultant'], kind: 'gen',
+    sub: { ar: 'كل نسخة محفوظة بتاريخها وصاحبها — لا شيء يُحذف.', en: 'Every revision kept with its date and author — nothing is deleted.' },
+    chips: [['84 ملف', '84 files'], ['كل النسخ', 'All revisions']],
+    rows: [['AR-441', 'BassirTower_STR_Rev03.ifc', 'BassirTower_STR_Rev03.ifc', 'الاستشاري', 'Consultant', 'done', '2026-07-28'],
+      ['AR-440', 'ARC-L07-PLAN_Rev01.dwg', 'ARC-L07-PLAN_Rev01.dwg', 'الاستشاري', 'Consultant', 'done', '2026-07-14'],
+      ['AR-436', 'BOQ_v6.xlsx', 'BOQ_v6.xlsx', 'المكتب الفني', 'Technical office', 'done', '2026-06-30'],
+      ['AR-430', 'Contract_Main_signed.pdf', 'Contract_Main_signed.pdf', 'الإدارة', 'Administration', 'done', '2026-01-19']] },
+
+  { id: 'home', code: 'HOM', ar: 'لوحة المقاول', en: 'Contractor Dashboard', sec: 'mine', roles: ['contractor'], kind: 'dash' },
+  { id: 'submissions-c', code: 'SUB', ar: 'تتبع تقديماتي', en: 'My Submissions', sec: 'mine', roles: ['contractor'], kind: 'gen',
+    sub: { ar: 'تقديماتك ودورة مراجعتها لدى الاستشاري.', en: 'Your submissions and their review cycle with the consultant.' },
+    chips: [['4 مفتوحة', '4 open']],
+    rows: [['SD-114', 'مخطط تنفيذي — واجهة زجاجية', 'Shop drawing — curtain wall', 'الاستشاري', 'Consultant', 'pending', '2026-08-26'],
+      ['WIR-231', 'طلب فحص — صب سقف L09', 'Inspection — L09 slab pour', 'الاستشاري', 'Consultant', 'open', '2026-08-27'],
+      ['MS-052', 'عينة مواد — بلاط أرضيات', 'Material sample — floor tiles', 'الاستشاري', 'Consultant', 'ok', '2026-08-23'],
+      ['PY-007', 'مستخلص الدفعة 7', 'Payment application 7', 'المكتب الفني', 'Technical office', 'review', '2026-08-21']] },
+  { id: 'handover-c', code: 'HND', ar: 'ملاحظاتي وضماناتي', en: 'My Snags & Warranties', sec: 'mine', roles: ['contractor'], kind: 'gen',
+    sub: { ar: 'ملاحظات التسليم المسندة لك وضماناتك المرفوعة.', en: 'Snags assigned to you and warranties you submitted.' },
+    chips: [['7 ملاحظات', '7 snags']],
+    rows: [['SN-231', 'تشطيب جبس ممر الدور 6', 'Gypsum finish L06 corridor', 'الاستشاري', 'Consultant', 'open', '2026-08-26'],
+      ['SN-219', 'دهان درج الطوارئ', 'Fire stair painting', 'الاستشاري', 'Consultant', 'done', '2026-08-17'],
+      ['WR-009', 'ضمان الأعمال المعمارية', 'Architectural works warranty', 'المكتب الفني', 'Technical office', 'ok', '2026-08-10'],
+      ['SN-205', 'تركيب مقابض الأبواب', 'Door handles install', 'الاستشاري', 'Consultant', 'late', '2026-08-03']] },
+  { id: 'archive-c', code: 'ARC', ar: 'أرشيف مستنداتي', en: 'My Archive', sec: 'mine', roles: ['contractor'], kind: 'gen',
+    sub: { ar: 'نسخك المرفوعة وسجل مراجعتها.', en: 'Your uploaded revisions and their review history.' },
+    chips: [['21 ملف', '21 files']],
+    rows: [['AR-402', 'SD-114_Rev02.dwg', 'SD-114_Rev02.dwg', 'أنت', 'You', 'done', '2026-08-26'],
+      ['AR-398', 'method_statement_slab.pdf', 'method_statement_slab.pdf', 'أنت', 'You', 'done', '2026-08-19'],
+      ['AR-390', 'material_cert_tiles.pdf', 'material_cert_tiles.pdf', 'أنت', 'You', 'done', '2026-08-08'],
+      ['AR-381', 'daily_report_w31.pdf', 'daily_report_w31.pdf', 'أنت', 'You', 'done', '2026-07-31']] },
+
+  { id: 'approvals', code: 'APR', ar: 'الاعتمادات', en: 'Approvals', sec: 'tech', roles: ['admin', 'consultant'], kind: 'approvals', badge: 7 },
+  { id: 'rfx', code: 'RFX', ar: 'الاستفسارات والعروض RFI/RFP', en: 'RFI / RFP', sec: 'tech', roles: ['admin', 'consultant', 'owner_rep', 'owner'], kind: 'gen', badge: 4,
+    sub: { ar: 'استفسارات فنية وطلبات عروض، بمُدد رد ملتزمة.', en: 'Technical queries and proposal requests with response SLAs.' },
+    chips: [['4 مفتوحة', '4 open'], ['متوسط الرد 2.3 يوم', 'Avg reply 2.3 d']],
+    rows: [['RFI-091', 'تعارض عمود C-14 مع مجرى التكييف', 'Column C-14 vs HVAC duct clash', 'مقاول إنشائي', 'Str contractor', 'open', '2026-08-27'],
+      ['RFI-090', 'مستوى منسوب أرضية المدخل', 'Lobby floor level', 'مقاول معماري', 'Arch contractor', 'open', '2026-08-25'],
+      ['RFP-014', 'عرض توريد وتركيب المصاعد', 'Elevators supply & install', 'المكتب الفني', 'Technical office', 'review', '2026-08-21'],
+      ['RFI-088', 'بديل مواصفة عزل السطح', 'Roof insulation alternative', 'مقاول إنشائي', 'Str contractor', 'ok', '2026-08-14']] },
+  { id: 'tech-office', code: 'TEC', ar: 'خدمات المكتب الفني', en: 'Technical Office Services', sec: 'tech', roles: ['admin', 'consultant'], kind: 'gen', badge: 9,
+    sub: { ar: 'طرق التنفيذ، المطالبات، الهندسة القيمية، NCR، السلامة.', en: 'Method statements, claims, value engineering, NCRs, HSE.' },
+    chips: [['9 بانتظار', '9 pending'], ['NCR: 3', 'NCR: 3']],
+    rows: [['MST-041', 'طريقة تنفيذ صب الأسقف', 'Slab pouring method statement', 'مقاول إنشائي', 'Str contractor', 'pending', '2026-08-26'],
+      ['NCR-018', 'عدم مطابقة خرسانة العينة 12', 'Non-conformance — sample 12', 'الاستشاري', 'Consultant', 'open', '2026-08-24'],
+      ['VE-006', 'هندسة قيمية — نظام الواجهة', 'Value engineering — facade', 'المكتب الفني', 'Technical office', 'review', '2026-08-20'],
+      ['CLM-003', 'مطالبة تمديد مدة 12 يوم', 'Claim — 12 day extension', 'مقاول إنشائي', 'Str contractor', 'pending', '2026-08-16']] },
+  { id: 'boq', code: 'BOQ', ar: 'جداول الكميات', en: 'Bill of Quantities', sec: 'tech', roles: ['admin', 'consultant'], kind: 'boq' },
+  { id: 'manage-contractors', code: 'MNG', ar: 'إدارة المقاولين', en: 'Manage Contractors', sec: 'tech', roles: ['admin', 'consultant'], kind: 'contractors',
+    sub: { ar: 'إسناد الأعمال، الصلاحيات، نطاق كل مقاول.', en: 'Assign scopes, permissions and packages per contractor.' },
+    chips: [['5 مقاولين', '5 contractors']],
+    rows: [['C-11', 'شركة الإنشاء المتحدة', 'United Construction', 'الأعمال الإنشائية', 'Structural works', 'ok', '2026-02-01'],
+      ['C-14', 'مؤسسة البناء الحديث', 'Modern Build Est.', 'الأعمال المعمارية', 'Architectural works', 'ok', '2026-03-12'],
+      ['C-19', 'الخليج للتكييف', 'Gulf HVAC', 'الميكانيكا', 'Mechanical', 'pending', '2026-04-08'],
+      ['C-23', 'النور للكهرباء', 'Al-Noor Electric', 'الكهرباء', 'Electrical', 'ok', '2026-04-20']] },
+  { id: 'daily', code: 'DLY', ar: 'إعداد التقارير', en: 'Report Builder', sec: 'tech', roles: ['admin', 'consultant'], kind: 'gen',
+    sub: { ar: 'التقرير اليومي: العمالة، المعدات، الطقس، الأعمال المنفذة.', en: 'Daily report: labour, equipment, weather, works executed.' },
+    chips: [['يومي', 'Daily'], ['يُرسل 6م', 'Sent 6 PM']],
+    rows: [['DR-231', 'تقرير يوم 2026-08-26', 'Daily report 2026-08-26', 'المكتب الفني', 'Technical office', 'done', '2026-08-26'],
+      ['DR-230', 'تقرير يوم 2026-08-25', 'Daily report 2026-08-25', 'المكتب الفني', 'Technical office', 'done', '2026-08-25'],
+      ['DR-229', 'تقرير يوم 2026-08-24', 'Daily report 2026-08-24', 'المكتب الفني', 'Technical office', 'done', '2026-08-24'],
+      ['DR-228', 'تقرير يوم 2026-08-23', 'Daily report 2026-08-23', 'المكتب الفني', 'Technical office', 'review', '2026-08-23']] },
+  { id: 'phases', code: 'PHS', ar: 'مراحل المشروع', en: 'Project Phases', sec: 'tech', roles: ['admin', 'consultant'], kind: 'gen',
+    sub: { ar: 'مراحل المشروع ومخرجات كل مرحلة ومسؤول تسليمها.', en: 'Phases, deliverables and the party responsible for each.' },
+    chips: [['5 مراحل', '5 phases']],
+    rows: [['PH-1', 'التصميم الابتدائي', 'Concept design', 'الاستشاري', 'Consultant', 'done', '2026-01-30'],
+      ['PH-2', 'التصميم التنفيذي', 'Detailed design', 'الاستشاري', 'Consultant', 'done', '2026-03-28'],
+      ['PH-3', 'الأعمال الإنشائية', 'Structural works', 'مقاول إنشائي', 'Str contractor', 'open', '2026-11-15'],
+      ['PH-4', 'التشطيبات', 'Finishes', 'مقاول معماري', 'Arch contractor', 'pending', '2027-04-01']] },
+  { id: 'bim-upload', code: 'BIM', ar: 'المخططات والنماذج', en: 'Drawings & Models', sec: 'tech', roles: ['admin', 'consultant', 'owner', 'owner_rep', 'contractor'], kind: 'drawings' },
+  { id: 'bim', code: 'MDL', ar: 'إدارة BIM', en: 'BIM Management', sec: 'tech', roles: ['admin', 'consultant'], kind: 'gen',
+    sub: { ar: 'قائمة التسليمات، مسؤول الإعداد، الصيغة، ودورة التحديث.', en: 'Deliverables list, responsible party, format and update cycle.' },
+    chips: [['IFC / RVT / NWD', 'IFC / RVT / NWD'], ['حتى 500MB', 'Up to 500MB']],
+    rows: [['BM-04', 'النموذج الإنشائي', 'Structural model', 'الاستشاري', 'Consultant', 'review', '2026-08-26'],
+      ['BM-03', 'النموذج المعماري', 'Architectural model', 'الاستشاري', 'Consultant', 'ok', '2026-08-11'],
+      ['BM-02', 'نموذج الميكانيكا', 'MEP model', 'مقاول ميكانيكا', 'MEP contractor', 'pending', '2026-08-06'],
+      ['BM-01', 'النموذج المدمج للتعارضات', 'Federated clash model', 'المكتب الفني', 'Technical office', 'open', '2026-08-27']] },
+  { id: 'contractor-db', code: 'CDB', ar: 'قاعدة بيانات المقاولين', en: 'Contractor Database', sec: 'tech', roles: ['admin', 'consultant', 'owner_rep'], kind: 'gen',
+    sub: { ar: 'مقاولون مصنفون بالتخصص والتقييم والسجل السابق.', en: 'Contractors classified by trade, rating and track record.' },
+    chips: [['48 مقاول', '48 contractors']],
+    rows: [['DB-118', 'شركة الأساس للخوازيق', 'Al-Asas Piling', 'خوازيق', 'Piling', 'ok', '4.6'],
+      ['DB-102', 'مصانع الحديد الوطنية', 'National Steel', 'حديد', 'Steel', 'ok', '4.4'],
+      ['DB-093', 'الرياض للواجهات', 'Riyadh Facades', 'واجهات', 'Facades', 'review', '4.1'],
+      ['DB-077', 'شركة المصاعد العربية', 'Arabian Elevators', 'مصاعد', 'Elevators', 'pending', '3.9']] },
+
+  { id: 'portfolio', code: 'PRT', ar: 'محفظة المشاريع', en: 'Portfolio', sec: 'admin', roles: ['admin', 'owner_rep'], kind: 'gen',
+    sub: { ar: 'أداء المحفظة: الكلفة، المدة، المخاطر عبر كل المشاريع.', en: 'Portfolio performance: cost, time and risk across projects.' },
+    chips: [['4 مشاريع', '4 projects'], ['1.24 مليار', 'SAR 1.24B']],
+    rows: [['P-01', 'برج بصير — الرياض', 'Bassir Tower — Riyadh', '72%', '72%', 'open', '2027-06-30'],
+      ['P-02', 'مجمع الواحة السكني', 'Al-Waha Residential', '41%', '41%', 'late', '2027-02-28'],
+      ['P-03', 'مركز الأعمال الشمالي', 'North Business Center', '96%', '96%', 'ok', '2026-10-15'],
+      ['P-04', 'مستودعات المنطقة الثانية', 'Zone 2 Warehouses', '12%', '12%', 'pending', '2028-01-20']] },
+  { id: 'file-server', code: 'FSV', ar: 'خادم الملفات المركزي', en: 'Central File Server', sec: 'admin', roles: ['admin', 'consultant', 'owner_rep'], kind: 'gen',
+    sub: { ar: 'رفع فعلي إلى مسار تخزين مخصص: مستندات وصور ونماذج بكل النسخ.', en: 'Real uploads to a dedicated storage path: documents, images and models with full revision history.' },
+    chips: [['84 ملف', '84 files'], ['documents / images', 'documents / images'], ['500MB', '500MB']],
+    rows: [['FS-441', 'BassirTower_STR_Rev04.ifc', 'BassirTower_STR_Rev04.ifc', 'documents/', 'documents/', 'ok', '218 MB'],
+      ['FS-440', 'ARC-L07-PLAN.dwg', 'ARC-L07-PLAN.dwg', 'documents/', 'documents/', 'ok', '14 MB'],
+      ['FS-436', 'site_L09_w33.jpg', 'site_L09_w33.jpg', 'images/', 'images/', 'ok', '3.1 MB'],
+      ['FS-431', 'scan_L03_week33.e57', 'scan_L03_week33.e57', 'documents/', 'documents/', 'review', '1.4 GB']] },
+  { id: 'rep-projects', code: 'REP', ar: 'المشاريع والاستشاريون', en: 'Projects & Consultants', sec: 'admin', roles: ['admin', 'owner_rep'], kind: 'gen',
+    sub: { ar: 'إسناد الاستشاريين للمشاريع وصلاحياتهم.', en: 'Assign consultants to projects and set their permissions.' },
+    chips: [['4 مشاريع', '4 projects'], ['3 استشاريين', '3 consultants']],
+    rows: [['P-01', 'برج بصير — الرياض', 'Bassir Tower — Riyadh', 'مكتب العمري', 'Al-Omari Office', 'ok', '2026-01-15'],
+      ['P-02', 'مجمع الواحة السكني', 'Al-Waha Residential', 'مكتب الديار', 'Al-Diyar Office', 'ok', '2026-03-02'],
+      ['P-03', 'مركز الأعمال الشمالي', 'North Business Center', 'مكتب العمري', 'Al-Omari Office', 'ok', '2025-11-20'],
+      ['P-04', 'مستودعات المنطقة الثانية', 'Zone 2 Warehouses', 'غير مسند', 'Unassigned', 'pending', '—']] },
+  { id: 'users', code: 'USR', ar: 'المستخدمون والصلاحيات', en: 'Users & Permissions', sec: 'admin', roles: ['admin', 'owner_rep'], kind: 'gen',
+    sub: { ar: 'خمسة أدوار: مدير النظام، المالك، ممثل المالك، الاستشاري، المقاول.', en: 'Five roles: admin, owner, owner rep, consultant, contractor.' },
+    chips: [['5 أدوار', '5 roles'], ['12 مستخدم', '12 users']],
+    rows: [['U-001', 'عبدالله الراجحي', 'Abdullah Al-Rajhi', 'المالك', 'Owner', 'ok', '2026-01-10'],
+      ['U-004', 'سعود المطيري', 'Saud Al-Mutairi', 'ممثل المالك', "Owner's rep", 'ok', '2026-01-12'],
+      ['U-009', 'م. خالد العمري', 'Eng. Khalid Al-Omari', 'استشاري', 'Consultant', 'ok', '2026-01-15'],
+      ['U-021', 'شركة الإنشاء المتحدة', 'United Construction', 'مقاول', 'Contractor', 'pending', '2026-02-01']] },
+  { id: 'audit', code: 'LOG', ar: 'سجل النظام', en: 'System Log', sec: 'admin', roles: ['admin', 'owner_rep'], kind: 'gen',
+    sub: { ar: 'كل إجراء موثق: من فعله، ماذا، ومتى.', en: 'Every action logged: who, what and when.' },
+    chips: [['غير قابل للتعديل', 'Immutable']],
+    rows: [['LG-9912', 'رفع نموذج STR_Rev04.ifc', 'Uploaded STR_Rev04.ifc', 'م. خالد العمري', 'Eng. Khalid', 'done', '08:41'],
+      ['LG-9911', 'اعتماد عينة مواد MS-052', 'Approved sample MS-052', 'م. خالد العمري', 'Eng. Khalid', 'done', '08:12'],
+      ['LG-9910', 'إضافة ملاحظة على ARC-L07', 'Markup added on ARC-L07', 'عبدالله الراجحي', 'Abdullah', 'done', 'أمس'],
+      ['LG-9908', 'تسجيل دخول', 'Signed in', 'سعود المطيري', 'Saud', 'done', 'أمس']] },
+  { id: 'system', code: 'SYS', ar: 'التكامل والإعدادات', en: 'Integrations & Settings', sec: 'admin', roles: ['admin', 'consultant'], kind: 'gen',
+    sub: { ar: 'حالة التكامل: التخزين، البريد، واتساب، مدخل الكاميرات، تحويل النماذج.', en: 'Integration status: storage, email, WhatsApp, camera gateway, model conversion.' },
+    chips: [['5 خدمات', '5 services'], ['4 تعمل', '4 healthy']],
+    rows: [['SV-01', 'تخزين الملفات', 'File storage', 'documents / images', 'documents / images', 'ok', '84 ملف'],
+      ['SV-02', 'البريد الإلكتروني', 'Email delivery', 'SMTP', 'SMTP', 'ok', '231'],
+      ['SV-03', 'واتساب', 'WhatsApp', 'Cloud API', 'Cloud API', 'pending', '—'],
+      ['SV-04', 'تحويل النماذج IFC/DWG', 'IFC/DWG conversion', 'Worker', 'Worker', 'ok', '12']] }
+];
+
+const DISC = {
+  str: { ar: 'إنشائي', en: 'Structural' }, arc: { ar: 'معماري', en: 'Architectural' },
+  mep: { ar: 'ميكانيكا', en: 'Mechanical' }, fac: { ar: 'واجهات', en: 'Facade' },
+  sur: { ar: 'مساحة', en: 'Survey' }, scan: { ar: 'مسح ليزري', en: 'Laser scan' }
+};
+const EXT_MAP = {
+  dwg: ['arc', '2D'], dxf: ['sur', '2D'], pdf: ['mep', '2D'], ifc: ['str', '3D'], rvt: ['arc', '3D'],
+  nwd: ['str', '3D'], nwc: ['str', '3D'], glb: ['fac', '3D'], gltf: ['fac', '3D'], obj: ['fac', '3D'],
+  step: ['str', '3D'], stp: ['str', '3D'], e57: ['scan', 'CLOUD'], las: ['scan', 'CLOUD'],
+  jpg: ['arc', 'IMG'], jpeg: ['arc', 'IMG'], png: ['arc', 'IMG']
+};
+
+
+const CONTRACTORS_SEED = [
+  { id: 'c1', ar: 'شركة الإنشاء المتحدة', en: 'United Construction', trade: 'str', cr: '1010445566',
+    no: 'CT-2026-011', value: 186000000, paid: 15600000, start: '2026-02-01', end: '2027-06-30',
+    sar: 'الأعمال الإنشائية الكاملة: الخوازيق، الأساسات، والهيكل الخرساني للأدوار 1-12.',
+    sen: 'Full structural works: piling, foundations and the concrete frame for L1-L12.',
+    user: 'cont-str', pass: 'cont123',
+    boq: [
+      { code: 'B-06.2', ar: 'خوازيق وأساسات', en: 'Piling & foundations', qty: '1 LS', value: 31000000, p: 100, model: 'STR / F00' },
+      { code: 'B-07.4', ar: 'خرسانة مسلحة', en: 'Reinforced concrete', qty: '1,240 m³', value: 62000000, p: 100, model: 'STR / L07' },
+      { code: 'B-08.1', ar: 'حديد تسليح', en: 'Rebar', qty: '186 t', value: 48400000, p: 64, model: 'STR / L09' }
+    ],
+    schedule: [
+      { ar: 'الخوازيق', en: 'Piling', l: 0, w: 14, p: 100 },
+      { ar: 'الأساسات', en: 'Foundations', l: 12, w: 16, p: 100 },
+      { ar: 'الهيكل الخرساني', en: 'Concrete frame', l: 26, w: 48, p: 72 },
+      { ar: 'الأسقف العلوية', en: 'Upper slabs', l: 70, w: 28, p: 12 }
+    ],
+    payments: [
+      { no: 'PY-007', period: '2026-08', pct: '72%', amount: 9600000, st: 'pending' },
+      { no: 'PY-006', period: '2026-07', pct: '64%', amount: 8200000, st: 'ok' },
+      { no: 'PY-005', period: '2026-06', pct: '55%', amount: 7400000, st: 'ok' }
+    ], notices: [] },
+  { id: 'c2', ar: 'مؤسسة البناء الحديث', en: 'Modern Build Est.', trade: 'arc', cr: '1010778899',
+    no: 'CT-2026-014', value: 92000000, paid: 6100000, start: '2026-03-12', end: '2027-09-30',
+    sar: 'الأعمال المعمارية: الواجهات الزجاجية، الجبس والدهانات، والتشطيبات الداخلية.',
+    sen: 'Architectural works: curtain wall, gypsum and paint, interior finishes.',
+    user: 'cont-arch', pass: 'cont123',
+    boq: [
+      { code: 'B-09.2', ar: 'واجهات زجاجية', en: 'Curtain wall', qty: '4,100 m²', value: 41000000, p: 31, model: 'FAC / all' },
+      { code: 'B-13.1', ar: 'جبس ودهانات', en: 'Gypsum & paint', qty: '12,400 m²', value: 19600000, p: 14, model: 'ARC / L03' },
+      { code: 'B-14.3', ar: 'تشطيبات داخلية', en: 'Interior finishes', qty: '9,800 m²', value: 31400000, p: 8, model: 'ARC / L01' }
+    ],
+    schedule: [
+      { ar: 'الواجهات', en: 'Facade', l: 8, w: 42, p: 31 },
+      { ar: 'الجبس والدهان', en: 'Gypsum & paint', l: 38, w: 34, p: 14 },
+      { ar: 'التشطيبات', en: 'Finishes', l: 58, w: 40, p: 8 }
+    ],
+    payments: [
+      { no: 'PY-004', period: '2026-08', pct: '18%', amount: 3400000, st: 'review' },
+      { no: 'PY-003', period: '2026-07', pct: '12%', amount: 2700000, st: 'ok' }
+    ], notices: [] },
+  { id: 'c3', ar: 'الخليج للتكييف', en: 'Gulf HVAC', trade: 'mep', cr: '1010223344',
+    no: 'CT-2026-019', value: 46000000, paid: 2100000, start: '2026-04-08', end: '2027-08-15',
+    sar: 'أعمال الميكانيكا: التكييف المركزي، السباكة، ومكافحة الحريق.',
+    sen: 'Mechanical works: central HVAC, plumbing and firefighting.',
+    user: 'cont-mep', pass: 'cont123',
+    boq: [
+      { code: 'B-11.0', ar: 'تكييف مركزي', en: 'Central HVAC', qty: '1 LS', value: 28000000, p: 22, model: 'MEP / L03' },
+      { code: 'B-11.4', ar: 'سباكة ومكافحة حريق', en: 'Plumbing & firefighting', qty: '1 LS', value: 18000000, p: 9, model: 'MEP / all' }
+    ],
+    schedule: [
+      { ar: 'المجاري الرئيسية', en: 'Main ducts', l: 16, w: 38, p: 22 },
+      { ar: 'السباكة', en: 'Plumbing', l: 30, w: 34, p: 9 },
+      { ar: 'التشغيل والاختبار', en: 'Testing & commissioning', l: 76, w: 22, p: 0 }
+    ],
+    payments: [{ no: 'PY-002', period: '2026-08', pct: '16%', amount: 2100000, st: 'ok' }], notices: [] },
+  { id: 'c4', ar: 'النور للكهرباء', en: 'Al-Noor Electric', trade: 'ele', cr: '1010667788',
+    no: 'CT-2026-023', value: 38000000, paid: 1400000, start: '2026-04-20', end: '2027-08-30',
+    sar: 'الأعمال الكهربائية: اللوحات، التغذية الرئيسية، الإنارة، وأنظمة السلامة.',
+    sen: 'Electrical works: panels, main feeders, lighting and safety systems.',
+    user: 'cont-ele', pass: 'cont123',
+    boq: [
+      { code: 'B-12.1', ar: 'لوحات وتغذية رئيسية', en: 'Panels & main feeders', qty: '1 LS', value: 22000000, p: 16, model: 'ELE / B01' },
+      { code: 'B-12.6', ar: 'إنارة وأنظمة سلامة', en: 'Lighting & safety systems', qty: '1 LS', value: 16000000, p: 4, model: 'ELE / all' }
+    ],
+    schedule: [
+      { ar: 'التمديدات', en: 'Conduits', l: 18, w: 40, p: 16 },
+      { ar: 'اللوحات', en: 'Panels', l: 44, w: 26, p: 4 },
+      { ar: 'الإنارة', en: 'Lighting', l: 64, w: 30, p: 0 }
+    ],
+    payments: [{ no: 'PY-001', period: '2026-08', pct: '11%', amount: 1400000, st: 'ok' }], notices: [] }
+];
+const TRADE_NAMES = { str: { ar: 'إنشائي', en: 'Structural' }, arc: { ar: 'معماري', en: 'Architectural' }, mep: { ar: 'ميكانيكا', en: 'Mechanical' }, ele: { ar: 'كهرباء', en: 'Electrical' } };
+const PACK_ITEMS = [
+  [['خوازيق وأساسات', 'Piling & foundations'], ['خرسانة مسلحة', 'Reinforced concrete'], ['حديد تسليح', 'Rebar']],
+  [['واجهات زجاجية', 'Curtain wall'], ['جبس ودهانات', 'Gypsum & paint'], ['تشطيبات داخلية', 'Interior finishes']],
+  [['تكييف مركزي', 'Central HVAC'], ['سباكة ومكافحة حريق', 'Plumbing & firefighting']],
+  [['لوحات وتغذية رئيسية', 'Panels & main feeders'], ['إنارة وأنظمة سلامة', 'Lighting & safety systems']]
+];
+const PACK_TRADE = ['str', 'arc', 'mep', 'ele'];
+const money = n => Number(n || 0).toLocaleString('en-US');
+
+const TX = (k, ar, en, pa, pe) => ({ k, ar, en, type: 'text', pa, pe });
+const AR_ = (k, ar, en, pa, pe) => ({ k, ar, en, type: 'area', pa, pe });
+const SL = (k, ar, en, opts) => ({ k, ar, en, type: 'sel', opts });
+const FL = (k, ar, en) => ({ k, ar, en, type: 'file', pa: ar, pe: en });
+const DT = () => TX('date', 'التاريخ', 'Date', '2026-08-27', '2026-08-27');
+const FLOORS = [['الدور 07', 'Floor 07'], ['الدور 08', 'Floor 08'], ['الدور 09', 'Floor 09'], ['الدور 10', 'Floor 10']];
+const TRADES = [['إنشائي', 'Structural'], ['معماري', 'Architectural'], ['ميكانيكا', 'Mechanical'], ['كهرباء', 'Electrical']];
+const CONTRACTORS = [['شركة الإنشاء المتحدة', 'United Construction'], ['مؤسسة البناء الحديث', 'Modern Build Est.'], ['الخليج للتكييف', 'Gulf HVAC'], ['النور للكهرباء', 'Al-Noor Electric']];
+
+const ADD_CONTRACTOR = {
+  la: '+ إضافة مقاول', le: '+ Add contractor',
+  sa: 'يُنشأ للمقاول عقد وجدول كميات وجدول زمني وحساب دخول في خطوة واحدة — وتُربط بنوده بالتنفيذ والمستخلصات تلقائياً.',
+  se: 'One step creates the contract, BOQ package, schedule and login account — items are linked to execution and payment certificates automatically.',
+  fields: [
+    TX('name', 'اسم المقاول', 'Contractor name', 'مثال: شركة الإنشاء المتحدة', 'e.g. United Construction'),
+    SL('trade', 'التخصص', 'Trade', [['إنشائي', 'Structural'], ['معماري', 'Architectural'], ['ميكانيكا', 'Mechanical'], ['كهرباء', 'Electrical']]),
+    TX('cr', 'السجل التجاري', 'Commercial registration', '1010xxxxxx', '1010xxxxxx'),
+    TX('no', 'رقم العقد', 'Contract number', 'مثال: CT-2026-031', 'e.g. CT-2026-031'),
+    TX('value', 'قيمة العقد (ر.س)', 'Contract value (SAR)', 'مثال: 46000000', 'e.g. 46000000'),
+    TX('start', 'تاريخ البدء', 'Start date', '2026-09-01', '2026-09-01'),
+    TX('end', 'تاريخ الانتهاء', 'End date', '2027-12-31', '2027-12-31'),
+    AR_('scope', 'نطاق العمل المسند', 'Assigned scope', 'اكتب الأعمال المسندة له', 'Describe the assigned works'),
+    SL('pack', 'حزمة بنود الكميات', 'BOQ package', [
+      ['إنشائي: خوازيق، خرسانة، حديد', 'Structural: piling, concrete, rebar'],
+      ['معماري: واجهات، جبس، تشطيبات', 'Architectural: facade, gypsum, finishes'],
+      ['ميكانيكا: تكييف، سباكة', 'Mechanical: HVAC, plumbing'],
+      ['كهرباء: لوحات، إنارة', 'Electrical: panels, lighting']]),
+    FL('boqFile', 'إرفاق جدول الكميات والعقد', 'Attach the BOQ and contract'),
+    TX('user', 'اسم المستخدم للمقاول', 'Contractor username', 'مثال: cont-mep', 'e.g. cont-mep'),
+    TX('pass', 'كلمة المرور', 'Password', 'مثال: cont123', 'e.g. cont123')
+  ],
+  name: 'name', who: 'trade', status: 'ok', target: 'contractor'
+};
+const SEND_NOTICE = {
+  la: '⚠ إرسال إنذار للمقاول', le: '⚠ Send notice to contractor',
+  sa: 'يُسجَّل الإنذار في ملف المقاول، ويصله إشعار داخل النظام وبريد/واتساب مع مدة التصحيح.',
+  se: 'The notice is logged in the contractor file and delivered in-system and by email/WhatsApp with the correction period.',
+  fields: [SL('contractor', 'المقاول', 'Contractor', CONTRACTORS),
+    SL('kind', 'نوع الإنذار', 'Notice type', [['تأخير في الجدول', 'Schedule delay'], ['مخالفة جودة', 'Quality breach'], ['مخالفة سلامة', 'Safety breach'], ['عدم التزام تعاقدي', 'Contractual breach']]),
+    SL('days', 'مدة التصحيح', 'Correction period', [['3 أيام', '3 days'], ['7 أيام', '7 days'], ['14 يوم', '14 days']]),
+    AR_('text', 'نص الإنذار', 'Notice text', 'اكتب المخالفة والمطلوب تصحيحه والمرجع التعاقدي', 'Describe the breach, the required correction and the contractual reference'),
+    FL('file', 'إرفاق مستند أو صورة', 'Attach a document or photo'), DT()],
+  name: 'kind', who: 'contractor', status: 'late', target: 'notice'
+};
+const REQ_REPORT = {
+  la: '+ طلب تقرير', le: '+ Request report',
+  sa: 'يُنشأ طلب تقرير في صفحة التقارير والإرسال ويصل إشعار للمكتب الفني.',
+  se: 'A report request is created in Reports & Sending and the technical office is notified.',
+  fields: [SL('type', 'نوع التقرير', 'Report type', [['تقدم أسبوعي', 'Weekly progress'], ['ملخص تنفيذي للمالك', 'Owner executive summary'], ['تقرير مالي', 'Financial report'], ['تقرير سلامة', 'HSE report']]),
+    TX('period', 'الفترة', 'Period', 'مثال: الأسبوع 34', 'e.g. Week 34'),
+    AR_('note', 'ملاحظة للمكتب الفني', 'Note to the technical office', '', ''), DT()],
+  name: 'type', who: 'period', status: 'pending', target: 'rows:reports'
+};
+const NEW_SUBMISSION = {
+  la: '+ تقديم جديد', le: '+ New submission',
+  sa: 'يدخل التقديم دورة المراجعة لدى الاستشاري بمُدة رد محددة.',
+  se: 'The submission enters the consultant review cycle with a response deadline.',
+  fields: [SL('type', 'نوع التقديم', 'Submission type', [['مخطط تنفيذي', 'Shop drawing'], ['عينة مواد', 'Material sample'], ['طلب فحص', 'Inspection request'], ['طريقة تنفيذ', 'Method statement']]),
+    TX('title', 'العنوان', 'Title', 'مثال: مخطط تنفيذي — واجهة زجاجية', 'e.g. Shop drawing — curtain wall'),
+    SL('contractor', 'المقاول', 'Contractor', CONTRACTORS),
+    FL('file', 'إرفاق الملف', 'Attach the file'), DT()],
+  name: 'title', who: 'contractor', status: 'pending', target: 'rows'
+};
+const ARCHIVE_FILE = {
+  la: '+ أرشفة ملف', le: '+ Archive a file',
+  sa: 'يُحفظ الملف بنسخته وتاريخه وصاحبه — ولا يُحذف أبداً.',
+  se: 'The file is stored with its revision, date and author — never deleted.',
+  fields: [TX('title', 'اسم الملف', 'File name', 'مثال: BOQ_v7.xlsx', 'e.g. BOQ_v7.xlsx'), FL('file', 'اختيار الملف', 'Choose the file'), DT()],
+  name: 'title', who: 'date', status: 'done', target: 'rows'
+};
+const ADD_SNAG = {
+  la: '+ إضافة ملاحظة تسليم', le: '+ Add snag',
+  sa: 'تُسند الملاحظة للمقاول المسؤول وتُتابع حتى الإغلاق.',
+  se: 'The snag is assigned to the responsible contractor and tracked to closure.',
+  fields: [TX('title', 'وصف الملاحظة', 'Snag description', 'مثال: تشطيب جبس ممر الدور 6', 'e.g. Gypsum finish L06 corridor'),
+    SL('contractor', 'المقاول المسؤول', 'Responsible contractor', CONTRACTORS),
+    SL('floor', 'الموقع', 'Location', FLOORS), FL('file', 'إرفاق صورة', 'Attach a photo'), DT()],
+  name: 'title', who: 'contractor', status: 'open', target: 'rows'
+};
+
+const ACTIONS = {
+  'owner-eye': [REQ_REPORT],
+  'dashboard': [REQ_REPORT],
+  'home': [NEW_SUBMISSION],
+  'projects': [{
+    la: '+ إضافة مشروع', le: '+ Add project',
+    sa: 'يُضاف المشروع للمحفظة ويمكن إسناد استشاري ومقاولين له.',
+    se: 'The project joins the portfolio; a consultant and contractors can then be assigned.',
+    fields: [TX('name', 'اسم المشروع', 'Project name', 'مثال: برج بصير 2', 'e.g. Bassir Tower 2'),
+      TX('loc', 'الموقع', 'Location', 'مثال: الرياض — حي الملقا', 'e.g. Riyadh — Al Malqa'),
+      TX('consultant', 'الاستشاري', 'Consultant', 'مثال: مكتب العمري', 'e.g. Al-Omari Office'), DT()],
+    name: 'name', who: 'consultant', status: 'open', target: 'rows'
+  }],
+  'vision': [{
+    la: '+ إضافة منطقة', le: '+ Add zone',
+    sa: 'تظهر المنطقة على مخطط الموقع بنسبة تنفيذها ولونها حسب الحالة.',
+    se: 'The zone appears on the site plan with its progress and status colour.',
+    fields: [TX('name', 'اسم المنطقة', 'Zone name', 'مثال: صالة المعارض', 'e.g. Exhibition hall'),
+      SL('state', 'الحالة', 'Status', [['مخطط', 'Planned'], ['جارٍ', 'In progress'], ['مكتمل', 'Complete']]),
+      TX('pct', 'نسبة التنفيذ', 'Progress', 'مثال: 35', 'e.g. 35')],
+    name: 'name', who: 'pct', status: 'open', target: 'zones'
+  }],
+  'cameras': [{
+    la: '+ إضافة كاميرا', le: '+ Add camera',
+    sa: 'تُضاف الكاميرا لمدخل الكاميرات ويبدأ سحب اللقطات تلقائياً.',
+    se: 'The camera is added to the gateway and snapshot pulling starts automatically.',
+    fields: [TX('name', 'اسم الكاميرا', 'Camera name', 'مثال: البوابة الجنوبية', 'e.g. South gate'),
+      TX('loc', 'الموقع في المشروع', 'Location on site', 'مثال: مدخل الشاحنات', 'e.g. Truck entrance'),
+      SL('res', 'الدقة', 'Resolution', [['1080p', '1080p'], ['4K', '4K'], ['720p', '720p']]),
+      TX('url', 'رابط البث RTSP', 'RTSP stream URL', 'rtsp://...', 'rtsp://...')],
+    name: 'name', who: 'loc', status: 'ok', target: 'cameras'
+  }],
+  'contractors': [ADD_CONTRACTOR, SEND_NOTICE],
+  'manage-contractors': [ADD_CONTRACTOR, SEND_NOTICE, {
+    la: '+ إسناد نطاق عمل', le: '+ Assign scope',
+    sa: 'يُسند نطاق العمل للمقاول وتُفتح له صلاحيات التقديم على بنوده.',
+    se: 'The scope is assigned and submission permissions open for its items.',
+    fields: [SL('contractor', 'المقاول', 'Contractor', CONTRACTORS),
+      TX('scope', 'نطاق العمل', 'Scope', 'مثال: تشطيبات الأدوار 1-5', 'e.g. Finishes L1-L5'),
+      TX('value', 'قيمة الإسناد', 'Assigned value', 'مثال: 4,200,000 ر.س', 'e.g. SAR 4,200,000'), DT()],
+    name: 'scope', who: 'contractor', status: 'pending', target: 'rows'
+  }],
+  'contractor-db': [{
+    la: '+ إضافة مقاول للقاعدة', le: '+ Add to database',
+    sa: 'يُصنَّف المقاول بالتخصص والتقييم ليكون متاحاً للترشيح في المشاريع.',
+    se: 'The contractor is classified by trade and rating, available for nomination on projects.',
+    fields: [TX('name', 'اسم الشركة', 'Company name', '', ''), SL('trade', 'التخصص', 'Trade', TRADES),
+      TX('rating', 'التقييم', 'Rating', 'مثال: 4.3', 'e.g. 4.3'),
+      TX('cr', 'السجل التجاري', 'Commercial registration', '', '')],
+    name: 'name', who: 'trade', status: 'review', target: 'rows'
+  }],
+  'ai': [{
+    la: '+ تحليل صورة', le: '+ Analyse photo',
+    sa: 'تُحلَّل الصورة ويظهر الاستنتاج في قائمة ذكاء بصير مرتبطاً بالدور.',
+    se: 'The photo is analysed and the finding appears in the Bassir AI list, linked to the floor.',
+    fields: [TX('title', 'وصف الموقع', 'What is in the photo', 'مثال: حديد سقف الدور التاسع', 'e.g. L09 slab rebar'),
+      SL('floor', 'الدور', 'Floor', FLOORS), FL('file', 'اختيار الصورة', 'Choose the photo')],
+    name: 'title', who: 'floor', status: 'open', target: 'ai'
+  }],
+  'reports': [{
+    la: '+ إنشاء تقرير', le: '+ Create report',
+    sa: 'يُبنى التقرير بالعربية والإنجليزية ويُرسل للمستلمين بالبريد أو واتساب.',
+    se: 'The report is built in Arabic and English and sent to recipients by email or WhatsApp.',
+    fields: [SL('type', 'نوع التقرير', 'Report type', [['تقدم أسبوعي', 'Weekly progress'], ['ملخص تنفيذي', 'Executive summary'], ['تقرير مالي', 'Financial'], ['تقرير سلامة', 'HSE']]),
+      TX('period', 'الفترة', 'Period', 'مثال: 2026-08-20 إلى 2026-08-27', 'e.g. 2026-08-20 to 2026-08-27'),
+      TX('to', 'المستلمون', 'Recipients', 'مثال: المالك، ممثل المالك', 'e.g. Owner, Owner rep'),
+      SL('fmt', 'الصيغة', 'Format', [['PDF', 'PDF'], ['Excel', 'Excel']]), DT()],
+    name: 'type', who: 'to', status: 'review', target: 'rows'
+  }],
+  'submissions': [NEW_SUBMISSION],
+  'submissions-c': [NEW_SUBMISSION],
+  'variations': [{
+    la: '+ أمر تغيير جديد', le: '+ New variation order',
+    sa: 'يُحسب أثر التغيير على الكلفة والمدة قبل عرضه على المالك للاعتماد.',
+    se: 'Cost and time impact are recorded before the owner reviews it for approval.',
+    fields: [TX('title', 'عنوان التغيير', 'Variation title', 'مثال: تغيير نوع رخام المدخل', 'e.g. Change lobby marble'),
+      TX('cost', 'أثر الكلفة', 'Cost impact', 'مثال: +185,000 ر.س', 'e.g. +SAR 185,000'),
+      TX('time', 'أثر المدة', 'Time impact', 'مثال: +6 أيام', 'e.g. +6 days'),
+      AR_('desc', 'الوصف والمبرر', 'Description and justification', '', ''), DT()],
+    name: 'title', who: 'cost', status: 'pending', target: 'rows'
+  }],
+  'project-docs': [{
+    la: '+ إضافة وثيقة', le: '+ Add document',
+    sa: 'تُرفع الوثيقة لخادم الملفات وتُصنَّف تحت فئتها وتظهر للمالك.',
+    se: 'The document is uploaded to the file server, filed under its category and shown to the owner.',
+    fields: [SL('cat', 'الفئة', 'Category', [['العقود', 'Contracts'], ['جداول الكميات', 'BOQ'], ['التصاميم الأولية', 'Concept designs'], ['مخططات IFC', 'IFC models'], ['المواصفات', 'Specifications'], ['متطلبات المالك', 'Owner requirements'], ['وثائق فنية', 'Technical docs'], ['تقارير', 'Reports']]),
+      TX('title', 'اسم الوثيقة', 'Document name', '', ''), FL('file', 'اختيار الملف', 'Choose the file'), DT()],
+    name: 'title', who: 'cat', status: 'review', target: 'files'
+  }],
+  'handover': [ADD_SNAG, {
+    la: '+ إضافة ضمان', le: '+ Add warranty',
+    sa: 'يُسجَّل الضمان بمدته ومورده ويُرفق كتاب الضمان.',
+    se: 'The warranty is logged with its period and supplier, with the certificate attached.',
+    fields: [TX('title', 'موضوع الضمان', 'Warranty subject', 'مثال: ضمان المصاعد', 'e.g. Elevators warranty'),
+      TX('supplier', 'المورد', 'Supplier', '', ''),
+      SL('period', 'المدة', 'Period', [['سنة', '1 year'], ['3 سنوات', '3 years'], ['5 سنوات', '5 years']]),
+      FL('file', 'إرفاق كتاب الضمان', 'Attach the certificate'), DT()],
+    name: 'title', who: 'supplier', status: 'ok', target: 'rows'
+  }],
+  'handover-c': [ADD_SNAG],
+  'archive': [ARCHIVE_FILE],
+  'archive-c': [ARCHIVE_FILE],
+  'approvals': [NEW_SUBMISSION],
+  'rfx': [{
+    la: '+ استفسار / عرض جديد', le: '+ New RFI / RFP',
+    sa: 'يُفتح الاستفسار بمُدة رد ملتزمة، ويُحصى في مؤشرات الأداء.',
+    se: 'The query opens with a committed response time and counts in the KPIs.',
+    fields: [SL('type', 'النوع', 'Type', [['استفسار فني RFI', 'RFI'], ['طلب عرض RFP', 'RFP']]),
+      TX('title', 'الموضوع', 'Subject', 'مثال: تعارض عمود C-14 مع مجرى التكييف', 'e.g. Column C-14 vs duct clash'),
+      TX('party', 'الجهة الموجَّه إليها', 'Directed to', '', ''),
+      SL('sla', 'مدة الرد', 'Response time', [['24 ساعة', '24 hours'], ['3 أيام', '3 days'], ['7 أيام', '7 days']]), DT()],
+    name: 'title', who: 'party', status: 'open', target: 'rows'
+  }],
+  'tech-office': [{
+    la: '+ خدمة فنية جديدة', le: '+ New technical item',
+    sa: 'يدخل البند مسار المكتب الفني حسب نوعه: مراجعة، إغلاق، أو قرار.',
+    se: 'The item enters the technical office flow per its type: review, closure or decision.',
+    fields: [SL('type', 'النوع', 'Type', [['طريقة تنفيذ', 'Method statement'], ['عدم مطابقة NCR', 'NCR'], ['مطالبة', 'Claim'], ['هندسة قيمية', 'Value engineering'], ['تقرير سلامة', 'HSE report']]),
+      TX('title', 'العنوان', 'Title', '', ''), SL('party', 'الجهة', 'Party', CONTRACTORS),
+      FL('file', 'إرفاق مستند', 'Attach a document'), DT()],
+    name: 'title', who: 'party', status: 'pending', target: 'rows'
+  }],
+  'boq': [{
+    la: '+ إضافة بند', le: '+ Add BOQ item',
+    sa: 'البند الجديد يظهر في الجدول ويمكن ربطه بعنصر في النموذج ثلاثي الأبعاد.',
+    se: 'The new item appears in the table and can be linked to a 3D model element.',
+    fields: [TX('code', 'كود البند', 'Item code', 'مثال: B-15.1', 'e.g. B-15.1'),
+      TX('item', 'وصف البند', 'Item description', 'مثال: دهانات داخلية', 'e.g. Interior painting'),
+      SL('unit', 'الوحدة', 'Unit', [['m³', 'm³'], ['m²', 'm²'], ['t', 't'], ['LS', 'LS']]),
+      TX('qty', 'الكمية', 'Quantity', 'مثال: 4,100', 'e.g. 4,100'),
+      TX('model', 'الربط بالنموذج', 'Model link', 'مثال: ARC / L05', 'e.g. ARC / L05')],
+    name: 'item', who: 'qty', status: 'open', target: 'boq'
+  }],
+  'daily': [{
+    la: '+ تقرير يومي', le: '+ Daily report',
+    sa: 'يُبنى التقرير اليومي ويُرسل تلقائياً للمالك والاستشاري.',
+    se: 'The daily report is built and sent automatically to the owner and consultant.',
+    fields: [DT(), TX('labour', 'عدد العمالة', 'Labour count', 'مثال: 142', 'e.g. 142'),
+      TX('equip', 'المعدات', 'Equipment', 'مثال: رافعتان، مضخة خرسانة', 'e.g. 2 cranes, concrete pump'),
+      SL('weather', 'الطقس', 'Weather', [['صحو', 'Clear'], ['غبار', 'Dusty'], ['أمطار', 'Rain'], ['حرارة عالية', 'Extreme heat']]),
+      AR_('works', 'الأعمال المنفذة', 'Works executed', '', '')],
+    name: 'works', who: 'labour', status: 'done', target: 'rows'
+  }],
+  'phases': [{
+    la: '+ إضافة مرحلة', le: '+ Add phase',
+    sa: 'تُضاف المرحلة بمخرجاتها ومسؤول تسليمها وتاريخ الاستحقاق.',
+    se: 'The phase is added with its deliverables, responsible party and due date.',
+    fields: [TX('name', 'اسم المرحلة', 'Phase name', 'مثال: التشغيل والاختبار', 'e.g. Testing & commissioning'),
+      TX('party', 'المسؤول', 'Responsible', '', ''), DT()],
+    name: 'name', who: 'party', status: 'pending', target: 'rows'
+  }],
+  'bim-upload': [{ la: '+ رفع ملفات', le: '+ Upload files', target: 'upload' }, {
+    la: '+ رفع نموذج وربطه بالكميات', le: '+ Upload model & link to BOQ',
+    sa: 'يُرفع النموذج (IFC / RVT / NWD حتى 500MB) ويُربط ببنود جدول الكميات ليراه المالك.',
+    se: 'The model (IFC / RVT / NWD up to 500MB) is uploaded and linked to BOQ items for the owner to see.',
+    fields: [FL('file', 'اختيار ملف النموذج', 'Choose the model file'),
+      SL('disc', 'التخصص', 'Discipline', TRADES), TX('rev', 'رقم النسخة', 'Revision', 'مثال: R05', 'e.g. R05'),
+      TX('boq', 'ربط ببند الكميات', 'Link to BOQ item', 'مثال: B-08.1', 'e.g. B-08.1')],
+    name: 'rev', who: 'disc', status: 'review', target: 'files'
+  }],
+  'bim': [{
+    la: '+ إضافة تسليم BIM', le: '+ Add BIM deliverable',
+    sa: 'يُحدَّد النموذج المطلوب ومسؤول إعداده وصيغته ودورة تحديثه.',
+    se: 'Defines the required model, who prepares it, its format and update cycle.',
+    fields: [TX('name', 'اسم النموذج', 'Model name', 'مثال: نموذج الكهرباء', 'e.g. Electrical model'),
+      SL('fmt', 'الصيغة', 'Format', [['IFC', 'IFC'], ['RVT', 'RVT'], ['NWD', 'NWD']]),
+      SL('party', 'المسؤول', 'Responsible', CONTRACTORS),
+      SL('cycle', 'دورة التحديث', 'Update cycle', [['أسبوعي', 'Weekly'], ['شهري', 'Monthly']]), DT()],
+    name: 'name', who: 'party', status: 'pending', target: 'rows'
+  }],
+  'portfolio': [{
+    la: '+ إضافة مشروع للمحفظة', le: '+ Add portfolio project',
+    sa: 'يُدخل المشروع في مؤشرات المحفظة: الكلفة، المدة، المخاطر.',
+    se: 'The project enters portfolio KPIs: cost, time and risk.',
+    fields: [TX('name', 'اسم المشروع', 'Project name', '', ''), TX('value', 'قيمة العقد', 'Contract value', 'مثال: 320,000,000', 'e.g. 320,000,000'),
+      TX('due', 'تاريخ التسليم', 'Delivery date', '2028-01-20', '2028-01-20')],
+    name: 'name', who: 'value', status: 'open', target: 'rows'
+  }],
+  'file-server': [{
+    la: '+ رفع ملف', le: '+ Upload file',
+    sa: 'الرفع فعلي إلى مسار التخزين: الصور لمجلد images والمستندات لمجلد documents.',
+    se: 'Real upload to the storage path: images to images/, everything else to documents/.',
+    fields: [FL('file', 'اختيار الملف', 'Choose the file'),
+      SL('folder', 'المجلد', 'Folder', [['documents/', 'documents/'], ['images/', 'images/']]),
+      TX('title', 'وصف', 'Description', '', '')],
+    name: 'title', who: 'folder', status: 'ok', target: 'files'
+  }],
+  'rep-projects': [{
+    la: '+ إسناد استشاري', le: '+ Assign consultant',
+    sa: 'يُسند الاستشاري للمشروع بصلاحيات محددة على صفحاته.',
+    se: 'The consultant is assigned to the project with defined permissions.',
+    fields: [TX('project', 'المشروع', 'Project', '', ''), TX('consultant', 'الاستشاري', 'Consultant', '', ''),
+      SL('perm', 'الصلاحية', 'Permission', [['كاملة', 'Full'], ['قراءة فقط', 'Read only']]), DT()],
+    name: 'project', who: 'consultant', status: 'ok', target: 'rows'
+  }],
+  'users': [{
+    la: '+ إضافة مستخدم', le: '+ Add user',
+    sa: 'يُنشأ الحساب بدوره وصلاحياته، وتصله دعوة على بريده.',
+    se: 'The account is created with its role and permissions, and an invitation is emailed.',
+    fields: [TX('name', 'الاسم', 'Name', '', ''), TX('email', 'البريد الإلكتروني', 'Email', 'you@company.com', 'you@company.com'),
+      SL('role', 'الدور', 'Role', [['المالك', 'Owner'], ['ممثل المالك', "Owner's rep"], ['استشاري', 'Consultant'], ['مقاول', 'Contractor'], ['مدير النظام', 'Admin']]), DT()],
+    name: 'name', who: 'role', status: 'pending', target: 'rows'
+  }],
+  'audit': [{ la: '+ تصدير السجل', le: '+ Export log', target: 'toast' }],
+  'system': [{
+    la: '+ إضافة تكامل', le: '+ Add integration',
+    sa: 'تُربط الخدمة بمفتاحها؛ وإن لم تُهيّأ تُسجَّل المحاولات كمحاكاة موثّقة.',
+    se: 'The service is connected with its key; if unconfigured, attempts are logged as documented simulations.',
+    fields: [SL('service', 'الخدمة', 'Service', [['البريد الإلكتروني', 'Email'], ['واتساب', 'WhatsApp'], ['تخزين الملفات', 'File storage'], ['تحويل النماذج', 'Model conversion'], ['مدخل الكاميرات', 'Camera gateway']]),
+      TX('endpoint', 'العنوان / المفتاح', 'Endpoint / key', '', ''),
+      SL('state', 'الحالة', 'State', [['مفعّل', 'Enabled'], ['معطّل', 'Disabled']])],
+    name: 'service', who: 'endpoint', status: 'ok', target: 'rows'
+  }]
+};
+const DEFAULT_ACTION = {
+  la: '+ إضافة سجل', le: '+ Add record', sa: 'يُضاف السجل لقائمة الصفحة ويصل إشعار للجهة المسؤولة.', se: 'The record is added to this page and the responsible party is notified.',
+  fields: [TX('name', 'العنوان', 'Title', '', ''), TX('who', 'الجهة المسؤولة', 'Responsible party', '', ''), DT()],
+  name: 'name', who: 'who', status: 'pending', target: 'rows'
+};
+
+const FLOOR_PCT = [100, 100, 100, 100, 100, 100, 100, 100, 64, 18, 0, 0];
+
+class Component extends DCLogic {
+  state = {
+    lang: 'ar', role: 'owner', page: 'owner-eye', logged: false, loginUser: 'owner',
+    project: 'P-01', bellOpen: false, notifSettingsOpen: false, channels: { email: true, wa: false },
+    tab: '3d', tool: 'ORBIT', selFloor: 7, section: 100, layers: { str: true, fac: true, mep: true },
+    dragOver: false, uploads: [], pins: [], compare: 50, approved: false, measure: null, approvedIds: {},
+    addOpen: false, addIdx: 0, toast: '', formFileName: '', extraRows: {}, extraBoq: [], extraApprovals: [], extraCameras: [], extraAi: [], extraZones: [], extraNotifs: [], contractors: CONTRACTORS_SEED.map(c => Object.assign({}, c)), selC: 'c1', cTab: 'contract', boqFilter: 'all', sheetKey: '',
+    form: { name: '', who: '', date: '2026-08-27', status: 'pending', fileName: '' },
+    files: [
+      { ext: 'IFC', name: 'BassirTower_STR_Rev04.ifc', disc: 'str', kind: '3D', rev: 'R04', status: 'review', date: '2026-08-26' },
+      { ext: 'DWG', name: 'ARC-L07-PLAN.dwg', disc: 'arc', kind: '2D', rev: 'R02', status: 'ok', date: '2026-08-24' },
+      { ext: 'PDF', name: 'MEP-HVAC-SHEETS.pdf', disc: 'mep', kind: '2D', rev: 'R07', status: 'ok', date: '2026-08-20' },
+      { ext: 'GLB', name: 'facade_study.glb', disc: 'fac', kind: '3D', rev: 'R01', status: 'draft', date: '2026-08-18' },
+      { ext: 'E57', name: 'scan_L03_week33.e57', disc: 'scan', kind: 'CLOUD', rev: '—', status: 'draft', date: '2026-08-15' },
+      { ext: 'RVT', name: 'ARC_central_R21.rvt', disc: 'arc', kind: '3D', rev: 'R21', status: 'ok', date: '2026-08-11' }
+    ],
+    selFile: 0
+  };
+
+  componentDidMount() { this.tryInit(0); }
+  componentDidUpdate(prev) {
+    if (this.state.logged && this.page().kind === 'drawings' && this.state.tab === '3d') this.tryInit(0);
+    if (prev.section !== this.state.section) this.applySection();
+    if (prev.layers !== this.state.layers) this.applyLayers();
+    if (prev.selFloor !== this.state.selFloor) this.applyHighlight();
+  }
+  componentWillUnmount() { this.stopped = true; }
+
+  page() { return PAGES.find(p => p.id === this.state.page) || PAGES[0]; }
+  myPages() { return PAGES.filter(p => p.roles.indexOf(this.state.role) !== -1); }
+
+  tryInit(n) {
+    const host = this.vp;
+    if (this.renderer && host && this.renderer.domElement.parentNode === host) return;
+    if (!window.THREE || !host) { if (n < 80) setTimeout(() => this.tryInit(n + 1), 120); return; }
+    if (this.renderer) { host.appendChild(this.renderer.domElement); this.resize(); return; }
+    this.initThree(host);
+  }
+
+  initThree(host) {
+    const T = window.THREE;
+    const scene = new T.Scene();
+    scene.fog = new T.Fog(0x0b0d12, 90, 260);
+    const cam = new T.PerspectiveCamera(38, 1, 0.5, 600);
+    const renderer = new T.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.localClippingEnabled = true;
+    host.appendChild(renderer.domElement);
+    renderer.domElement.style.width = '100%';
+    renderer.domElement.style.height = '100%';
+    renderer.domElement.style.display = 'block';
+    scene.add(new T.HemisphereLight(0x9db6ff, 0x0d0f13, 0.85));
+    const dir = new T.DirectionalLight(0xffffff, 0.75); dir.position.set(40, 70, 30); scene.add(dir);
+    const grid = new T.GridHelper(300, 40, 0x1c2433, 0x141a26); grid.position.y = -0.05; scene.add(grid);
+
+    this.T = T; this.scene = scene; this.cam = cam; this.renderer = renderer;
+    this.clip = new T.Plane(new T.Vector3(0, -1, 0), 200);
+    this.groups = { str: new T.Group(), fac: new T.Group(), mep: new T.Group() };
+    scene.add(this.groups.str, this.groups.fac, this.groups.mep);
+    this.slabs = [];
+    this.buildModel();
+
+    this.orbit = { theta: -0.85, phi: 1.06, r: 108, tx: 0, ty: 17, dragging: false, lx: 0, ly: 0 };
+    const el = renderer.domElement;
+    el.addEventListener('pointerdown', e => { this.orbit.dragging = true; this.orbit.lx = e.clientX; this.orbit.ly = e.clientY; this.moved = false; el.setPointerCapture(e.pointerId); });
+    el.addEventListener('pointermove', e => {
+      if (!this.orbit.dragging) return;
+      const dx = e.clientX - this.orbit.lx, dy = e.clientY - this.orbit.ly;
+      if (Math.abs(dx) + Math.abs(dy) > 3) this.moved = true;
+      this.orbit.theta -= dx * 0.006;
+      this.orbit.phi = Math.max(0.16, Math.min(1.5, this.orbit.phi - dy * 0.005));
+      this.orbit.lx = e.clientX; this.orbit.ly = e.clientY;
+    });
+    el.addEventListener('pointerup', e => { this.orbit.dragging = false; try { el.releasePointerCapture(e.pointerId); } catch (err) {} });
+    el.addEventListener('wheel', e => { e.preventDefault(); this.orbit.r = Math.max(34, Math.min(230, this.orbit.r + e.deltaY * 0.09)); }, { passive: false });
+
+    this.ray = new T.Raycaster();
+    this.ro = new ResizeObserver(() => this.resize()); this.ro.observe(host);
+    this.resize(); this.applySection(); this.applyLayers(); this.applyHighlight();
+    const loop = () => { if (this.stopped) return; this.frame(); requestAnimationFrame(loop); };
+    loop();
+  }
+
+  buildModel() {
+    const T = this.T, W = 30, D = 19, H = 3.4, N = FLOOR_PCT.length;
+    const mat = (c, o) => new T.MeshStandardMaterial({ color: c, roughness: 0.62, metalness: 0.06, transparent: o < 1, opacity: o, clippingPlanes: [this.clip] });
+    for (let i = 0; i < N; i++) {
+      const pct = FLOOR_PCT[i];
+      const col = pct >= 100 ? 0x2c8f6a : pct > 0 ? 0x8a7333 : 0x2a3346;
+      const slab = new T.Mesh(new T.BoxGeometry(W, 0.55, D), mat(col, 1));
+      slab.position.set(0, i * H, 0); slab.userData.floor = i; this.slabs.push(slab); this.groups.str.add(slab);
+      for (let cx = -2; cx <= 2; cx++) for (let cz = -1; cz <= 1; cz++) {
+        const c = new T.Mesh(new T.BoxGeometry(1.1, H - 0.55, 1.1), mat(pct >= 100 ? 0x3a6f5c : 0x39435a, 1));
+        c.position.set(cx * (W / 5.2), i * H + (H - 0.55) / 2 + 0.27, cz * (D / 3.2)); c.userData.floor = i; this.groups.str.add(c);
+      }
+      const core = new T.Mesh(new T.BoxGeometry(7, H - 0.6, 6), mat(0x334059, 1));
+      core.position.set(W / 4.4, i * H + H / 2, -D / 5); core.userData.floor = i; this.groups.str.add(core);
+      const glass = new T.Mesh(new T.BoxGeometry(W + 0.5, H - 0.7, D + 0.5), new T.MeshStandardMaterial({ color: 0x6f92ff, transparent: true, opacity: 0.11, roughness: 0.1, clippingPlanes: [this.clip] }));
+      glass.position.set(0, i * H + H / 2, 0); glass.userData.floor = i; this.groups.fac.add(glass);
+      const duct = new T.Mesh(new T.CylinderGeometry(0.34, 0.34, W - 4, 10), mat(0xc98f3f, 0.85));
+      duct.rotation.z = Math.PI / 2; duct.position.set(0, i * H + H - 1.1, D / 4.5); duct.userData.floor = i; this.groups.mep.add(duct);
+    }
+    const podium = new T.Mesh(new T.BoxGeometry(W + 14, 1.2, D + 12), mat(0x1e2a3d, 1));
+    podium.position.y = -0.6; this.groups.str.add(podium);
+    this.topY = (N - 1) * H + H;
+  }
+
+  resize() {
+    const host = this.vp; if (!host || !this.renderer) return;
+    const w = host.clientWidth || 900, h = host.clientHeight || 600;
+    this.renderer.setSize(w, h, false); this.cam.aspect = w / h; this.cam.updateProjectionMatrix();
+  }
+
+  frame() {
+    const o = this.orbit; if (!o) return;
+    if (!o.dragging) o.theta += 0.0009;
+    this.cam.position.set(o.tx + o.r * Math.sin(o.phi) * Math.cos(o.theta), o.ty + o.r * Math.cos(o.phi), o.r * Math.sin(o.phi) * Math.sin(o.theta));
+    this.cam.lookAt(o.tx, o.ty, 0);
+    this.renderer.render(this.scene, this.cam);
+  }
+
+  applySection() { if (this.clip) this.clip.constant = this.topY * (this.state.section / 100) + 0.4; }
+  applyLayers() { const L = this.state.layers; if (this.groups) { this.groups.str.visible = L.str; this.groups.fac.visible = L.fac; this.groups.mep.visible = L.mep; } }
+  applyHighlight() {
+    if (!this.slabs) return;
+    this.slabs.forEach((s, i) => {
+      const on = i === this.state.selFloor;
+      s.material.emissive = new this.T.Color(on ? 0x3f6dff : 0x000000);
+      s.material.emissiveIntensity = on ? 0.85 : 0;
+    });
+  }
+
+  hit(e) {
+    if (!this.renderer) return null;
+    const r = this.renderer.domElement.getBoundingClientRect();
+    const p = new this.T.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+    this.ray.setFromCamera(p, this.cam);
+    const hits = this.ray.intersectObjects([this.groups.str, this.groups.mep], true);
+    return hits.length ? hits[0] : null;
+  }
+
+  onStageClick = (e) => {
+    if (this.moved) { this.moved = false; return; }
+    const h = this.hit(e); if (!h) return;
+    if (this.state.tool === 'MEASURE') {
+      const pts = (this.mp || []).concat([h.point]);
+      if (pts.length === 2) { this.mp = null; this.setState({ measure: pts[0].distanceTo(pts[1]) }); }
+      else { this.mp = pts; this.setState({ measure: null }); }
+      return;
+    }
+    if (h.object.userData.floor !== undefined) this.setState({ selFloor: h.object.userData.floor, measure: null });
+  };
+
+  classify(name) {
+    const ext = (name.split('.').pop() || '').toLowerCase();
+    const m = EXT_MAP[ext] || ['arc', '2D'];
+    return { ext: ext.toUpperCase(), disc: m[0], kind: m[1] };
+  }
+
+  ingest(list) {
+    const arr = Array.from(list || []); if (!arr.length) return;
+    const items = arr.map((f, i) => {
+      const c = this.classify(f.name);
+      return {
+        id: Date.now() + '-' + i, name: f.name, ext: c.ext, disc: c.disc, kind: c.kind,
+        size: f.size > 1048576 ? (f.size / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(f.size / 1024)) + ' KB',
+        pct: 6, state: 'up', file: f, url: URL.createObjectURL(f), mime: f.type || ''
+      };
+    });
+    this.setState(s => ({ uploads: s.uploads.concat(items), dragOver: false }));
+    this.showToast(T2[this.state.lang].tUpload);
+    items.forEach(it => {
+      let p = 6;
+      const iv = setInterval(() => {
+        p = Math.min(100, p + 9 + Math.random() * 16);
+        const done = p >= 100;
+        const endState = /glb|gltf/i.test(it.ext) ? 'loaded' : (it.kind === '3D' || it.kind === 'CLOUD' ? 'queued' : 'ok');
+        this.setState(s => ({ uploads: s.uploads.map(u => u.id === it.id ? Object.assign({}, u, { pct: p, state: done ? endState : 'up' }) : u) }));
+        if (done) {
+          clearInterval(iv);
+          this.setState(s => ({
+            files: [{ ext: it.ext, name: it.name, disc: it.disc, kind: it.kind, rev: 'R01', status: 'review', date: '2026-08-27', url: it.url, mime: it.mime }].concat(s.files),
+            selFile: 0,
+            page: 'bim-upload',
+            tab: (it.kind === '2D' || it.kind === 'IMG') ? '2d' : '3d',
+            sheetKey: (it.kind === '2D' || it.kind === 'IMG') ? it.name : s.sheetKey
+          }));
+          if (/glb|gltf/i.test(it.ext)) this.loadGltf(it.file);
+        }
+      }, 420);
+    });
+  }
+
+  loadGltf(file) {
+    const T = this.T; if (!T || !this.scene) return;
+    const url = URL.createObjectURL(file);
+    const done = (obj) => {
+      const box = new T.Box3().setFromObject(obj), size = box.getSize(new T.Vector3());
+      const k = 26 / Math.max(size.x, size.y, size.z, 0.001);
+      obj.scale.setScalar(k); obj.position.set(-26, this.topY + 6, 0);
+      obj.traverse(m => { if (m.isMesh && m.material) m.material.clippingPlanes = [this.clip]; });
+      this.scene.add(obj); URL.revokeObjectURL(url);
+    };
+    import('https://unpkg.com/three@0.137.0/examples/jsm/loaders/GLTFLoader.js')
+      .then(m => new m.GLTFLoader().load(url, g => done(g.scene), () => {}))
+      .catch(() => {});
+  }
+
+  actions() { return ACTIONS[this.state.page] || [DEFAULT_ACTION]; }
+  action() { return this.actions()[this.state.addIdx] || this.actions()[0]; }
+
+  showToast(msg) {
+    this.setState({ toast: msg });
+    clearTimeout(this.tt);
+    this.tt = setTimeout(() => this.setState({ toast: '' }), 3000);
+  }
+
+  openAdd(i) {
+    const a = this.actions()[i] || DEFAULT_ACTION;
+    const form = {};
+    (a.fields || []).forEach(fd => { form[fd.k] = fd.type === 'sel' ? 0 : (fd.k === 'date' ? '2026-08-27' : ''); });
+    this.formFiles = null;
+    this.setState({ addOpen: true, addIdx: i, form: form, formFileName: '' });
+  }
+
+  fieldText(fd) {
+    const v = this.state.form[fd.k];
+    if (fd.type === 'sel') { const o = (fd.opts || [])[v || 0] || ['', '']; return this.state.lang === 'ar' ? o[0] : o[1]; }
+    return (v == null ? '' : String(v)).trim();
+  }
+  valOf(key) {
+    const a = this.action(), fd = (a.fields || []).find(x => x.k === key);
+    return fd ? this.fieldText(fd) : '';
+  }
+
+  saveAdd() {
+    const S = this.state, t = T2[S.lang], rtl = S.lang === 'ar', a = this.action(), page = this.page();
+    const rid = Math.floor(100 + Math.random() * 899);
+    const name = this.valOf(a.name) || (rtl ? 'سجل جديد' : 'New record');
+    const who = this.valOf(a.who) || '—';
+    const date = this.valOf('date') || '2026-08-27';
+    const st = a.status || 'pending';
+    const files = this.formFiles;
+    if (files && files.length && a.target !== 'files') this.ingest(files);
+
+    if (a.target === 'boq') {
+      const code = this.valOf('code') || 'B-' + rid;
+      this.setState(s => ({ extraBoq: [{ code: code, ar: name, en: name, qty: (this.valOf('qty') + ' ' + this.valOf('unit')).trim(), p: 0, model: this.valOf('model') || 'STR / new' }].concat(s.extraBoq) }));
+    } else if (a.target === 'approvals') {
+      this.setState(s => ({ extraApprovals: [{ code: 'SUB-' + rid, ar: name, en: name, by: { ar: who, en: who }, st: st, date: date }].concat(s.extraApprovals) }));
+    } else if (a.target === 'cameras') {
+      this.setState(s => ({ extraCameras: [{ name: name, code: 'CAM-' + rid, res: this.valOf('res') || '1080p', stamp: date + ' 09:12', loc: who }].concat(s.extraCameras) }));
+    } else if (a.target === 'ai') {
+      this.setState(s => ({ extraAi: [{ tag: 'NEW', title: name, txt: (rtl ? 'صورة جديدة قيد التحليل — ' : 'New photo under analysis — ') + who, meta: 'UPLOAD · ' + date, col: '#9db6ff', bd: 'rgba(63,109,255,.35)', bg: 'rgba(63,109,255,.05)' }].concat(s.extraAi) }));
+      if (files && files.length) this.ingest(files);
+    } else if (a.target === 'zones') {
+      const pct = parseInt(this.valOf('pct'), 10) || 0;
+      const col = pct >= 100 ? '#4ec48f' : pct > 0 ? '#f2c94c' : '#3f6dff';
+      this.setState(s => ({ extraZones: s.extraZones.concat([{ name: name, pct: pct + '%', col: col, fill: 'rgba(63,109,255,.09)', top: (8 + s.extraZones.length * 8) + '%', left: '62%', w: '30%', h: '22%' }]) }));
+    } else if (a.target === 'files') {
+      const fname = files && files.length ? files[0].name : name;
+      const ext = (fname.split('.').pop() || 'pdf').toUpperCase().slice(0, 4);
+      if (files && files.length) this.ingest(files);
+      else this.setState(s => ({ files: [{ ext: ext, name: fname, disc: 'arc', kind: '2D', rev: this.valOf('rev') || 'R01', status: st === 'ok' ? 'ok' : 'review', date: date }].concat(s.files) }));
+    } else if (a.target === 'contractor') {
+      const pack = Number(S.form.pack || 0);
+      const items = PACK_ITEMS[pack] || PACK_ITEMS[0];
+      const val = parseInt((this.valOf('value') || '0').replace(/[^0-9]/g, ''), 10) || 40000000;
+      const shares = items.length === 3 ? [0.4, 0.35, 0.25] : [0.6, 0.4];
+      const base = 30 + Math.floor(Math.random() * 60);
+      const nc = {
+        id: 'c' + rid, ar: name, en: name, trade: PACK_TRADE[pack], cr: this.valOf('cr') || '—',
+        no: this.valOf('no') || 'CT-2026-0' + rid, value: val, paid: 0,
+        start: this.valOf('start') || '2026-09-01', end: this.valOf('end') || '2027-12-31',
+        sar: this.valOf('scope') || '—', sen: this.valOf('scope') || '—',
+        user: this.valOf('user') || 'cont-' + rid, pass: this.valOf('pass') || 'cont' + rid,
+        boq: items.map((it, i) => ({ code: 'B-' + (base + i) + '.1', ar: it[0], en: it[1], qty: '1 LS', value: Math.round(val * shares[i]), p: 0, model: PACK_TRADE[pack].toUpperCase() + ' / new' })),
+        schedule: items.map((it, i) => ({ ar: it[0], en: it[1], l: i * 26, w: 40, p: 0 })),
+        payments: [], notices: []
+      };
+      this.setState(s => ({ contractors: s.contractors.concat([nc]), selC: nc.id, cTab: 'contract', page: s.page }));
+      this.setState({ addOpen: false });
+      this.showToast(t.tContractorAdded + ' — ' + nc.user + ' / ' + nc.pass);
+      this.formFiles = null;
+      return;
+    } else if (a.target === 'notice') {
+      const kind = this.valOf('kind'), cname = this.valOf('contractor'), days = this.valOf('days');
+      const msg = (rtl ? 'أُرسل إنذار ' : 'Notice sent to ') + cname + ' — ' + kind + ' · ' + (rtl ? 'مدة التصحيح ' : 'correction period ') + days;
+      this.setState(s => ({
+        contractors: s.contractors.map(c => ((rtl ? c.ar : c.en) === cname
+          ? Object.assign({}, c, { notices: [{ kind: kind, days: days, date: date, text: this.valOf('text') }].concat(c.notices || []) }) : c)),
+        extraNotifs: [{ text: msg, time: '09:20' }].concat(s.extraNotifs)
+      }));
+      this.setState({ addOpen: false });
+      this.showToast(rtl ? '⚠ أُرسل الإنذار وسُجّل في ملف المقاول' : '⚠ Notice sent and logged in the contractor file');
+      this.formFiles = null;
+      return;
+    } else {
+      const target = (a.target || 'rows').indexOf(':') > -1 ? a.target.split(':')[1] : page.id;
+      const code = ((PAGES.find(p => p.id === target) || page).code) + '-' + rid;
+      const row = [code, name, name, who, who, st, date];
+      this.setState(s => ({ extraRows: Object.assign({}, s.extraRows, { [target]: [row].concat(s.extraRows[target] || []) }) }));
+    }
+    this.formFiles = null;
+    this.setState({ addOpen: false });
+    this.showToast(t.tAdded);
+  }
+
+  renderVals() {
+    const S = this.state, lang = S.lang, t = T2[lang], rtl = lang === 'ar';
+    const on = '#3f6dff', dim = '#8b93a5';
+    const page = this.page(), kind = page.kind;
+    const stripe = (a, b) => 'repeating-linear-gradient(45deg,' + a + ',' + a + ' 4px,' + b + ' 4px,' + b + ' 8px)';
+    const thumbFor = k => k === '3D' ? stripe('#1c2136', '#232a44') : k === 'CLOUD' ? stripe('#182430', '#1e2c3a') : stripe('#1b202b', '#212734');
+    const pctCol = p => p >= 100 ? '#4ec48f' : p > 0 ? '#f2c94c' : '#3f6dff';
+
+    // sidebar nav with section headers
+    const navList = [];
+    let lastSec = '';
+    this.myPages().forEach(p => {
+      if (p.sec !== lastSec) { navList.push({ isSection: true, isPage: false, label: SEC[p.sec][lang], code: '', badge: '', hasBadge: false, bg: '', col: '', fw: 400, shadow: 'none', codeCol: '', codeBd: '', go: null }); lastSec = p.sec; }
+      const act = S.page === p.id;
+      navList.push({
+        isSection: false, isPage: true, label: p[lang], code: p.code,
+        hasBadge: !!p.badge, badge: p.badge ? String(p.badge) : '',
+        bg: act ? 'rgba(63,109,255,.14)' : 'transparent', col: act ? '#e8eaf0' : '#a7afc0',
+        fw: act ? 600 : 400, shadow: act ? 'inset 2px 0 0 #3f6dff' : 'none',
+        codeCol: act ? '#9db6ff' : '#5f6878', codeBd: act ? 'rgba(63,109,255,.4)' : '#242935',
+        go: () => this.setState({ page: p.id, bellOpen: false })
+      });
+    });
+
+    const files = S.files.map((f, i) => ({
+      ext: f.ext, name: f.name, rev: f.rev, date: f.date, kind: f.kind,
+      disc: DISC[f.disc] ? DISC[f.disc][lang] : f.disc,
+      status: ST[f.status][lang], tint: ST[f.status].tint, tone: ST[f.status].tone,
+      revCol: f.status === 'ok' ? '#4ec48f' : f.status === 'review' ? '#f2c94c' : '#6f7789',
+      thumb: thumbFor(f.kind), bg: S.selFile === i ? 'rgba(63,109,255,.1)' : 'transparent',
+      bd: S.selFile === i ? 'rgba(63,109,255,.4)' : 'transparent',
+      select: () => this.setState(Object.assign({ selFile: i, page: 'bim-upload', tab: f.kind === '3D' ? '3d' : '2d' }, (f.kind === '2D' || f.kind === 'IMG') ? { sheetKey: f.name } : {}))
+    }));
+
+    const uploads = S.uploads.slice(-4).map(u => ({
+      ext: u.ext, name: u.name, size: u.size, pctCss: Math.round(u.pct) + '%',
+      barCol: u.state === 'up' ? on : u.state === 'queued' ? '#f2c94c' : '#4ec48f',
+      statusText: u.state === 'up' ? t.uploading + ' · ' + Math.round(u.pct) + '%'
+        : u.state === 'queued' ? t.queued
+        : u.state === 'loaded' ? t.loaded
+        : t.classified + ' · ' + (DISC[u.disc] ? DISC[u.disc][lang] : u.disc),
+      statusCol: u.state === 'up' ? '#8b93a5' : u.state === 'queued' ? '#f2c94c' : '#4ec48f'
+    }));
+
+    const tab = (id, label) => ({ label, bg: S.tab === id ? on : 'transparent', col: S.tab === id ? '#fff' : dim, fw: S.tab === id ? 600 : 400, go: () => this.setState({ tab: id }) });
+    const tool = (id) => ({ label: id, bd: S.tool === id ? on : '#262c39', bg: S.tool === id ? 'rgba(63,109,255,.14)' : '#171b23', col: S.tool === id ? '#9db6ff' : '#9aa3b5', go: () => this.setState({ tool: id, measure: null }) });
+    const layer = (id, label) => ({
+      label, col: S.layers[id] ? '#e8eaf0' : '#6f7789',
+      track: S.layers[id] ? 'rgba(63,109,255,.5)' : '#242935', knob: S.layers[id] ? '14px' : '2px',
+      knobCol: S.layers[id] ? '#9db6ff' : '#6f7789',
+      toggle: () => this.setState(s => ({ layers: Object.assign({}, s.layers, { [id]: !s.layers[id] }) }))
+    });
+
+    const rtlFlag = rtl;
+    const is2dKind = x => x && (x.kind === '2D' || x.kind === 'IMG');
+    const sheetFile = (S.sheetKey ? S.files.find(x => x.name === S.sheetKey && is2dKind(x)) : null)
+      || S.files.find(x => is2dKind(x) && x.url) || S.files.find(is2dKind) || null;
+    let sheetMedia = null;
+    if (sheetFile && sheetFile.url) {
+      if (sheetFile.preview) {
+        sheetMedia = React.createElement('img', { src: sheetFile.preview, alt: sheetFile.name, style: { position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', background: '#fff' } });
+      } else if (sheetFile.kind === 'IMG') {
+        sheetMedia = React.createElement('img', { src: sheetFile.url, alt: sheetFile.name, style: { position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', background: '#fff' } });
+      } else if (/PDF/i.test(sheetFile.ext || '')) {
+        const fb = React.createElement('div', {
+          key: 'fb',
+          style: { position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', background: '#0f1218', padding: '26px', textAlign: 'center' }
+        }, [
+          React.createElement('div', { key: 'a', style: { fontFamily: 'IBM Plex Mono, monospace', fontSize: '11px', letterSpacing: '.14em', color: '#9db6ff', direction: 'ltr' } }, 'PDF'),
+          React.createElement('div', { key: 'b', style: { fontFamily: 'IBM Plex Mono, monospace', fontSize: '13px', color: '#e8eaf0', direction: 'ltr', overflowWrap: 'anywhere', maxWidth: '90%' } }, sheetFile.name),
+          React.createElement('div', { key: 'c', style: { fontSize: '12.5px', color: '#8b93a5', lineHeight: 1.9, maxWidth: '430px' } }, rtlFlag ? 'المتصفح لا يعرض ملفات PDF داخل الصفحة. الملف محفوظ ومربوط بالمشروع — افتحه في تبويب جديد أو نزّله.' : 'This browser blocks inline PDF display. The file is stored and linked to the project — open it in a new tab or download it.'),
+          React.createElement('a', { key: 'd', href: sheetFile.url, target: '_blank', style: { fontSize: '12.5px', border: '1px solid rgba(63,109,255,.45)', borderRadius: '8px', padding: '8px 16px', color: '#9db6ff' } }, rtlFlag ? 'فتح في تبويب جديد ↗' : 'Open in a new tab ↗')
+        ]);
+        const obj = React.createElement('object', {
+          key: 'obj', data: sheetFile.url, type: 'application/pdf',
+          style: { position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0, background: '#fff' }
+        }, fb);
+        sheetMedia = obj;
+      }
+    }
+
+    const pct = FLOOR_PCT[S.selFloor] || 0;
+    const genRows = (S.extraRows[page.id] || []).concat(page.rows || []).map(r => ({
+      code: r[0], name: rtl ? r[1] : r[2], who: rtl ? r[3] : r[4],
+      status: ST[r[5]][lang], tint: ST[r[5]].tint, tone: ST[r[5]].tone, date: r[6]
+    }));
+
+    const allBoq = [];
+    S.contractors.forEach(c => (c.boq || []).forEach(b => allBoq.push({
+      code: b.code, name: rtl ? b.ar : b.en, qty: b.qty, value: b.value, p: b.p, model: b.model,
+      cid: c.id, cname: rtl ? c.ar : c.en
+    })));
+    S.extraBoq.forEach(b => allBoq.push({ code: b.code, name: rtl ? b.ar : b.en, qty: b.qty, value: 0, p: b.p || 0, model: b.model, cid: '', cname: rtl ? 'غير مسند' : 'Unassigned' }));
+    const boq = allBoq.filter(b => S.boqFilter === 'all' || b.cid === S.boqFilter).map(b => ({
+      code: b.code, name: b.name, contractor: b.cname, qty: b.qty,
+      value: b.value ? money(b.value) + (rtl ? ' ر.س' : ' SAR') : '—',
+      pctCss: b.p + '%', col: pctCol(b.p), model: b.model,
+      goContractor: () => this.setState({ page: 'contractors', selC: b.cid || 'c1', cTab: 'boq' })
+    }));
+    const boqFilters = [{ id: 'all', label: t.cAll }].concat(S.contractors.map(c => ({ id: c.id, label: rtl ? c.ar : c.en }))).map(o => ({
+      label: o.label, go: () => this.setState({ boqFilter: o.id }),
+      bd: S.boqFilter === o.id ? on : '#242935', bg: S.boqFilter === o.id ? 'rgba(63,109,255,.14)' : '#141821',
+      col: S.boqFilter === o.id ? '#9db6ff' : '#8b93a5'
+    }));
+
+    const sel = S.contractors.find(c => c.id === S.selC) || S.contractors[0];
+    const avg = arr => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 0;
+    const selPctNum = avg((sel.boq || []).map(b => b.p));
+    const cTab = (id, label) => ({ label, bg: S.cTab === id ? on : 'transparent', col: S.cTab === id ? '#fff' : dim, fw: S.cTab === id ? 600 : 400, go: () => this.setState({ cTab: id }) });
+
+    const approvals = S.extraApprovals.concat([
+      { code: 'SD-114', ar: 'مخطط تنفيذي — واجهة زجاجية', en: 'Shop drawing — curtain wall', by: { ar: 'مقاول معماري', en: 'Arch contractor' }, disc: DISC.fac[lang], st: 'pending', date: '2026-08-26' },
+      { code: 'BM-04', ar: 'النموذج الإنشائي R04', en: 'Structural model R04', by: { ar: 'الاستشاري', en: 'Consultant' }, disc: DISC.str[lang], st: 'review', date: '2026-08-26' },
+      { code: 'WIR-231', ar: 'طلب فحص — صب سقف L09', en: 'Inspection — L09 slab pour', by: { ar: 'مقاول إنشائي', en: 'Str contractor' }, disc: DISC.str[lang], st: 'open', date: '2026-08-27' },
+      { code: 'MST-041', ar: 'طريقة تنفيذ صب الأسقف', en: 'Slab pouring method statement', by: { ar: 'مقاول إنشائي', en: 'Str contractor' }, disc: DISC.str[lang], st: 'pending', date: '2026-08-24' },
+      { code: 'PY-007', ar: 'مستخلص الدفعة 7', en: 'Payment application 7', by: { ar: 'مقاول إنشائي', en: 'Str contractor' }, disc: DISC.str[lang], st: 'pending', date: '2026-08-21' }
+    ]).map(a => {
+      const done = !!S.approvedIds[a.code];
+      return {
+        code: a.code, title: rtl ? a.ar : a.en, by: a.by[lang], disc: a.disc || DISC.str[lang], date: a.date,
+        status: done ? ST.ok[lang] : ST[a.st][lang], tint: done ? ST.ok.tint : ST[a.st].tint, tone: done ? ST.ok.tone : ST[a.st].tone,
+        btnLabel: done ? t.approved : t.approve, btnBg: done ? '#2f8f68' : on,
+        approve: () => this.setState(s => ({ approvedIds: Object.assign({}, s.approvedIds, { [a.code]: true }) }))
+      };
+    });
+
+    return {
+      dir: rtl ? 'rtl' : 'ltr', t, ltrAlign: rtl ? 'right' : 'left',
+      isLogin: !S.logged, isApp: S.logged,
+      setAr: () => this.setState({ lang: 'ar' }), setEn: () => this.setState({ lang: 'en' }),
+      arBg: rtl ? '#242935' : 'transparent', arCol: rtl ? '#e8eaf0' : dim,
+      enBg: rtl ? 'transparent' : '#242935', enCol: rtl ? dim : '#e8eaf0',
+      loginUser: S.loginUser, onUser: e => this.setState({ loginUser: e.target.value }),
+      signIn: () => this.setState({ logged: true }),
+      demoChips: [
+        ['owner', 'المالك', 'Owner'], ['rep', 'ممثل المالك', "Owner's Rep"], ['consultant', 'الاستشاري', 'Consultant'],
+        ['cont-arch', 'مقاول معماري', 'Arch contractor'], ['cont-str', 'مقاول إنشائي', 'Str contractor'], ['admin', 'الأدمن', 'Admin']
+      ].map(d => {
+        const role = d[0] === 'owner' ? 'owner' : d[0] === 'rep' ? 'owner_rep' : d[0] === 'consultant' ? 'consultant' : d[0] === 'admin' ? 'admin' : 'contractor';
+        return { label: rtl ? d[1] : d[2], go: () => this.setState({ logged: true, role, loginUser: d[0], page: PAGES.filter(p => p.roles.indexOf(role) !== -1)[0].id }) };
+      }),
+      signOut: () => this.setState({ logged: false }),
+      resetDemo: () => this.setState({ uploads: [], pins: [], approvedIds: {}, approved: false, section: 100, selFloor: 7, tab: '3d', layers: { str: true, fac: true, mep: true } }),
+
+      navList, pageTitle: page[lang],
+      userName: ROLES[S.role].name[lang], roleName: ROLES[S.role][lang],
+      roleTabs: ['owner', 'owner_rep', 'consultant', 'contractor', 'admin'].map(r => ({
+        label: ROLES[r][lang], bg: S.role === r ? '#242935' : 'transparent', col: S.role === r ? '#e8eaf0' : dim,
+        go: () => { const first = PAGES.filter(p => p.roles.indexOf(r) !== -1)[0]; this.setState({ role: r, page: first.id }); }
+      })),
+      project: S.project, onProject: e => this.setState({ project: e.target.value }),
+      projects: [
+        { id: 'P-01', name: rtl ? 'برج بصير — الرياض' : 'Bassir Tower — Riyadh' },
+        { id: 'P-02', name: rtl ? 'مجمع الواحة السكني' : 'Al-Waha Residential' },
+        { id: 'P-03', name: rtl ? 'مركز الأعمال الشمالي' : 'North Business Center' },
+        { id: 'P-04', name: rtl ? 'مستودعات المنطقة الثانية' : 'Zone 2 Warehouses' }
+      ],
+      today: '2026-08-27',
+      unread: String(3 + S.extraNotifs.length), hasUnread: true, bellOpen: S.bellOpen,
+      toggleBell: () => this.setState(s => ({ bellOpen: !s.bellOpen })),
+      notifs: S.extraNotifs.map(n => ({ ar: n.text, en: n.text, time: n.time, neww: true })).concat([
+        { ar: 'رُفع النموذج الإنشائي R04 وبانتظار اعتمادك.', en: 'Structural model R04 uploaded and awaiting your approval.', time: '08:41', neww: true },
+        { ar: 'ملاحظة جديدة من الاستشاري على ARC-L07-PLAN.', en: 'New markup from the consultant on ARC-L07-PLAN.', time: '08:12', neww: true },
+        { ar: 'طلب فحص WIR-231 — صب سقف الدور التاسع.', en: 'Inspection request WIR-231 — L09 slab pour.', time: '07:55', neww: true },
+        { ar: 'اعتُمدت عينة المواد MS-052.', en: 'Material sample MS-052 was approved.', time: rtl ? 'أمس' : 'Yesterday', neww: false }
+      ]).map(n => ({ text: rtl ? n.ar : n.en, time: n.time, bg: n.neww ? 'rgba(63,109,255,.07)' : 'transparent', mark: n.neww ? '2px solid #3f6dff' : '2px solid transparent' })),
+      notifSettingsOpen: S.notifSettingsOpen,
+      openNotifSettings: () => this.setState({ notifSettingsOpen: true, bellOpen: false }),
+      closeNotifSettings: () => this.setState({ notifSettingsOpen: false }),
+      notifChannels: [['email', t.chEmail], ['wa', t.chWa]].map(c => ({
+        label: c[1], col: S.channels[c[0]] ? '#e8eaf0' : '#6f7789',
+        track: S.channels[c[0]] ? 'rgba(63,109,255,.5)' : '#242935', knob: S.channels[c[0]] ? '15px' : '2px',
+        knobCol: S.channels[c[0]] ? '#9db6ff' : '#6f7789',
+        toggle: () => this.setState(s => ({ channels: Object.assign({}, s.channels, { [c[0]]: !s.channels[c[0]] }) }))
+      })),
+
+      isDrawings: kind === 'drawings', isOwnerEye: kind === 'ownereye', isDash: kind === 'dash',
+      isVision: kind === 'vision', isCameras: kind === 'cameras', isAi: kind === 'ai',
+      isBoq: kind === 'boq', isApprovals: kind === 'approvals', isDocs: kind === 'docs', isGen: kind === 'gen',
+      goDrawings: () => this.setState({ page: 'bim-upload' }),
+
+      is3d: S.tab === '3d', is2d: S.tab === '2d', isCompare: S.tab === 'compare',
+      tabs: [tab('3d', t.tab3d), tab('2d', t.tab2d), tab('compare', t.tabCompare)],
+      tools: [tool('ORBIT'), tool('SECTION'), tool('MEASURE'), tool('MARKUP')],
+      layerRows: [layer('str', t.layerStr), layer('fac', t.layerFac), layer('mep', t.layerMep)],
+      stageMeta: 'L' + String(S.selFloor + 1).padStart(2, '0') + ' · 1:100 · ' + S.tool,
+      viewportRef: el => { this.vp = el; if (el) this.tryInit(0); },
+      onStageClick: this.onStageClick,
+      section: S.section, sectionLabel: S.section + '%',
+      onSection: e => this.setState({ section: +e.target.value }),
+      compare: S.compare, comparePct: S.compare + '%',
+      onCompare: e => this.setState({ compare: +e.target.value }),
+      hasMeasure: S.measure != null, measureLabel: S.measure != null ? S.measure.toFixed(2) + ' m' : '',
+      selName: (rtl ? 'الدور ' : 'Floor ') + String(S.selFloor + 1).padStart(2, '0'),
+      selBoq: 'B-' + String(S.selFloor + 1).padStart(2, '0') + '.4',
+      selVol: (86 + S.selFloor * 3.4).toFixed(1) + ' m³',
+      selPct: pct + '%', selCol: pctCol(pct),
+      floorChips: FLOOR_PCT.map((p, i) => ({
+        label: 'L' + String(i + 1).padStart(2, '0'), pct: p + '%',
+        bg: S.selFloor === i ? 'rgba(63,109,255,.18)' : 'rgba(17,20,26,.86)',
+        bd: S.selFloor === i ? on : '#242935', col: pctCol(p),
+        go: () => this.setState({ selFloor: i })
+      })),
+      dropBorder: S.dragOver ? on : '#33405e',
+      dropBg: S.dragOver ? 'rgba(63,109,255,.16)' : 'radial-gradient(120% 80% at 50% 0%,rgba(63,109,255,.13),transparent 70%)',
+      onDragOver: e => { e.preventDefault(); if (!S.dragOver) this.setState({ dragOver: true }); },
+      onDragLeave: () => this.setState({ dragOver: false }),
+      onDrop: e => { e.preventDefault(); this.ingest(e.dataTransfer.files); },
+      pickFiles: () => this.fi && this.fi.click(),
+      fileInput: el => { this.fi = el; },
+      onPicked: e => this.ingest(e.target.files),
+      hasUploads: uploads.length > 0, uploads,
+      files, fileCount: String(S.files.length),
+      sheetHasFile: !!sheetFile,
+      sheetHasUrl: !!(sheetFile && sheetFile.url),
+      sheetName: sheetFile ? sheetFile.name : '',
+      sheetExt: sheetFile ? sheetFile.ext : '',
+      sheetHref: sheetFile && sheetFile.url ? sheetFile.url : '#',
+      sheetMeta: sheetFile
+        ? ((DISC[sheetFile.disc] ? DISC[sheetFile.disc][lang] : '') + ' · ' + (sheetFile.rev || '') + ' · ' + (sheetFile.date || ''))
+        : t.sheetDemo,
+      sheetIsMedia: !!sheetMedia,
+      sheetMedia: sheetMedia,
+      sheetIsCad: !!sheetFile && !!sheetFile.url && !sheetMedia,
+      sheetIsDemo: !sheetFile || !sheetFile.url,
+      sheetBg: sheetMedia ? '#fff' : (sheetFile && sheetFile.url ? '#0f1218' : '#f4f2ec'),
+      sheetHintCol: sheetFile && sheetFile.url ? '#8b93a5' : '#6b7796',
+      pins: S.pins,
+      onSheetClick: e => {
+        const r = e.currentTarget.getBoundingClientRect();
+        const x = ((e.clientX - r.left) / r.width) * 100, y = ((e.clientY - r.top) / r.height) * 100;
+        const cols = ['#ef5d75', '#f2c94c', '#4ec48f', '#3f6dff'];
+        this.setState(s => ({ pins: s.pins.concat([{ n: String(s.pins.length + 1), top: y.toFixed(1) + '%', left: (rtl ? 100 - x : x).toFixed(1) + '%', col: cols[s.pins.length % 4] }]) }));
+      },
+      notes: [
+        { n: '1', who: rtl ? 'م. خالد — استشاري' : 'Eng. Khalid — Consultant', time: '10:42', col: '#ef5d75', txt: rtl ? 'موقع العمود C-14 يتعارض مع مجرى التكييف الرئيسي في السقف.' : 'Column C-14 clashes with the main HVAC duct at ceiling level.' },
+        { n: '2', who: rtl ? 'المالك' : 'Owner', time: '09:15', col: '#f2c94c', txt: rtl ? 'أرغب بمراجعة ارتفاع السقف في المدخل قبل الاعتماد.' : 'I want to review the lobby ceiling height before approval.' },
+        { n: '3', who: rtl ? 'المكتب الفني' : 'Technical office', time: rtl ? 'أمس' : 'Yesterday', col: '#4ec48f', txt: rtl ? 'تم تحديث الكميات المرتبطة بالبند B-07.4 حسب النسخة الجديدة.' : 'Quantities linked to B-07.4 were updated for the new revision.' }
+      ],
+      noteCount: String(3 + S.pins.length),
+      approvalHint: S.approved ? (rtl ? 'اعتُمدت النسخة R04 — أُبلغ المكتب الفني.' : 'Revision R04 approved — the technical office was notified.') : (rtl ? 'النسخة R04 بانتظار اعتماد المالك — ٣ فروقات عن R03.' : 'Revision R04 awaits owner approval — 3 changes from R03.'),
+      approveLabel: S.approved ? t.approved : t.approve,
+      approveBg: S.approved ? '#2f8f68' : on,
+      approve: () => this.setState({ approved: true }),
+      addNote: () => this.setState({ tab: '2d', tool: 'MARKUP' }),
+
+      kpis: [
+        { label: rtl ? 'نسبة التنفيذ' : 'Overall progress', val: '72%', sub: rtl ? '+4% هذا الأسبوع' : '+4% this week', col: '#4ec48f' },
+        { label: rtl ? 'الصرف من الميزانية' : 'Budget spent', val: '68%', sub: rtl ? 'ضمن الخطة' : 'On plan', col: '#3f6dff' },
+        { label: rtl ? 'أيام التأخير' : 'Days behind', val: '9', sub: rtl ? 'الدور الثامن' : 'Floor 08', col: '#f2c94c' },
+        { label: rtl ? 'بانتظار اعتمادك' : 'Awaiting your approval', val: '3', sub: rtl ? 'نسخ مخططات' : 'Drawing revisions', col: '#ef5d75' }
+      ],
+      progressRows: FLOOR_PCT.slice().reverse().map((p, i) => ({
+        label: 'L' + String(FLOOR_PCT.length - i).padStart(2, '0'), pct: p + '%', pctCss: Math.max(p, 1) + '%', col: pctCol(p)
+      })),
+      eyeFloors: FLOOR_PCT.slice().reverse().map((p, i) => {
+        const idx = FLOOR_PCT.length - 1 - i;
+        return {
+          label: 'L' + String(idx + 1).padStart(2, '0'), pct: p + '%', col: pctCol(p),
+          state: p >= 100 ? t.done : p > 0 ? t.inProgress : t.planned,
+          bd: S.selFloor === idx ? '#3f6dff' : '#26314a',
+          bg: S.selFloor === idx ? 'rgba(63,109,255,.12)' : '#141821',
+          go: () => this.setState({ selFloor: idx, page: 'bim-upload', tab: '3d' })
+        };
+      }),
+      photos: [
+        { title: rtl ? 'سقف الدور التاسع' : 'Floor 09 slab', ai: rtl ? 'الذكاء الاصطناعي: حديد التسليح مطابق للمخطط' : 'AI: rebar matches drawing', fill: stripe('#1b2536', '#212c40') },
+        { title: rtl ? 'واجهة الشمال' : 'North facade', ai: rtl ? 'الذكاء الاصطناعي: ٣ ألواح غير مثبتة' : 'AI: 3 panels unfixed', fill: stripe('#1e2433', '#242c3d') },
+        { title: rtl ? 'المدخل الرئيسي' : 'Main lobby', ai: rtl ? 'الذكاء الاصطناعي: أعمال جبس جارية' : 'AI: gypsum works in progress', fill: stripe('#1b2536', '#212c40') },
+        { title: rtl ? 'موقع التخزين' : 'Storage yard', ai: rtl ? 'الذكاء الاصطناعي: مواد بلا مأوى' : 'AI: materials uncovered', fill: stripe('#1e2433', '#242c3d') }
+      ],
+      timeline: [
+        { txt: rtl ? 'رُفع النموذج الإنشائي R04' : 'Structural model R04 uploaded', time: '08:41', col: '#3f6dff', halo: 'rgba(63,109,255,.2)' },
+        { txt: rtl ? 'اعتُمدت عينة المواد MS-052' : 'Material sample MS-052 approved', time: '08:12', col: '#4ec48f', halo: 'rgba(78,196,143,.2)' },
+        { txt: rtl ? 'ملاحظة جديدة على ARC-L07-PLAN' : 'New markup on ARC-L07-PLAN', time: '07:55', col: '#f2c94c', halo: 'rgba(242,201,76,.2)' },
+        { txt: rtl ? 'طلب فحص صب سقف الدور التاسع' : 'Inspection request — L09 slab pour', time: rtl ? 'أمس' : 'Yesterday', col: '#4cc9f0', halo: 'rgba(76,201,240,.2)' },
+        { txt: rtl ? 'تقرير التقدم الأسبوعي أُرسل للمالك' : 'Weekly progress report sent to owner', time: rtl ? 'أمس' : 'Yesterday', col: '#8b93a5', halo: 'rgba(139,147,165,.2)' }
+      ],
+      alerts: [
+        { title: rtl ? 'تعارض في النموذج' : 'Model clash', txt: rtl ? '٤ تعارضات بين الإنشائي والميكانيكا في الدور الثامن.' : '4 clashes between structure and MEP on floor 08.', col: '#ef5d75', bd: 'rgba(239,93,117,.4)', bg: 'rgba(239,93,117,.06)' },
+        { title: rtl ? 'انحراف عن الجدول' : 'Schedule drift', txt: rtl ? 'صب سقف الدور التاسع متأخر ٩ أيام عن الخطة.' : 'Floor 09 slab pour is 9 days behind plan.', col: '#f2c94c', bd: 'rgba(242,201,76,.35)', bg: 'rgba(242,201,76,.05)' },
+        { title: rtl ? 'نسخة جديدة' : 'New revision', txt: rtl ? 'رُفع النموذج الإنشائي R04 وبانتظار اعتمادك.' : 'Structural model R04 uploaded and awaiting approval.', col: '#4ec48f', bd: 'rgba(78,196,143,.3)', bg: 'rgba(78,196,143,.05)' }
+      ],
+      aiItems: S.extraAi.concat([
+        { tag: 'CLASH', title: rtl ? 'تعارض إنشائي/ميكانيكي' : 'Structure vs MEP clash', txt: rtl ? 'العمود C-14 في الدور السابع يتعارض مع مجرى التكييف الرئيسي بمقدار ١٢ سم. يُقترح إزاحة المجرى.' : 'Column C-14 on floor 07 clashes with the main duct by 12 cm. Rerouting the duct is suggested.', meta: 'IFC · STR_Rev04 · L07', col: '#ef5d75', bd: 'rgba(239,93,117,.4)', bg: 'rgba(239,93,117,.05)' },
+        { tag: 'PHOTO', title: rtl ? 'تحليل صور الموقع' : 'Site photo analysis', txt: rtl ? 'ثلاثة ألواح واجهة في الجهة الشمالية غير مثبتة نهائياً حسب صور الأسبوع ٣٣.' : 'Three facade panels on the north side are not finally fixed per week-33 photos.', meta: 'PHOTO · W33 · north', col: '#f2c94c', bd: 'rgba(242,201,76,.35)', bg: 'rgba(242,201,76,.05)' },
+        { tag: 'SCHED', title: rtl ? 'توقع التأخير' : 'Delay forecast', txt: rtl ? 'بمعدل الإنتاج الحالي، يتأخر تسليم الهيكل ١٤ يوماً عن الخطة.' : 'At the current production rate, structural completion slips 14 days.', meta: 'SCHEDULE · L09-L12', col: '#4cc9f0', bd: 'rgba(76,201,240,.35)', bg: 'rgba(76,201,240,.05)' },
+        { tag: 'QTY', title: rtl ? 'انحراف الكميات' : 'Quantity variance', txt: rtl ? 'كمية الحديد المنفذة تزيد ٤٪ عن جدول الكميات للبند B-08.1.' : 'Executed rebar exceeds BOQ item B-08.1 by 4%.', meta: 'BOQ · B-08.1', col: '#9db6ff', bd: 'rgba(63,109,255,.35)', bg: 'rgba(63,109,255,.05)' },
+        { tag: 'HSE', title: rtl ? 'ملاحظة سلامة' : 'Safety observation', txt: rtl ? 'رُصد غياب حواجز الحماية على حافة الدور العاشر في صور أمس.' : 'Missing edge protection on floor 10 detected in yesterday photos.', meta: 'HSE · L10', col: '#ef5d75', bd: 'rgba(239,93,117,.4)', bg: 'rgba(239,93,117,.05)' }
+      ]),
+      pageActions: this.actions().map((a, i) => ({
+        label: rtl ? a.la : a.le,
+        go: () => {
+          if (a.target === 'upload') { this.fi && this.fi.click(); return; }
+          if (a.target === 'toast') { this.showToast(rtl ? '✅ صُدِّر سجل النظام (CSV)' : '✅ System log exported (CSV)'); return; }
+          this.openAdd(i);
+        },
+        bd: i === 0 ? '0' : '1px solid #2b313d', bg: i === 0 ? on : '#171b23',
+        col: i === 0 ? '#fff' : '#c3c9d6', fw: i === 0 ? 600 : 400
+      })),
+      addOpen: S.addOpen,
+      addTitle: (rtl ? this.action().la : this.action().le).replace('+ ', '').replace('⚠ ', ''),
+      addSub: (rtl ? this.action().sa : this.action().se) || '',
+      addSaveLabel: this.action().target === 'notice' ? (rtl ? 'إرسال الإنذار' : 'Send notice') : t.addSave,
+      formFields: (this.action().fields || []).map(fd => ({
+        label: rtl ? fd.ar : fd.en, ph: (rtl ? fd.pa : fd.pe) || '',
+        isText: fd.type === 'text', isArea: fd.type === 'area', isSelect: fd.type === 'sel', isFile: fd.type === 'file',
+        value: fd.type === 'sel' || fd.type === 'file' ? '' : (S.form[fd.k] == null ? '' : S.form[fd.k]),
+        onChange: e => { const v = e.target.value; this.setState(s => ({ form: Object.assign({}, s.form, { [fd.k]: v }) })); },
+        options: (fd.opts || []).map((o, oi) => ({
+          label: rtl ? o[0] : o[1],
+          go: () => this.setState(s => ({ form: Object.assign({}, s.form, { [fd.k]: oi }) })),
+          bd: (S.form[fd.k] || 0) === oi ? on : '#242935',
+          bg: (S.form[fd.k] || 0) === oi ? 'rgba(63,109,255,.14)' : '#0f1218',
+          col: (S.form[fd.k] || 0) === oi ? '#9db6ff' : '#8b93a5'
+        }))
+      })),
+      formFileName: S.formFileName || t.noFile,
+      pickFormFile: () => this.ffi && this.ffi.click(),
+      formFileInput: el => { this.ffi = el; },
+      onFormFile: e => {
+        this.formFiles = e.target.files;
+        const n = e.target.files && e.target.files.length ? Array.from(e.target.files).map(x => x.name).join(', ') : '';
+        this.setState({ formFileName: n });
+      },
+      saveAdd: () => this.saveAdd(),
+      closeAdd: () => this.setState({ addOpen: false }),
+      hasToast: !!S.toast, toast: S.toast,
+
+      cameras: S.extraCameras.map(c => ({
+        name: c.name, code: c.code, res: c.res, stamp: c.stamp,
+        status: (rtl ? 'تعمل · ' : 'Live · ') + c.loc, dot: '#4ec48f',
+        bg: 'linear-gradient(180deg,#0c111c,#10182a 55%,#0b0f18)'
+      })).concat([
+        { name: rtl ? 'البوابة الرئيسية' : 'Main gate', code: 'CAM-01', res: '1080p', stamp: '2026-08-27 09:12', status: rtl ? 'تعمل · تسجيل مستمر' : 'Live · recording', dot: '#4ec48f', bg: 'linear-gradient(180deg,#0c111c,#10182a 55%,#0b0f18)' },
+        { name: rtl ? 'الرافعة البرجية' : 'Tower crane', code: 'CAM-02', res: '4K', stamp: '2026-08-27 09:12', status: rtl ? 'تعمل · تسجيل مستمر' : 'Live · recording', dot: '#4ec48f', bg: 'linear-gradient(180deg,#0c111c,#131c2e 55%,#0b0f18)' },
+        { name: rtl ? 'الواجهة الشمالية' : 'North facade', code: 'CAM-03', res: '1080p', stamp: '2026-08-27 09:12', status: rtl ? 'تعمل' : 'Live', dot: '#4ec48f', bg: 'linear-gradient(180deg,#0c111c,#10182a 55%,#0b0f18)' },
+        { name: rtl ? 'ساحة التخزين' : 'Storage yard', code: 'CAM-04', res: '1080p', stamp: '2026-08-27 09:12', status: rtl ? 'تعمل' : 'Live', dot: '#4ec48f', bg: 'linear-gradient(180deg,#0c111c,#121a2c 55%,#0b0f18)' },
+        { name: rtl ? 'مدخل القبو' : 'Basement ramp', code: 'CAM-05', res: '720p', stamp: '2026-08-27 08:40', status: rtl ? 'متقطعة' : 'Intermittent', dot: '#f2c94c', bg: 'linear-gradient(180deg,#0b0e14,#0e1420 55%,#0a0d13)' },
+        { name: rtl ? 'سطح المبنى' : 'Roof', code: 'CAM-06', res: '—', stamp: '2026-08-26 18:02', status: rtl ? 'غير متصلة' : 'Offline', dot: '#ef5d75', bg: 'repeating-linear-gradient(0deg,#0b0e14,#0b0e14 3px,#10141d 3px,#10141d 6px)' }
+      ]),
+      discChips: [
+        { label: DISC.str[lang], dot: '#4ec48f' }, { label: DISC.arc[lang], dot: '#3f6dff' },
+        { label: DISC.mep[lang], dot: '#f2c94c' }, { label: DISC.fac[lang], dot: '#9db6ff' },
+        { label: DISC.scan[lang], dot: '#8b93a5' }
+      ].map((d, i) => Object.assign(d, { bg: i === 0 ? 'rgba(78,196,143,.1)' : '#141821', bd: i === 0 ? 'rgba(78,196,143,.4)' : '#242935', col: i === 0 ? '#e8eaf0' : '#c3c9d6' })),
+      zones: S.extraZones.concat([
+        { name: rtl ? 'الأبراج السكنية' : 'Residential core', pct: '100%', col: '#4ec48f', fill: 'rgba(78,196,143,.09)', top: '8%', left: '6%', w: '38%', h: '44%' },
+        { name: rtl ? 'المدخل الرئيسي' : 'Main lobby', pct: '64%', col: '#f2c94c', fill: 'rgba(242,201,76,.08)', top: '8%', left: '50%', w: '42%', h: '28%' },
+        { name: rtl ? 'المواقف' : 'Parking', pct: '100%', col: '#4ec48f', fill: 'rgba(78,196,143,.09)', top: '60%', left: '6%', w: '52%', h: '32%' },
+        { name: rtl ? 'المرافق' : 'Amenities', pct: '18%', col: '#3f6dff', fill: 'rgba(63,109,255,.09)', top: '42%', left: '62%', w: '30%', h: '50%' }
+      ]),
+      boq, boqFilters, approvals,
+      isContractors: kind === 'contractors',
+      contractorCards: S.contractors.map(c => {
+        const p = c.boq && c.boq.length ? Math.round(c.boq.reduce((a, b) => a + b.p, 0) / c.boq.length) : 0;
+        const nn = (c.notices || []).length;
+        return {
+          name: rtl ? c.ar : c.en, trade: TRADE_NAMES[c.trade] ? TRADE_NAMES[c.trade][lang] : c.trade,
+          value: money(c.value) + (rtl ? ' ر.س' : ' SAR'), pctCss: p + '%', col: pctCol(p),
+          items: (c.boq || []).length + ' ' + t.cBoqItems,
+          hasNotice: nn > 0, notice: nn ? (rtl ? 'إنذارات: ' : 'Notices: ') + nn + ' · ' + ((c.notices[0] || {}).kind || '') : '',
+          bg: S.selC === c.id ? 'rgba(63,109,255,.1)' : '#11141a',
+          bd: S.selC === c.id ? 'rgba(63,109,255,.45)' : '#1e222b',
+          tradeBg: S.selC === c.id ? 'rgba(63,109,255,.18)' : '#171b23', tradeCol: S.selC === c.id ? '#9db6ff' : '#8b93a5',
+          go: () => this.setState({ selC: c.id })
+        };
+      }),
+      cName: rtl ? sel.ar : sel.en, cContractNo: sel.no,
+      cTabs: [cTab('contract', t.tContract), cTab('boq', t.tBoqTab), cTab('schedule', t.tSchedule), cTab('payments', t.tPayments), cTab('access', t.tAccess)],
+      cIsContract: S.cTab === 'contract', cIsBoq: S.cTab === 'boq', cIsSchedule: S.cTab === 'schedule',
+      cIsPayments: S.cTab === 'payments', cIsLogin: S.cTab === 'access',
+      cContractCards: [
+        { label: t.cValue, val: money(sel.value), col: '#e8eaf0' },
+        { label: t.cExecuted, val: selPctNum + '%', col: pctCol(selPctNum) },
+        { label: t.cPaid, val: money(sel.paid), col: '#9db6ff' },
+        { label: t.cRemaining, val: money(Math.max(0, sel.value - sel.paid)), col: '#c3c9d6' }
+      ],
+      cScope: rtl ? sel.sar : sel.sen,
+      cItemCount: String((sel.boq || []).length),
+      cPct: selPctNum + '%', cCol: pctCol(selPctNum),
+      cPaid: money(sel.paid) + (rtl ? ' ر.س' : ' SAR'),
+      cNoticeCount: String((sel.notices || []).length),
+      cStart: sel.start, cEnd: sel.end,
+      cBoq: (sel.boq || []).map(b => ({
+        code: b.code, name: rtl ? b.ar : b.en, qty: b.qty,
+        value: money(b.value) + (rtl ? ' ر.س' : ' SAR'),
+        pctCss: b.p + '%', col: pctCol(b.p), model: b.model
+      })),
+      cSchedule: (sel.schedule || []).map(a => ({
+        name: rtl ? a.ar : a.en, left: a.l + '%', width: a.w + '%', pct: a.p + '%', col: pctCol(a.p)
+      })),
+      cPayments: (sel.payments || []).map(p => ({
+        no: p.no, period: p.period, pct: p.pct, amount: money(p.amount),
+        status: ST[p.st][lang], tint: ST[p.st].tint, tone: ST[p.st].tone
+      })),
+      cUser: sel.user, cPass: sel.pass,
+      issuePayment: () => {
+        const last = (sel.payments || [])[0];
+        const lastPct = last ? (parseFloat(String(last.pct)) || 0) : 0;
+        const deltaPct = Math.max(0, selPctNum - lastPct);
+        const due = Math.round(sel.value * deltaPct / 100);
+        let maxNo = 0;
+        S.contractors.forEach(c => (c.payments || []).forEach(p => {
+          const n = parseInt(String(p.no).replace(/[^0-9]/g, ''), 10) || 0;
+          if (n > maxNo) maxNo = n;
+        }));
+        const no = 'PY-' + String(maxNo + 1).padStart(3, '0');
+        if (deltaPct <= 0) { this.showToast(rtl ? 'لا توجد نسبة تنفيذ جديدة تُستخلص' : 'No new executed progress to certify'); return; }
+        this.setState(s => ({
+          contractors: s.contractors.map(c => c.id === sel.id
+            ? Object.assign({}, c, { payments: [{ no: no, period: '2026-08', pct: selPctNum + '%', amount: due, st: 'pending' }].concat(c.payments || []) }) : c),
+          extraNotifs: [{ text: (rtl ? 'مستخلص جديد ' : 'New payment certificate ') + no + ' — ' + (rtl ? sel.ar : sel.en) + ' · ' + money(due), time: '09:24' }].concat(s.extraNotifs)
+        }));
+        this.showToast(t.tIssued + ' · ' + no + ' · ' + money(due));
+      },
+      resetPass: () => {
+        const np = 'bs' + Math.floor(1000 + Math.random() * 8999);
+        this.setState(s => ({ contractors: s.contractors.map(c => c.id === sel.id ? Object.assign({}, c, { pass: np }) : c) }));
+        this.showToast(t.tPassReset + ' — ' + np);
+      },
+      enterAsContractor: () => this.setState({ role: 'contractor', page: 'home' }),
+      docCats: [
+        { name: rtl ? 'العقود' : 'Contracts', n: '12' }, { name: rtl ? 'جداول الكميات' : 'BOQ', n: '8' },
+        { name: rtl ? 'التصاميم الأولية' : 'Concept designs', n: '9' }, { name: rtl ? 'مخططات IFC' : 'IFC models', n: '6' },
+        { name: rtl ? 'المواصفات' : 'Specifications', n: '14' }, { name: rtl ? 'متطلبات المالك' : 'Owner requirements', n: '5' },
+        { name: rtl ? 'وثائق فنية' : 'Technical docs', n: '21' }, { name: rtl ? 'تقارير' : 'Reports', n: '18' },
+        { name: rtl ? 'مسح ليزري' : 'Laser scans', n: '3' }, { name: rtl ? 'أخرى' : 'Other', n: '7' }
+      ],
+      genSub: page.sub ? page.sub[lang] : '',
+      genChips: (page.chips || []).map((c, i) => ({ label: rtl ? c[0] : c[1], bg: i === 0 ? 'rgba(63,109,255,.12)' : '#141821', bd: i === 0 ? 'rgba(63,109,255,.4)' : '#242935', col: i === 0 ? '#9db6ff' : '#c3c9d6' })),
+      genRows
+    };
+  }
+}
+</script>
+</body>
+</html>

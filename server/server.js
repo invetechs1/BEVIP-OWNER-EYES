@@ -264,7 +264,8 @@ const MIME = {
   '.css': 'text/css; charset=utf-8', '.json': 'application/json',
   '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
   '.ico': 'image/x-icon', '.gif': 'image/gif', '.webp': 'image/webp',
-  '.pdf': 'application/pdf', '.txt': 'text/plain; charset=utf-8'
+  '.pdf': 'application/pdf', '.txt': 'text/plain; charset=utf-8',
+  '.wasm': 'application/wasm', '.ifc': 'text/plain; charset=utf-8', '.dxf': 'text/plain; charset=utf-8'
 };
 
 function serveStatic(req, res) {

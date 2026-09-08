@@ -299,30 +299,192 @@
     'محاكاة (القناة غير مهيأة)': 'Simulated (channel not configured)',
     'أُرسل فعلياً ✓': 'Sent successfully ✓',
     'لا رسائل بعد': 'No messages yet',
-    '✅ تم إرسال التقرير بنجاح عبر ': '✅ Report sent successfully via '
+    '✅ تم إرسال التقرير بنجاح عبر ': '✅ Report sent successfully via ',
+
+    // مؤشر صحة المشروع
+    'ممتاز': 'Excellent',
+    'جيد': 'Good',
+    'مقبول — يحتاج متابعة': 'Acceptable — needs follow-up',
+    'حرج — تدخّل عاجل': 'Critical — urgent intervention needed',
+    'الجدول الزمني': 'Schedule',
+    'التكلفة': 'Cost',
+    'الجودة': 'Quality',
+    'السلامة': 'Safety',
+    'التقدير الآلي للإنجاز حسب الوتيرة الحالية: <b class="num">': 'Automatic completion forecast based on current pace: <b class="num">',
+    'تأخّر متوقع ': 'Expected delay of ',
+    ' يوماً': ' days',
+    'تقدّم متوقع ': 'Expected to finish early by ',
+    'مطابق للخطة': 'On track with the plan',
+    'التقدير الآلي يظهر بعد تسجيل بداية التنفيذ ونسبة إنجاز.': 'The automatic forecast appears once a start date and progress percentage are recorded.',
+    ' عدم مطابقة': ' non-conformance(s)',
+    ' اختبار راسب': ' failed test(s)',
+    ' ملاحظة تسليم': ' punch list item(s)',
+    ' سلامة/حوادث': ' safety/incident issue(s)',
+    ' مقاول متأخر': ' delayed contractor(s)',
+    ' صرف يفوق المستحق': ' overpayment(s) beyond earned value',
+    'مؤشر صحة المشروع': 'Project Health Index',
+    'من 100': 'out of 100',
+    'مؤشر مركّب من خمسة أبعاد بأوزانها:': 'A composite index across five weighted dimensions:',
+    'لا مخاطر جودة أو سلامة أو تعثّر مقاولين مفتوحة': 'No open quality, safety, or contractor-delay risks',
+    'الآن': 'Now',
+    'ثابت': 'Stable',
+    'اتجاه هابط منذ بداية العام (': 'Declining trend since the start of the year (',
+    ' نقطة) — يتطلب خطة تصحيحية': ' points) — requires a corrective plan',
+    'اتجاه صاعد منذ بداية العام (+': 'Rising trend since the start of the year (+',
+    ' نقطة)': ' points)',
+    'مستقر نسبياً منذ بداية العام (': 'Relatively stable since the start of the year (',
+    'اتجاه مؤشر الصحة شهرياً': 'Monthly Health Index Trend',
+    'مقارنة بالشهر السابق: ': 'Compared to last month: ',
+    ' نقطة': ' point(s)',
+    'المؤشر': 'Index',
+    'تنبيه: تراجعت درجة صحة المشروع — راجع الإشعارات': 'Alert: the project health score has dropped — check notifications',
+    'تحسّنت درجة صحة المشروع — راجع الإشعارات': 'The project health score has improved — check notifications',
+
+    // جاهزية التسليم
+    'جاهزية التسليم بنظرة': 'Handover Readiness at a Glance',
+    'فتح وحدة التسليم ←': 'Open the Handover module ←',
+    'اكتمال بنود التسليم': 'Handover Items Completed',
+    'ملاحظات مفتوحة': 'Open Notes',
+    'الموافقات النظامية': 'Regulatory Approvals',
+    'أمانة · دفاع مدني · SEC · إشغال': 'Municipality · Civil Defense · SEC · Occupancy',
+    'ضمانات قرب الانتهاء': 'Warranties Nearing Expiry',
+    'خلال 90 يوماً': 'within 90 days',
+
+    // تقارير الحوادث والسلامة
+    'تنبيهات السلامة من الكاميرات': 'Safety Alerts from Cameras',
+    'حوّل أي تنبيه إلى تقرير حادث موثّق وقابل للطباعة': 'Convert any alert into a documented, printable incident report',
+    'تقرير محفوظ': 'Report Saved',
+    'تقرير حادث/مخالفة سلامة': 'Incident / Safety Violation Report',
+    'المشروع:': 'Project:',
+    'المرجع:': 'Reference:',
+    'العنوان': 'Title',
+    'النوع': 'Type',
+    'مخالفة سلامة': 'Safety Violation',
+    'حادث': 'Incident',
+    'ملاحظة': 'Note',
+    'الخطورة': 'Severity',
+    'عالية': 'High',
+    'متوسطة': 'Medium',
+    'منخفضة': 'Low',
+    'التاريخ/الوقت': 'Date/Time',
+    'الإجراء المتخذ': 'Action Taken',
+    'تقرير حادث/سلامة': 'Incident/Safety Report',
+    'عنوان التقرير': 'Report Title',
+    '— غير محدد —': '— Not specified —',
+    'الإجراء المتخذ / المطلوب': 'Action Taken / Required',
+    'حفظ وأرشفة': 'Save & Archive',
+    'طباعة': 'Print',
+    'إغلاق': 'Close',
+    '✅ حُفظ تقرير الحادث في الأرشيف': '✅ Incident report saved to the archive',
+    'تقرير حادث': 'Incident Report',
+    'إسناد التنبيهات للجهة المسؤولة وتحويلها لتقارير حوادث': 'Assign alerts to the responsible party and convert them into incident reports',
+    '— إسناد إلى جهة —': '— Assign to a party —',
+    'PDF رسمي': 'Official PDF',
+    'حفظ': 'Save',
+    'إلغاء': 'Cancel',
+    'أُسند التنبيه وأُشعرت الجهة': 'Alert assigned and the party notified',
+    'أُلغي الإسناد': 'Assignment removed',
+    'مسند إلى: ': 'Assigned to: ',
+
+    // لوحة القيادة: تدفق نقدي ومراحل
+    'لا بيانات جدول زمني لهذا المشروع بعد — يرفعها الاستشاري': 'No schedule data for this project yet — uploaded by the consultant',
+    'لا بيانات تكلفة لهذا المشروع بعد': 'No cost data for this project yet',
+    'التدفق النقدي مقابل الإنجاز': 'Cash Flow vs. Progress',
+    'الوارد من المالك مقابل المنصرف للمقاولين (مليون ر.س)': 'Inflow from owner vs. outflow to contractors (million SAR)',
+    'الوارد': 'Inflow',
+    'المنصرف': 'Outflow',
+    'الإنجاز المرتبط بآخر فترة ': 'Progress linked to the latest period ',
+    'صافي التدفق ': 'Net cash flow ',
+    'لا بيانات تدفق نقدي بعد': 'No cash flow data yet',
+    'مرحلة': 'phase(s)',
+    'لم تُسجل مراحل لهذا المشروع بعد': 'No phases recorded for this project yet',
+
+    // المقاولون
+    'أزرق = المخطط · ذهبي = الفعلي': 'Blue = planned · Gold = actual',
+    'المقاول الذي يقل فعليه عن المخطط بأكثر من 3% يُعلَّم متأخراً — ': 'A contractor whose actual progress trails the plan by more than 3% is flagged as delayed — ',
+    'متأخر من ': 'delayed out of ',
+
+    // التقارير
+    'توليد تقرير تقدم بضغطة واحدة': 'One-Click Progress Report Generation',
+    'جاهز للإرسال للعميل — عربي أو إنجليزي': 'Ready to send to the client — Arabic or English',
+    'تقرير أسبوعي (عربي)': 'Weekly Report (Arabic)',
+    'تقرير شهري (عربي)': 'Monthly Report (Arabic)',
+    'يجمّع التقرير المؤشرات ونسب المراحل وأداء المقاولين تلقائياً من بيانات المشروع الحالية.': 'The report automatically compiles KPIs, phase percentages, and contractor performance from the current project data.',
+    'التقارير اليدوية وإشعارات دورة المراجعة الآلية': 'Manual reports and automated review-cycle notifications',
+    'الموضوع': 'Subject',
+    'فشل الإرسال ✗': 'Send Failed ✗',
+    'إشعار آلي': 'Automatic Notification',
+    'تقرير': 'Report'
   });
 
   // ============ أدوات مشتركة ============
+  /* قاموس الحالات الموحّد (§7-3): [النص، صنف اللون، الأيقونة].
+     قاعدة إلزامية: لا نعتمد على اللون وحده — كل حالة تحمل أيقونة بجانب لونها،
+     فيبقى المعنى واضحاً لمن لا يميّز الأحمر عن الأخضر (~1 من 12) وعند الطباعة أبيض/أسود. */
   const STATUS = {
-    pending: ['قيد المراجعة', 'p-warn'],
-    approved: ['معتمد', 'p-ok'],
-    approved_notes: ['معتمد مع ملاحظات', 'p-info'],
-    rejected: ['مرفوض', 'p-danger'],
-    open: ['مفتوح', 'p-warn'],
-    answered: ['تم الرد', 'p-ok'],
-    issued: ['صادرة', 'p-info'],
-    done: ['نُفذت', 'p-ok'],
-    closed: ['مغلق', 'p-ok'],
-    pass: ['ناجح ✓', 'p-ok'],
-    fail: ['راسب ✗', 'p-danger']
+    // دورة الاعتماد / المعاملات
+    pending: ['قيد المراجعة', 'p-info', '●'],
+    under_review: ['قيد المراجعة', 'p-info', '●'],
+    approved: ['معتمد', 'p-ok', '✓'],
+    approved_notes: ['معتمد مع ملاحظات', 'p-ok', '✓*'],
+    returned: ['أُعيد للتعديل', 'p-warn', '⚠'],
+    rejected: ['مرفوض', 'p-danger', '✕'],
+    open: ['مفتوح', 'p-warn', '⚠'],
+    answered: ['تم الرد', 'p-ok', '✓'],
+    replied: ['تم الرد', 'p-ok', '✓'],
+    issued: ['صادرة', 'p-info', '●'],
+    done: ['نُفذت', 'p-ok', '✓'],
+    executed: ['نُفذت', 'p-ok', '✓'],
+    closed: ['مغلق', 'p-none', '—'],
+    // عناصر العمل
+    not_started: ['لم يبدأ', 'p-none', '—'],
+    in_progress: ['قيد التنفيذ', 'p-info', '●'],
+    awaiting_approval: ['بانتظار الاعتماد', 'p-warn', '⚠'],
+    stopped: ['متوقف', 'p-danger', '✕'],
+    complete: ['مكتمل', 'p-ok', '✓'],
+    // اختبارات
+    pass: ['ناجح', 'p-ok', '✓'],
+    fail: ['راسب', 'p-danger', '✕'],
+    // جدول المقاول
+    on_schedule: ['ضمن الجدول', 'p-ok', '✓'],
+    late: ['متأخر', 'p-warn', '⚠'],
+    critical: ['حرِج', 'p-danger', '✕'],
+    // اعتماد المقاول
+    healthy: ['سليم', 'p-ok', '✓'],
+    over_certified: ['استلم أكثر من مستحقه', 'p-danger', '✕']
   };
 
   function pill(status) {
-    const s = STATUS[status] || [status, 'p-muted'];
-    return '<span class="pill ' + s[1] + '">' + esc(I18n.t(s[0])) + '</span>';
+    const s = STATUS[status] || [status, 'p-muted', ''];
+    const ico = s[2] ? '<span class="pico">' + s[2] + '</span>' : '';
+    return '<span class="pill ' + s[1] + '">' + ico + esc(I18n.t(s[0])) + '</span>';
   }
 
-  function money(n) { return n == null ? '—' : '<span class="num">' + Number(n).toLocaleString('en-US') + '</span>' + I18n.t(' ر.س'); }
+  /* شارة حالة عامة بأيقونة إلزامية بجانب اللون — للاستخدام المباشر بدل <span class="pill"> */
+  function statusPill(cls, text, icon) {
+    const ico = icon ? '<span class="pico">' + icon + '</span>' : '';
+    return '<span class="pill ' + cls + '">' + ico + esc(I18n.t(text)) + '</span>';
+  }
+
+  /** صنف لون شريط التقدّم حسب الانحراف عن الخطة (§7-2).
+     أخضر: فعلي ≥ مخطط · كهرماني: متأخر 1..threshold · أحمر: متأخر > threshold · رمادي: لم يبدأ.
+     الحدّ يُقرأ من إعدادات المشروع (افتراضي 10 نقاط — §13-5). */
+  function barClass(actual, planned, threshold) {
+    const a = Number(actual) || 0, p = Number(planned);
+    const th = (threshold == null ? 10 : Number(threshold));
+    if (!a && (!p || p <= 0)) return 'b-none';
+    if (a <= 0 && p > 0) return 'b-none';
+    if (p == null || isNaN(p)) return 'b-ok';
+    const gap = p - a;
+    if (gap <= 0) return 'b-ok';
+    if (gap <= th) return 'b-warn';
+    return 'b-danger';
+  }
+
+  /* تنسيق الأرقام (§10-3، §13-6): العرض بلا كسور (لا أحد يقرأ الهللات في عقد بالملايين)،
+     مع الإبقاء على الدقة الكاملة في البيانات والتصدير. التقريب في المُنسّق فقط. */
+  function fmtInt(n) { return Math.round(Number(n) || 0).toLocaleString('en-US'); }
+  function money(n) { return n == null ? '—' : '<span class="num">' + fmtInt(n) + '</span>' + I18n.t(' ر.س'); }
 
   /** عرض مرفق: رابط قابل للفتح إن كان مرفوعاً فعلياً على الخادم، وإلا الاسم فقط */
   function att(f) {
@@ -454,10 +616,10 @@
     const score = Math.round(schedule * 0.30 + cost * 0.25 + quality * 0.20 + safety * 0.15 + contractor * 0.10);
 
     let grade, gradeAr, cls;
-    if (score >= 85) { grade = 'A'; gradeAr = 'ممتاز'; cls = 'ok'; }
-    else if (score >= 70) { grade = 'B'; gradeAr = 'جيد'; cls = 'ok'; }
-    else if (score >= 55) { grade = 'C'; gradeAr = 'مقبول — يحتاج متابعة'; cls = 'warn'; }
-    else { grade = 'D'; gradeAr = 'حرج — تدخّل عاجل'; cls = 'danger'; }
+    if (score >= 85) { grade = 'A'; gradeAr = I18n.t('ممتاز'); cls = 'ok'; }
+    else if (score >= 70) { grade = 'B'; gradeAr = I18n.t('جيد'); cls = 'ok'; }
+    else if (score >= 55) { grade = 'C'; gradeAr = I18n.t('مقبول — يحتاج متابعة'); cls = 'warn'; }
+    else { grade = 'D'; gradeAr = I18n.t('حرج — تدخّل عاجل'); cls = 'danger'; }
 
     // تقدير الإنجاز حسب الوتيرة الفعلية
     let forecastDate = P.endForecast || null, forecastDelta = null;
@@ -474,11 +636,11 @@
     return {
       score: score, grade: grade, gradeAr: gradeAr, cls: cls,
       components: [
-        { key: 'الجدول الزمني', val: schedule, w: 30 },
-        { key: 'التكلفة', val: cost, w: 25 },
-        { key: 'الجودة', val: quality, w: 20 },
-        { key: 'السلامة', val: safety, w: 15 },
-        { key: 'أداء المقاولين', val: contractor, w: 10 }
+        { key: I18n.t('الجدول الزمني'), val: schedule, w: 30 },
+        { key: I18n.t('التكلفة'), val: cost, w: 25 },
+        { key: I18n.t('الجودة'), val: quality, w: 20 },
+        { key: I18n.t('السلامة'), val: safety, w: 15 },
+        { key: I18n.t('أداء المقاولين'), val: contractor, w: 10 }
       ],
       issues: { openNcr: openNcr, failedTests: failedTests, openPunch: openPunch, openHse: openHse, openInc: openInc, delayed: delayed, overpaid: overpaid },
       forecastDate: forecastDate, forecastDelta: forecastDelta
@@ -497,30 +659,30 @@
         '<div class="bar" style="height:8px"><i style="width:' + c.val + '%;background:' + bc + '"></i></div></div>';
     };
     const forecastTxt = h.forecastDate
-      ? 'التقدير الآلي للإنجاز حسب الوتيرة الحالية: <b class="num">' + esc(h.forecastDate) + '</b>' +
+      ? I18n.t('التقدير الآلي للإنجاز حسب الوتيرة الحالية: <b class="num">') + esc(h.forecastDate) + '</b>' +
         (h.forecastDelta != null ? ' — <b class="num" style="color:' + (h.forecastDelta > 7 ? 'var(--danger)' : h.forecastDelta < -7 ? 'var(--ok)' : 'var(--warn)') + '">' +
-          (h.forecastDelta > 0 ? 'تأخّر متوقع ' + h.forecastDelta + ' يوماً' : h.forecastDelta < 0 ? 'تقدّم متوقع ' + Math.abs(h.forecastDelta) + ' يوماً' : 'مطابق للخطة') + '</b>' : '')
-      : 'التقدير الآلي يظهر بعد تسجيل بداية التنفيذ ونسبة إنجاز.';
+          (h.forecastDelta > 0 ? I18n.t('تأخّر متوقع ') + h.forecastDelta + I18n.t(' يوماً') : h.forecastDelta < 0 ? I18n.t('تقدّم متوقع ') + Math.abs(h.forecastDelta) + I18n.t(' يوماً') : I18n.t('مطابق للخطة')) + '</b>' : '')
+      : I18n.t('التقدير الآلي يظهر بعد تسجيل بداية التنفيذ ونسبة إنجاز.');
     const chips = [];
-    if (h.issues.openNcr) chips.push('🚫 ' + h.issues.openNcr + ' عدم مطابقة');
-    if (h.issues.failedTests) chips.push('🧪 ' + h.issues.failedTests + ' اختبار راسب');
-    if (h.issues.openPunch) chips.push('📌 ' + h.issues.openPunch + ' ملاحظة تسليم');
-    if (h.issues.openHse || h.issues.openInc) chips.push('🦺 ' + (h.issues.openHse + h.issues.openInc) + ' سلامة/حوادث');
-    if (h.issues.delayed) chips.push('👷 ' + h.issues.delayed + ' مقاول متأخر');
-    if (h.issues.overpaid) chips.push('💰 ' + h.issues.overpaid + ' صرف يفوق المستحق');
+    if (h.issues.openNcr) chips.push('🚫 ' + h.issues.openNcr + I18n.t(' عدم مطابقة'));
+    if (h.issues.failedTests) chips.push('🧪 ' + h.issues.failedTests + I18n.t(' اختبار راسب'));
+    if (h.issues.openPunch) chips.push('📌 ' + h.issues.openPunch + I18n.t(' ملاحظة تسليم'));
+    if (h.issues.openHse || h.issues.openInc) chips.push('🦺 ' + (h.issues.openHse + h.issues.openInc) + I18n.t(' سلامة/حوادث'));
+    if (h.issues.delayed) chips.push('👷 ' + h.issues.delayed + I18n.t(' مقاول متأخر'));
+    if (h.issues.overpaid) chips.push('💰 ' + h.issues.overpaid + I18n.t(' صرف يفوق المستحق'));
 
     return '<div class="card mb" style="border-color:' + col + '55;background:linear-gradient(120deg,' + col + '10,transparent 55%),linear-gradient(180deg,var(--panel2),var(--panel))">' +
       '<div class="flex" style="justify-content:space-between;flex-wrap:wrap;align-items:flex-start;gap:16px">' +
       '<div style="text-align:center;min-width:170px">' +
-      '<h3 style="justify-content:center;margin-bottom:6px">🧭 مؤشر صحة المشروع</h3>' +
-      Charts.donut(h.score, { label: 'من 100', color: col, size: 128 }) +
+      '<h3 style="justify-content:center;margin-bottom:6px">🧭 ' + I18n.t('مؤشر صحة المشروع') + '</h3>' +
+      Charts.donut(h.score, { label: I18n.t('من 100'), color: col, size: 128 }) +
       '<div style="margin-top:8px"><span class="pill ' + (h.cls === 'ok' ? 'p-ok' : h.cls === 'warn' ? 'p-warn' : 'p-danger') + '" style="font-size:13px;padding:4px 14px">' + h.grade + ' · ' + esc(h.gradeAr) + '</span></div></div>' +
-      '<div style="flex:1;min-width:260px"><div class="small muted mb">مؤشر مركّب من خمسة أبعاد بأوزانها:</div>' +
+      '<div style="flex:1;min-width:260px"><div class="small muted mb">' + I18n.t('مؤشر مركّب من خمسة أبعاد بأوزانها:') + '</div>' +
       h.components.map(barFor).join('') + '</div></div>' +
       '<div class="small mt" style="border-top:1px solid var(--border);padding-top:10px;line-height:1.9">' +
       '📅 ' + forecastTxt +
       (chips.length ? '<div style="margin-top:8px">' + chips.map(function (c) { return '<span class="pill p-warn" style="font-size:11px;margin:2px">' + esc(c) + '</span>'; }).join(' ') + '</div>'
-        : '<div class="small" style="color:var(--ok);margin-top:8px">✓ لا مخاطر جودة أو سلامة أو تعثّر مقاولين مفتوحة</div>') +
+        : '<div class="small" style="color:var(--ok);margin-top:8px">✓ ' + I18n.t('لا مخاطر جودة أو سلامة أو تعثّر مقاولين مفتوحة') + '</div>') +
       '</div>' + healthTrend(ctx, P, A, h) + '</div>';
   }
 
@@ -530,20 +692,20 @@
       .filter(function (x) { return !x.projectId || x.projectId === P.id; })
       .slice().sort(function (a, b) { return String(a.month).localeCompare(String(b.month)); });
     if (!hist.length) return '';
-    const points = hist.map(function (x) { return { month: x.month, actual: x.score }; }).concat([{ month: 'الآن', actual: h.score }]);
+    const points = hist.map(function (x) { return { month: x.month, actual: x.score }; }).concat([{ month: I18n.t('الآن'), actual: h.score }]);
     const prev = hist[hist.length - 1].score;
     const delta = h.score - prev;
     const first = hist[0].score;
     const overall = h.score - first;
-    const arrow = delta > 0 ? '<span style="color:var(--ok)">▲ +' + delta + '</span>' : delta < 0 ? '<span style="color:var(--danger)">▼ ' + delta + '</span>' : '<span class="muted">— ثابت</span>';
+    const arrow = delta > 0 ? '<span style="color:var(--ok)">▲ +' + delta + '</span>' : delta < 0 ? '<span style="color:var(--danger)">▼ ' + delta + '</span>' : '<span class="muted">— ' + I18n.t('ثابت') + '</span>';
     let trendMsg;
-    if (overall <= -8) trendMsg = '<span style="color:var(--danger)">📉 اتجاه هابط منذ بداية العام (' + overall + ' نقطة) — يتطلب خطة تصحيحية</span>';
-    else if (overall >= 8) trendMsg = '<span style="color:var(--ok)">📈 اتجاه صاعد منذ بداية العام (+' + overall + ' نقطة)</span>';
-    else trendMsg = '<span class="muted">مستقر نسبياً منذ بداية العام (' + (overall > 0 ? '+' : '') + overall + ' نقطة)</span>';
+    if (overall <= -8) trendMsg = '<span style="color:var(--danger)">📉 ' + I18n.t('اتجاه هابط منذ بداية العام (') + overall + I18n.t(' نقطة) — يتطلب خطة تصحيحية') + '</span>';
+    else if (overall >= 8) trendMsg = '<span style="color:var(--ok)">📈 ' + I18n.t('اتجاه صاعد منذ بداية العام (+') + overall + I18n.t(' نقطة)') + '</span>';
+    else trendMsg = '<span class="muted">' + I18n.t('مستقر نسبياً منذ بداية العام (') + (overall > 0 ? '+' : '') + overall + I18n.t(' نقطة)') + '</span>';
     return '<div style="border-top:1px solid var(--border);padding-top:12px;margin-top:10px">' +
-      '<div class="flex" style="justify-content:space-between;flex-wrap:wrap"><b class="small">📊 اتجاه مؤشر الصحة شهرياً</b>' +
-      '<span class="small">مقارنة بالشهر السابق: ' + arrow + ' نقطة</span></div>' +
-      '<div style="margin-top:6px">' + Charts.sCurve(points, { maxY: 100, unit: '', actualLabel: 'المؤشر', plannedLabel: '' }) + '</div>' +
+      '<div class="flex" style="justify-content:space-between;flex-wrap:wrap"><b class="small">📊 ' + I18n.t('اتجاه مؤشر الصحة شهرياً') + '</b>' +
+      '<span class="small">' + I18n.t('مقارنة بالشهر السابق: ') + arrow + I18n.t(' نقطة') + '</span></div>' +
+      '<div style="margin-top:6px">' + Charts.sCurve(points, { maxY: 100, unit: '', actualLabel: I18n.t('المؤشر'), plannedLabel: '' }) + '</div>' +
       '<div class="small mt">' + trendMsg + '</div></div>';
   }
 
@@ -573,14 +735,14 @@
     const regDone = reg.filter(function (i) { return i.status === 'done'; }).length;
     const cls = pct >= 90 ? 'ok' : pct >= 50 ? 'warn' : '';
     return '<div class="card" style="margin-top:12px"><div class="flex" style="justify-content:space-between;flex-wrap:wrap">' +
-      '<h3 style="margin:0">🏁 جاهزية التسليم بنظرة</h3>' +
-      '<button class="btn ghost sm" data-nav="handover">فتح وحدة التسليم ←</button></div>' +
+      '<h3 style="margin:0">🏁 ' + I18n.t('جاهزية التسليم بنظرة') + '</h3>' +
+      '<button class="btn ghost sm" data-nav="handover">' + I18n.t('فتح وحدة التسليم ←') + '</button></div>' +
       '<div class="grid g4" style="margin-top:12px">' +
-      '<div class="card kpi ' + (cls === 'ok' ? 'k-ok' : cls === 'warn' ? 'k-warn' : '') + '"><div class="lbl">اكتمال بنود التسليم</div>' +
-      '<div class="val num">' + pct + '%</div><div class="sub num">' + done + '/' + hi.length + ' بند</div></div>' +
-      '<div class="card kpi ' + (openPunch ? 'k-warn' : 'k-ok') + '"><div class="lbl">ملاحظات مفتوحة</div><div class="val num">' + openPunch + '</div><div class="sub">Punch List</div></div>' +
-      '<div class="card kpi ' + (regDone < reg.length ? 'k-warn' : 'k-ok') + '"><div class="lbl">الموافقات النظامية</div><div class="val num">' + regDone + '/' + reg.length + '</div><div class="sub">أمانة · دفاع مدني · SEC · إشغال</div></div>' +
-      '<div class="card kpi ' + (expSoon ? 'k-warn' : 'k-ok') + '"><div class="lbl">ضمانات قرب الانتهاء</div><div class="val num">' + expSoon + '</div><div class="sub">خلال 90 يوماً</div></div>' +
+      '<div class="card kpi ' + (cls === 'ok' ? 'k-ok' : cls === 'warn' ? 'k-warn' : '') + '"><div class="lbl">' + I18n.t('اكتمال بنود التسليم') + '</div>' +
+      '<div class="val num">' + pct + '%</div><div class="sub num">' + done + '/' + hi.length + ' ' + I18n.t('بند') + '</div></div>' +
+      '<div class="card kpi ' + (openPunch ? 'k-warn' : 'k-ok') + '"><div class="lbl">' + I18n.t('ملاحظات مفتوحة') + '</div><div class="val num">' + openPunch + '</div><div class="sub">Punch List</div></div>' +
+      '<div class="card kpi ' + (regDone < reg.length ? 'k-warn' : 'k-ok') + '"><div class="lbl">' + I18n.t('الموافقات النظامية') + '</div><div class="val num">' + regDone + '/' + reg.length + '</div><div class="sub">' + I18n.t('أمانة · دفاع مدني · SEC · إشغال') + '</div></div>' +
+      '<div class="card kpi ' + (expSoon ? 'k-warn' : 'k-ok') + '"><div class="lbl">' + I18n.t('ضمانات قرب الانتهاء') + '</div><div class="val num">' + expSoon + '</div><div class="sub">' + I18n.t('خلال 90 يوماً') + '</div></div>' +
       '</div></div>';
   }
 
@@ -637,7 +799,7 @@
       '<div class="flex"><span style="font-size:40px;filter:drop-shadow(0 0 14px rgba(224,164,88,.7))">👁</span>' +
       '<div><b style="font-size:17px">' + I18n.t('عين المالك') + '</b><div class="small muted" style="margin-top:4px">' + I18n.t('حالة مشاريعك بنظرة واحدة: الإنجاز، الزمن، التكلفة — دون الحاجة لقراءة التقارير') + '</div></div>' +
       '<span class="spacer"></span>' +
-      '<button class="btn ghost sm" data-nav="vision">👁 ' + I18n.t('رؤية المشروع') + '</button>' +
+      '<button class="btn ghost sm" data-nav="vision">👁 ' + I18n.t('خريطة الإنجاز') + '</button>' +
       '<button class="btn ghost sm" data-nav="cameras">🎥 ' + I18n.t('الكاميرات') + '</button></div></div>' + html;
 
     el.querySelectorAll('[data-nav]').forEach(function (b) {
@@ -668,8 +830,8 @@
       '<div><b>' + I18n.t('البث المباشر من الموقع') + '</b><div class="small muted" style="margin-top:3px">' +
       (media ? I18n.t('بث RTSP حي عبر خادم الوسائط، ') : '') + I18n.t('تُحلَّل اللقطات بذكاء بصير كل 30 دقيقة لاستخراج نسب الإنجاز وتنبيهات السلامة تلقائياً') + '</div></div>' +
       '<span class="spacer"></span>' +
-      (media ? '<span class="pill p-ok">📡 ' + I18n.t('خادم البث متصل') + '</span>' : (canManage ? '<span class="pill p-warn">' + I18n.t('البث الحي غير مهيأ — MEDIA_SERVER_URL') + '</span>' : '')) +
-      '<span class="pill p-ok">● ' + cams.filter(function (c) { return c.status === 'online'; }).length + ' ' + I18n.t('كاميرا متصلة') + '</span></div></div>' +
+      (media ? statusPill('p-ok', 'خادم البث متصل', '📡') : statusPill('p-none', 'الكاميرات غير مفعّلة — تواصل مع مدير النظام', '—')) +
+      statusPill('p-ok', cams.filter(function (c) { return c.status === 'online'; }).length + ' ' + I18n.t('كاميرا متصلة'), '●') + '</div></div>' +
 
       '<div class="grid g2 mb">' +
       cams.map(function (c, i) {
@@ -706,7 +868,7 @@
         '<div><label class="fl">' + I18n.t('مسار البث (على خادم الوسائط)') + '</label><input class="inp num" id="cm-path" placeholder="cam5" dir="ltr"></div>' +
         '<div><label class="fl">&nbsp;</label><button class="btn block" id="cm-add">' + I18n.t('ربط الكاميرا') + '</button></div>' +
         '</div>' +
-        '<div class="small muted mt">💡 ' + I18n.t('للبث الحي: شغّل خادم الوسائط MediaMTX واضبط فيه مصدر RTSP للكاميرا بنفس المسار، ثم عرّف MEDIA_SERVER_URL في .env — التفاصيل في صفحة التكامل والإعدادات.') + '</div></div>' : '') +
+        (ctx.U.role === 'admin' ? '<div class="small muted mt">💡 ' + I18n.t('للبث الحي: شغّل خادم الوسائط MediaMTX واضبط فيه مصدر RTSP للكاميرا بنفس المسار، ثم عرّف MEDIA_SERVER_URL في .env — التفاصيل في صفحة التكامل والإعدادات.') + '</div>' : '') + '</div>' : '') +
 
       // تنبيهات السلامة المرصودة من الكاميرات → تقارير حوادث قابلة للأرشفة والطباعة
       (function () {
@@ -804,8 +966,8 @@
     // تسجيل لقطة الصحة الشهرية وإطلاق تنبيه تلقائي عند هبوط الدرجة لفئة أدنى
     if (['consultant', 'admin', 'owner'].indexOf(ctx.U.role) !== -1 && ctx.projectId && Api.recordHealth) {
       Api.recordHealth(ctx.projectId).then(function (r) {
-        if (r && r.dropped) { toast('📉 تنبيه: تراجعت درجة صحة المشروع — راجع الإشعارات'); ctx.refresh(); }
-        else if (r && r.improved) { toast('📈 تحسّنت درجة صحة المشروع — راجع الإشعارات'); ctx.refresh(); }
+        if (r && r.dropped) { toast('📉 ' + I18n.t('تنبيه: تراجعت درجة صحة المشروع — راجع الإشعارات')); ctx.refresh(); }
+        else if (r && r.improved) { toast('📈 ' + I18n.t('تحسّنت درجة صحة المشروع — راجع الإشعارات')); ctx.refresh(); }
       }).catch(function () { /* تجاهل */ });
     }
   }
@@ -838,35 +1000,35 @@
 
   // تقرير حادث من تنبيه سلامة: ينشئ سجلاً قابلاً للأرشفة ثم يطبعه
   function incidentPrintHtml(ctx, inc) {
-    return '<h1>تقرير حادث/مخالفة سلامة — Incident Report</h1>' +
-      '<p class="muted">المشروع: ' + esc(ctx.S.projects[0].name) + ' · المرجع: <b>' + esc(inc.ref || '') + '</b>' + (inc.docCode ? ' · ' + esc(inc.docCode) : '') + '</p>' +
+    return '<h1>' + I18n.t('تقرير حادث/مخالفة سلامة') + ' — Incident Report</h1>' +
+      '<p class="muted">' + I18n.t('المشروع:') + ' ' + esc(ctx.S.projects[0].name) + ' · ' + I18n.t('المرجع:') + ' <b>' + esc(inc.ref || '') + '</b>' + (inc.docCode ? ' · ' + esc(inc.docCode) : '') + '</p>' +
       '<table><tbody>' +
-      '<tr><th style="width:180px">العنوان</th><td>' + esc(inc.title) + '</td></tr>' +
-      '<tr><th>النوع</th><td>' + esc(inc.kind === 'violation' ? 'مخالفة سلامة' : inc.kind === 'incident' ? 'حادث' : 'ملاحظة') + '</td></tr>' +
-      '<tr><th>الخطورة</th><td>' + esc(inc.severity === 'high' ? 'عالية' : inc.severity === 'medium' ? 'متوسطة' : 'منخفضة') + '</td></tr>' +
-      '<tr><th>الموقع</th><td>' + esc(inc.location || '') + '</td></tr>' +
-      '<tr><th>التاريخ/الوقت</th><td>' + esc((inc.date || '') + ' ' + (inc.time || '')) + '</td></tr>' +
-      '<tr><th>المصدر</th><td>' + esc(inc.source === 'camera' ? ('كاميرا ' + (inc.cameraId || '')) : inc.source || '') + '</td></tr>' +
-      '<tr><th>الجهة المسؤولة</th><td>' + esc(assigneeName(ctx, inc.assignedTo) || '—') + '</td></tr>' +
-      '<tr><th>الإجراء المتخذ</th><td>' + esc(inc.action || '') + '</td></tr>' +
+      '<tr><th style="width:180px">' + I18n.t('العنوان') + '</th><td>' + esc(inc.title) + '</td></tr>' +
+      '<tr><th>' + I18n.t('النوع') + '</th><td>' + esc(inc.kind === 'violation' ? I18n.t('مخالفة سلامة') : inc.kind === 'incident' ? I18n.t('حادث') : I18n.t('ملاحظة')) + '</td></tr>' +
+      '<tr><th>' + I18n.t('الخطورة') + '</th><td>' + esc(inc.severity === 'high' ? I18n.t('عالية') : inc.severity === 'medium' ? I18n.t('متوسطة') : I18n.t('منخفضة')) + '</td></tr>' +
+      '<tr><th>' + I18n.t('الموقع') + '</th><td>' + esc(inc.location || '') + '</td></tr>' +
+      '<tr><th>' + I18n.t('التاريخ/الوقت') + '</th><td>' + esc((inc.date || '') + ' ' + (inc.time || '')) + '</td></tr>' +
+      '<tr><th>' + I18n.t('المصدر') + '</th><td>' + esc(inc.source === 'camera' ? (I18n.t('كاميرا') + ' ' + (inc.cameraId || '')) : inc.source || '') + '</td></tr>' +
+      '<tr><th>' + I18n.t('الجهة المسؤولة') + '</th><td>' + esc(assigneeName(ctx, inc.assignedTo) || '—') + '</td></tr>' +
+      '<tr><th>' + I18n.t('الإجراء المتخذ') + '</th><td>' + esc(inc.action || '') + '</td></tr>' +
       '</tbody></table>';
   }
 
   function openIncidentModal(ctx, a) {
     const existing = a.incidentId ? (ctx.S.incidents || []).find(function (x) { return x.id === a.incidentId; }) : null;
     const m = modal(
-      '<h3>📋 تقرير حادث/سلامة</h3>' +
+      '<h3>📋 ' + I18n.t('تقرير حادث/سلامة') + '</h3>' +
       '<div class="m-sub">' + esc(a.note || '') + '</div>' +
-      '<label class="fl">عنوان التقرير</label><input class="inp" id="in-title" value="' + esc(existing ? existing.title : (a.note || '').slice(0, 80)) + '">' +
-      '<div class="grid g2"><div><label class="fl">النوع</label><select class="inp" id="in-kind">' +
-      [['violation', 'مخالفة سلامة'], ['incident', 'حادث'], ['observation', 'ملاحظة']].map(function (o) { return '<option value="' + o[0] + '"' + (existing && existing.kind === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div>' +
-      '<div><label class="fl">الخطورة</label><select class="inp" id="in-sev">' +
-      [['high', 'عالية'], ['medium', 'متوسطة'], ['low', 'منخفضة']].map(function (o) { return '<option value="' + o[0] + '"' + (existing && existing.severity === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div></div>' +
-      '<label class="fl">الموقع</label><input class="inp" id="in-loc" value="' + esc(existing ? existing.location : (a.area || '')) + '">' +
-      '<label class="fl">الجهة المسؤولة</label><select class="inp" id="in-cont"><option value="">— غير محدد —</option>' +
+      '<label class="fl">' + I18n.t('عنوان التقرير') + '</label><input class="inp" id="in-title" value="' + esc(existing ? existing.title : (a.note || '').slice(0, 80)) + '">' +
+      '<div class="grid g2"><div><label class="fl">' + I18n.t('النوع') + '</label><select class="inp" id="in-kind">' +
+      [['violation', 'مخالفة سلامة'], ['incident', 'حادث'], ['observation', 'ملاحظة']].map(function (o) { return '<option value="' + o[0] + '"' + (existing && existing.kind === o[0] ? ' selected' : '') + '>' + I18n.t(o[1]) + '</option>'; }).join('') + '</select></div>' +
+      '<div><label class="fl">' + I18n.t('الخطورة') + '</label><select class="inp" id="in-sev">' +
+      [['high', 'عالية'], ['medium', 'متوسطة'], ['low', 'منخفضة']].map(function (o) { return '<option value="' + o[0] + '"' + (existing && existing.severity === o[0] ? ' selected' : '') + '>' + I18n.t(o[1]) + '</option>'; }).join('') + '</select></div></div>' +
+      '<label class="fl">' + I18n.t('الموقع') + '</label><input class="inp" id="in-loc" value="' + esc(existing ? existing.location : (a.area || '')) + '">' +
+      '<label class="fl">' + I18n.t('الجهة المسؤولة') + '</label><select class="inp" id="in-cont"><option value="">' + I18n.t('— غير محدد —') + '</option>' +
       ctx.S.contractors.map(function (c) { return '<option value="' + c.id + '"' + ((existing ? existing.assignedTo : a.assignedTo) === c.id ? ' selected' : '') + '>' + esc(c.name) + '</option>'; }).join('') + '</select>' +
-      '<label class="fl">الإجراء المتخذ / المطلوب</label><textarea class="inp" id="in-action" rows="3">' + esc(existing ? existing.action : '') + '</textarea>' +
-      '<div class="m-actions"><button class="btn" id="in-save">💾 حفظ وأرشفة</button><button class="btn ghost" id="in-print">🖨 طباعة</button><button class="btn mutedb" id="in-cancel">إغلاق</button></div>'
+      '<label class="fl">' + I18n.t('الإجراء المتخذ / المطلوب') + '</label><textarea class="inp" id="in-action" rows="3">' + esc(existing ? existing.action : '') + '</textarea>' +
+      '<div class="m-actions"><button class="btn" id="in-save">💾 ' + I18n.t('حفظ وأرشفة') + '</button><button class="btn ghost" id="in-print">🖨 ' + I18n.t('طباعة') + '</button><button class="btn mutedb" id="in-cancel">' + I18n.t('إغلاق') + '</button></div>'
     );
     function collect() {
       return {
@@ -879,7 +1041,7 @@
     }
     m.querySelector('#in-cancel').addEventListener('click', function () { m.remove(); });
     m.querySelector('#in-print').addEventListener('click', function () {
-      window.ViewsHandover.printDoc('تقرير حادث', incidentPrintHtml(ctx, Object.assign({ docCode: existing ? existing.docCode : '' }, collect())));
+      window.ViewsHandover.printDoc(I18n.t('تقرير حادث'), incidentPrintHtml(ctx, Object.assign({ docCode: existing ? existing.docCode : '' }, collect())));
     });
     m.querySelector('#in-save').addEventListener('click', async function () {
       try {
@@ -888,7 +1050,7 @@
           const inc = await Api.create('incidents', collect());
           await Api.update('aiInsights', a.id, { incidentId: inc.id, assignedTo: inc.assignedTo || a.assignedTo || '' });
         }
-        m.remove(); toast('✅ حُفظ تقرير الحادث في الأرشيف'); ctx.refresh();
+        m.remove(); toast(I18n.t('✅ حُفظ تقرير الحادث في الأرشيف')); ctx.refresh();
       } catch (e) { toast(e.message, true); }
     });
   }
@@ -968,7 +1130,7 @@
       s.addEventListener('change', async function () {
         try {
           await Api.update('aiInsights', s.getAttribute('data-assign'), { assignedTo: s.value });
-          toast(s.value ? '✅ أُسند التنبيه وأُشعرت الجهة' : 'أُلغي الإسناد'); ctx.refreshSilent();
+          toast(s.value ? '✅ ' + I18n.t('أُسند التنبيه وأُشعرت الجهة') : I18n.t('أُلغي الإسناد')); ctx.refreshSilent();
         } catch (e) { toast(e.message, true); }
       });
     });
@@ -1435,13 +1597,13 @@
   function renderReports(el, ctx) {
     const canSend = ['consultant', 'admin', 'owner_rep', 'owner'].indexOf(ctx.U.role) !== -1;
     el.innerHTML =
-      '<div class="card mb"><h3>⚡ توليد تقرير تقدم بضغطة واحدة <span class="hint">جاهز للإرسال للعميل — عربي أو إنجليزي</span></h3>' +
+      '<div class="card mb"><h3>⚡ ' + I18n.t('توليد تقرير تقدم بضغطة واحدة') + ' <span class="hint">' + I18n.t('جاهز للإرسال للعميل — عربي أو إنجليزي') + '</span></h3>' +
       '<div class="flex" style="flex-wrap:wrap;gap:8px">' +
-      '<button class="btn" data-genrep="weekly:ar">📄 تقرير أسبوعي (عربي)</button>' +
+      '<button class="btn" data-genrep="weekly:ar">📄 ' + I18n.t('تقرير أسبوعي (عربي)') + '</button>' +
       '<button class="btn ghost" data-genrep="weekly:en">📄 Weekly (English)</button>' +
-      '<button class="btn" data-genrep="monthly:ar">📊 تقرير شهري (عربي)</button>' +
+      '<button class="btn" data-genrep="monthly:ar">📊 ' + I18n.t('تقرير شهري (عربي)') + '</button>' +
       '<button class="btn ghost" data-genrep="monthly:en">📊 Monthly (English)</button>' +
-      '</div><div class="small muted mt">يجمّع التقرير المؤشرات ونسب المراحل وأداء المقاولين تلقائياً من بيانات المشروع الحالية.</div></div>' +
+      '</div><div class="small muted mt">' + I18n.t('يجمّع التقرير المؤشرات ونسب المراحل وأداء المقاولين تلقائياً من بيانات المشروع الحالية.') + '</div></div>' +
       '<div class="grid g2 mb">' +
       '<div class="card"><h3>📅 ' + I18n.t('التقارير اليومية') + '</h3>' +
       ctx.S.dailyReports.map(function (r) {
@@ -1486,9 +1648,9 @@
       '<h3 class="mt">' + I18n.t('سجل الإرسال') + ' <span class="hint">' + I18n.t('التقارير اليدوية وإشعارات دورة المراجعة الآلية') + '</span></h3>' +
       (ctx.S.messages.length ? '<div class="tbl-wrap" style="max-height:50vh;overflow-y:auto"><table class="tbl"><thead><tr><th>' + I18n.t('النوع') + '</th><th>' + I18n.t('القناة') + '</th><th>' + I18n.t('إلى') + '</th><th>' + I18n.t('الموضوع') + '</th><th>' + I18n.t('التاريخ') + '</th><th>' + I18n.t('الحالة') + '</th></tr></thead><tbody>' +
         ctx.S.messages.slice().reverse().map(function (m) {
-          const statusPill = m.status === 'failed' ? '<span class="pill p-danger">' + I18n.t('فشل الإرسال ✗') + '</span>'
-            : m.status === 'sent_demo' ? '<span class="pill p-warn">' + I18n.t('محاكاة (القناة غير مهيأة)') + '</span>'
-            : '<span class="pill p-ok">' + I18n.t('أُرسل فعلياً ✓') + '</span>';
+          const statusPill = m.status === 'failed' ? window.ViewsShared.statusPill('p-danger', 'فشل الإرسال', '✕')
+            : m.status === 'sent_demo' ? window.ViewsShared.statusPill('p-none', 'الإرسال غير مفعّل', '—')
+            : window.ViewsShared.statusPill('p-ok', 'أُرسل فعلياً', '✓');
           return '<tr><td class="small">' + (m.auto ? '🔔 ' + I18n.t('إشعار آلي') : '📄 ' + I18n.t('تقرير')) + '</td>' +
             '<td>' + (m.channel === 'whatsapp' ? '💬 ' + I18n.t('واتساب') : '📧 ' + I18n.t('إيميل')) + '</td><td class="num">' + esc(m.to || '') + '</td><td class="small">' + esc(m.title) + '</td><td class="small muted num">' + esc(m.date) + '</td><td>' + statusPill + '</td></tr>';
         }).join('') + '</tbody></table></div>' : '<div class="empty">' + I18n.t('لا رسائل بعد') + '</div>') +
@@ -1535,11 +1697,21 @@
     if (mPdf) mPdf.addEventListener('click', function () { downloadPdf(mPdf, '/api/actions/progress-report?period=monthly&lang=' + I18n.getLang(), 'Monthly-Report.pdf'); });
   }
 
-  const DEFAULT_THRESHOLDS = { slaReviewDays: 7, warrantyWarnDays: 90, contractorDelayPct: 3, healthAlertGrade: 'C' };
+  const DEFAULT_THRESHOLDS = { slaReviewDays: 7, warrantyWarnDays: 90, contractorDelayPct: 3, progressAmberPct: 10, healthAlertGrade: 'C' };
   function thresholdsOf(P) { return Object.assign({}, DEFAULT_THRESHOLDS, (P && P.thresholds) || {}); }
 
+  /* شريط تقدّم ملوّن حسب الانحراف — يقرأ حدّ التنبيه من إعدادات المشروع (§7-2، §13-5) */
+  function progressBar(actual, planned, P) {
+    const th = thresholdsOf(P).progressAmberPct;
+    const cls = barClass(actual, planned, th);
+    const w = Math.max(0, Math.min(100, Number(actual) || 0));
+    return '<div class="bar ' + cls + '"><i style="width:' + w + '%"></i></div>';
+  }
+
   window.ViewsShared = {
-    pill: pill, money: money, millions: millions, toast: toast, modal: modal,
+    pill: pill, statusPill: statusPill, money: money, millions: millions, fmtInt: fmtInt,
+    barClass: barClass, progressBar: progressBar,
+    toast: toast, modal: modal,
     discOf: discOf, floorName: floorName, weightedProgress: weightedProgress,
     thresholds: thresholdsOf, DEFAULT_THRESHOLDS: DEFAULT_THRESHOLDS,
     summarize: summarize, STATUS: STATUS, esc: esc, att: att,

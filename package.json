@@ -7,7 +7,14 @@
     "start": "node --no-warnings server/server.js",
     "seed": "node server/seed.js --reset",
     "build:demo": "node tools/build-demo.js",
-    "preflight": "node tools/preflight.js"
+    "preflight": "node tools/preflight.js",
+    "test": "node tests/roles-smoke.js && node tests/crawl-all.js && node tests/drawing-boq-brightness.js && node tests/e2e-cycle.js && node tests/bim-render.js",
+    "test:smoke": "node tests/roles-smoke.js",
+    "test:crawl": "node tests/crawl-all.js",
+    "test:brightness": "node tests/drawing-boq-brightness.js",
+    "test:cycle": "node tests/e2e-cycle.js",
+    "test:bim": "node tests/bim-render.js",
+    "gen:ifc": "node tests/gen-ifc.js"
   },
   "engines": {
     "node": ">=22"
@@ -18,7 +25,10 @@
   "license": "MIT",
   "dependencies": {
     "arabic-reshaper": "^1.1.0",
-    "pdfkit": "^0.19.1",
-    "pdfjs-dist": "^6.1.200"
+    "pdfjs-dist": "^6.1.200",
+    "pdfkit": "^0.19.1"
+  },
+  "devDependencies": {
+    "playwright": "^1.63.0"
   }
 }
