@@ -1,0 +1,82 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 6 0 R] /Count 2 /MediaBox [0 0 842 595] >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Length 895 >>
+stream
+0.6 g 20 20 802 555 re S
+0.85 g 1 w
+60 60 m 60 500 l S
+120 60 m 120 500 l S
+180 60 m 180 500 l S
+240 60 m 240 500 l S
+300 60 m 300 500 l S
+360 60 m 360 500 l S
+420 60 m 420 500 l S
+480 60 m 480 500 l S
+540 60 m 540 500 l S
+600 60 m 600 500 l S
+660 60 m 660 500 l S
+720 60 m 720 500 l S
+780 60 m 780 500 l S
+60 60 m 780 60 l S
+60 115 m 780 115 l S
+60 170 m 780 170 l S
+60 225 m 780 225 l S
+60 280 m 780 280 l S
+60 335 m 780 335 l S
+60 390 m 780 390 l S
+60 445 m 780 445 l S
+60 500 m 780 500 l S
+0 0 0 RG 3 w 120 120 m 520 120 l 520 420 l 120 420 l 120 120 l S
+2 w 300 120 m 300 300 l S 300 300 m 520 300 l S
+1 w 300 120 m 340 160 l S
+0.5 g 1 w 560 60 220 120 re S
+BT /F1 16 Tf 0 0 0 rg 580 150 Td (BASSIR / (5J1) Tj ET
+BT /F1 11 Tf 580 128 Td (Drawing: A-101 Ground Floor Plan) Tj ET
+BT /F1 10 Tf 580 110 Td (Scale 1:100  Rev 03) Tj ET
+BT /F1 22 Tf 120 520 Td (GROUND FLOOR PLAN  -  A-101) Tj ET
+
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 4 0 R >> >> /Contents 7 0 R >>
+endobj
+7 0 obj
+<< /Length 336 >>
+stream
+0.6 g 20 20 802 555 re S
+0 0 0 RG 3 w 150 100 m 700 100 l 700 450 l 150 450 l 150 100 l S
+2 w 150 250 m 700 250 l S 150 350 m 700 350 l S
+BT /F1 22 Tf 150 520 Td (SECTION A-A  -  A-305) Tj ET
+0.5 g 1 w 560 60 220 120 re S
+BT /F1 16 Tf 0 0 0 rg 580 150 Td (BASSIR / (5J1) Tj ET
+BT /F1 11 Tf 580 128 Td (Drawing: A-305 Section A-A) Tj ET
+
+endstream
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000145 00000 n 
+0000000247 00000 n 
+0000000317 00000 n 
+0000001267 00000 n 
+0000001369 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+1760
+%%EOF

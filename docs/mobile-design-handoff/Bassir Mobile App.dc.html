@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #07080b; }
+  a { color: #7ea6ff; text-decoration: none; }
+  a:hover { color: #a6c1ff; }
+  ::-webkit-scrollbar { width: 0; height: 0; }
+</style>
+</helmet>
+
+<div dir="rtl" style="min-height:100vh;background:#07080b;color:#e8eaf0;font-family:'IBM Plex Sans Arabic',sans-serif;padding:36px;display:flex;gap:40px;align-items:flex-start;justify-content:center;flex-wrap:wrap">
+
+  <div style="display:flex;flex-direction:column;gap:18px;align-items:center">
+
+    <div style="display:flex;gap:6px;background:#11141a;border:1px solid #242935;border-radius:9px;padding:4px;font-family:'IBM Plex Mono',monospace;font-size:11px;direction:ltr">
+      <span onClick="{{ setIOS }}" style="padding:6px 16px;border-radius:6px;cursor:pointer;background:{{ iosBg }};color:{{ iosFg }}">iOS</span>
+      <span onClick="{{ setAndroid }}" style="padding:6px 16px;border-radius:6px;cursor:pointer;background:{{ andBg }};color:{{ andFg }}">Android</span>
+    </div>
+
+    <div style="width:392px;height:848px;border-radius:{{ bezelR }};background:#000;padding:11px;box-shadow:0 40px 90px -30px rgba(0,0,0,.9),0 0 0 1px #23262e">
+      <div style="width:100%;height:100%;border-radius:{{ screenR }};overflow:hidden;background:#0d0f13;display:flex;flex-direction:column;position:relative">
+
+        <div style="height:{{ statusH }};flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:#11141a;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#e8eaf0;direction:ltr;position:relative;z-index:5">
+          <span style="font-weight:500">9:41</span>
+          <div style="position:absolute;left:50%;transform:translateX(-50%);width:{{ islandW }};height:{{ islandH }};border-radius:99px;background:#000"></div>
+          <span style="display:flex;gap:6px;align-items:center;font-size:10.5px;color:#8b93a5">5G ▪▪▪ 84%</span>
+        </div>
+
+        <div style="flex:1;min-height:0">
+          <dc-import name="Bassir Screen" screen="{{ screen }}" role="{{ role }}" offline="{{ offline }}" accent="{{ accent }}" on-nav="{{ onNav }}" on-role="{{ onRole }}" on-menu="{{ openDrawer }}" hint-size="100%,100%"></dc-import>
+        </div>
+
+        <div style="flex:none;height:{{ homeBarH }};background:#11141a;display:grid;place-items:center">
+          <div style="width:{{ homeBarW }};height:4px;border-radius:99px;background:#3a4051"></div>
+        </div>
+
+        <div style="position:absolute;inset:0;background:#000;opacity:{{ scrimO }};pointer-events:{{ scrimP }};z-index:20;transition:opacity .22s" onClick="{{ closeDrawer }}"></div>
+        <aside style="position:absolute;top:0;bottom:0;right:0;width:270px;background:#11141a;border-inline-start:1px solid #242935;z-index:21;transform:{{ drawerX }};transition:transform .26s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;padding:22px 14px 14px">
+          <div style="font-family:'Instrument Serif',serif;font-size:19px;padding:0 8px 14px">Owner Eyes</div>
+          <div style="overflow-y:auto;display:flex;flex-direction:column;gap:2px">
+            <sc-for list="{{ menu }}" as="m" hint-placeholder-count="14">
+              <div onClick="{{ m.go }}" style="padding:11px 12px;border-radius:9px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;background:{{ m.bg }};color:{{ m.fg }}">
+                <span style="font-size:12.5px">{{ m.t }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#4d5566;direction:ltr">{{ m.n }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </aside>
+
+      </div>
+    </div>
+  </div>
+
+  <div style="width:400px;display:flex;flex-direction:column;gap:14px">
+    <div>
+      <div style="font-family:'Instrument Serif',serif;font-size:27px">حزمة التسليم — React Native</div>
+      <div style="font-size:12.5px;color:#8b93a5;line-height:2;margin-top:8px">النموذج أعلاه تفاعلي. كل الشاشات مجمّعة في <a href="Bassir All Screens.dc.html">Bassir All Screens</a>. المواصفات التالية يبني عليها المطوّر التطبيق في Expo / React Native لنشره على App Store و Google Play.</div>
+    </div>
+
+    <div style="border:1px solid #242935;border-radius:12px;background:#11141a;padding:15px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.13em;color:#6f7789;margin-bottom:11px">DESIGN TOKENS</div>
+      <div style="display:flex;flex-direction:column;gap:7px;font-family:'IBM Plex Mono',monospace;font-size:11px;direction:ltr">
+        <sc-for list="{{ tokens }}" as="t" hint-placeholder-count="10">
+          <div style="display:flex;align-items:center;gap:9px">
+            <i style="width:14px;height:14px;border-radius:4px;background:{{ t.v }};border:1px solid #2b3140;flex:none"></i>
+            <span style="flex:1;color:#8b93a5">{{ t.k }}</span>
+            <span style="color:#c3c9d6">{{ t.v }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="border:1px solid #242935;border-radius:12px;background:#11141a;padding:15px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.13em;color:#6f7789;margin-bottom:11px">NAVIGATION</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#c3c9d6;direction:ltr;line-height:2.1;white-space:pre">RootStack
+├─ AuthStack (Login · OTP)
+└─ AppDrawer            (14 screens)
+   └─ BottomTabs
+      ├─ HomeTab        Dashboard
+      ├─ DrawingsTab    2D · 3D
+      ├─ FinanceTab     BOQ · Schedule · Payments
+      ├─ SiteTab        Reports · Photos · RFI
+      └─ MoreTab        opens Drawer</div>
+      <div style="font-size:11.5px;color:#8b93a5;line-height:2;margin-top:11px">RTL: <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;direction:ltr">I18nManager.forceRTL(true)</span> عند الإقلاع، وإعادة تشغيل مرة واحدة.</div>
+    </div>
+
+    <div style="border:1px solid #242935;border-radius:12px;background:#11141a;padding:15px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.13em;color:#6f7789;margin-bottom:11px">STACK &amp; NOTES</div>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <sc-for list="{{ stack }}" as="s" hint-placeholder-count="9">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#3f6dff;flex:none;width:78px;direction:ltr">{{ s.k }}</span>
+            <span style="font-size:11.5px;color:#8b93a5;line-height:1.9;flex:1">{{ s.v }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="border:1px solid #242935;border-radius:12px;background:#11141a;padding:15px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.13em;color:#6f7789;margin-bottom:11px">RELEASE CHECKLIST</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <sc-for list="{{ release }}" as="r" hint-placeholder-count="7">
+          <div style="display:flex;gap:9px;align-items:flex-start">
+            <i style="width:5px;height:5px;border-radius:99px;background:#4d5566;margin-top:7px;flex:none"></i>
+            <span style="font-size:11.5px;color:#8b93a5;line-height:1.9">{{ r }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1000,&quot;height&quot;:1060},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#3f6dff&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#3f6dff&quot;,&quot;#4ec48f&quot;,&quot;#c8873f&quot;,&quot;#8b6ff0&quot;]},&quot;offline&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  state = { plat: 'ios', role: 'owner', screen: 'home', drawer: false };
+
+  go(s) { return () => this.setState({ screen: s, drawer: false }); }
+
+  renderVals() {
+    const p = this.props, st = this.state;
+    const accent = p.accent ?? '#3f6dff';
+    const ios = st.plat === 'ios';
+    const s = st.screen;
+
+    const menuDefs = [
+      ['home','لوحة المشروع','02'], ['drawings','المخططات 2D','03'], ['model','النموذج 3D','04'],
+      ['boq','جدول الكميات','05'], ['schedule','الجدول الزمني','06'], ['payments','المستخلصات','07'],
+      ['contractors','المقاولون','08'], ['tech','المكتب الفني','09'], ['reports','التقارير اليومية','10'],
+      ['photos','الصور الميدانية','11'], ['rfi','الملاحظات / RFI','12'], ['notif','الإشعارات','13'],
+      ['profile','الملف الشخصي','14'], ['login','تسجيل الدخول','01']
+    ];
+
+    return {
+      screen: s, role: st.role, accent, offline: p.offline ?? true,
+      onNav: (n) => this.setState({ screen: n, drawer: false }),
+      onRole: (r) => this.setState({ role: r }),
+
+      menu: menuDefs.map(([id, t, n]) => ({
+        t, n, bg: s === id ? '#1b2333' : 'transparent', fg: s === id ? '#e8eaf0' : '#8b93a5', go: this.go(id)
+      })),
+
+      setIOS: () => this.setState({ plat: 'ios' }),
+      setAndroid: () => this.setState({ plat: 'android' }),
+      iosBg: ios ? '#242935' : 'transparent', iosFg: ios ? '#e8eaf0' : '#6f7789',
+      andBg: ios ? 'transparent' : '#242935', andFg: ios ? '#6f7789' : '#e8eaf0',
+      bezelR: ios ? '52px' : '34px', screenR: ios ? '42px' : '26px',
+      statusH: ios ? '48px' : '32px',
+      islandW: ios ? '104px' : '10px', islandH: ios ? '30px' : '10px',
+      homeBarH: ios ? '22px' : '18px', homeBarW: ios ? '128px' : '92px',
+
+      openDrawer: () => this.setState({ drawer: true }),
+      closeDrawer: () => this.setState({ drawer: false }),
+      drawerX: st.drawer ? 'translateX(0)' : 'translateX(100%)',
+      scrimO: st.drawer ? 0.55 : 0, scrimP: st.drawer ? 'auto' : 'none',
+
+      tokens: [
+        { k:'accent', v: accent }, { k:'bg', v:'#0d0f13' }, { k:'surface', v:'#11141a' },
+        { k:'card', v:'#141821' }, { k:'border', v:'#242935' }, { k:'text', v:'#e8eaf0' },
+        { k:'muted', v:'#8b93a5' }, { k:'success', v:'#4ec48f' }, { k:'warning', v:'#e0a33e' },
+        { k:'danger', v:'#e06a5c' }
+      ],
+      stack: [
+        { k:'Framework', v:'Expo SDK 51+ · React Native 0.74 · TypeScript' },
+        { k:'Navigation', v:'@react-navigation native-stack + bottom-tabs + drawer' },
+        { k:'Type', v:'IBM Plex Sans Arabic (400/500/600/700) · الأرقام IBM Plex Mono بـ direction: ltr' },
+        { k:'2D Viewer', v:'react-native-pdf للوحات، مع تحويل DWG/DXF إلى PDF على الخادم' },
+        { k:'3D Viewer', v:'expo-gl + three.js لملفات GLB؛ تحويل IFC إلى GLB مضغوط على الخادم' },
+        { k:'Offline', v:'WatermelonDB أو SQLite + طابور رفع؛ التقارير والصور تُحفظ محلياً وتُزامن تلقائياً' },
+        { k:'Camera', v:'expo-camera + expo-location لوسم الصور بالموقع والدور' },
+        { k:'Auth', v:'رقم جوال + OTP، وتخزين الجلسة في expo-secure-store' },
+        { k:'Push', v:'expo-notifications للاعتمادات والمستخلصات وتجاوز مدد RFI' }
+      ],
+      release: [
+        'حساب Apple Developer (99$ سنوياً) وحساب Google Play (25$ لمرة واحدة).',
+        'الأيقونة 1024×1024 وشاشة الإقلاع، ولقطات شاشة لكل مقاسات الأجهزة المطلوبة.',
+        'سياسة الخصوصية ووصف استخدام الكاميرا والموقع في Info.plist و AndroidManifest.',
+        'EAS Build للنسختين، ثم EAS Submit للرفع إلى TestFlight و Play Internal Testing.',
+        'مراجعة App Store عادة 24–48 ساعة، و Google Play بضع ساعات إلى 3 أيام.',
+        'الحساب التجريبي لفريق المراجعة يجب أن يعمل بدون مقاول حقيقي (بيانات تجريبية).',
+        'دعم اللغة العربية RTL يُذكر صريحاً في وصف المتجر لتجنب الرفض بسبب التوجيه.'
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

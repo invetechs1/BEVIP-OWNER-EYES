@@ -418,26 +418,73 @@
   });
 
   // ============ أدوات مشتركة ============
+  /* قاموس الحالات الموحّد (§7-3): [النص، صنف اللون، الأيقونة].
+     قاعدة إلزامية: لا نعتمد على اللون وحده — كل حالة تحمل أيقونة بجانب لونها،
+     فيبقى المعنى واضحاً لمن لا يميّز الأحمر عن الأخضر (~1 من 12) وعند الطباعة أبيض/أسود. */
   const STATUS = {
-    pending: ['قيد المراجعة', 'p-warn'],
-    approved: ['معتمد', 'p-ok'],
-    approved_notes: ['معتمد مع ملاحظات', 'p-info'],
-    rejected: ['مرفوض', 'p-danger'],
-    open: ['مفتوح', 'p-warn'],
-    answered: ['تم الرد', 'p-ok'],
-    issued: ['صادرة', 'p-info'],
-    done: ['نُفذت', 'p-ok'],
-    closed: ['مغلق', 'p-ok'],
-    pass: ['ناجح ✓', 'p-ok'],
-    fail: ['راسب ✗', 'p-danger']
+    // دورة الاعتماد / المعاملات
+    pending: ['قيد المراجعة', 'p-info', '●'],
+    under_review: ['قيد المراجعة', 'p-info', '●'],
+    approved: ['معتمد', 'p-ok', '✓'],
+    approved_notes: ['معتمد مع ملاحظات', 'p-ok', '✓*'],
+    returned: ['أُعيد للتعديل', 'p-warn', '⚠'],
+    rejected: ['مرفوض', 'p-danger', '✕'],
+    open: ['مفتوح', 'p-warn', '⚠'],
+    answered: ['تم الرد', 'p-ok', '✓'],
+    replied: ['تم الرد', 'p-ok', '✓'],
+    issued: ['صادرة', 'p-info', '●'],
+    done: ['نُفذت', 'p-ok', '✓'],
+    executed: ['نُفذت', 'p-ok', '✓'],
+    closed: ['مغلق', 'p-none', '—'],
+    // عناصر العمل
+    not_started: ['لم يبدأ', 'p-none', '—'],
+    in_progress: ['قيد التنفيذ', 'p-info', '●'],
+    awaiting_approval: ['بانتظار الاعتماد', 'p-warn', '⚠'],
+    stopped: ['متوقف', 'p-danger', '✕'],
+    complete: ['مكتمل', 'p-ok', '✓'],
+    // اختبارات
+    pass: ['ناجح', 'p-ok', '✓'],
+    fail: ['راسب', 'p-danger', '✕'],
+    // جدول المقاول
+    on_schedule: ['ضمن الجدول', 'p-ok', '✓'],
+    late: ['متأخر', 'p-warn', '⚠'],
+    critical: ['حرِج', 'p-danger', '✕'],
+    // اعتماد المقاول
+    healthy: ['سليم', 'p-ok', '✓'],
+    over_certified: ['استلم أكثر من مستحقه', 'p-danger', '✕']
   };
 
   function pill(status) {
-    const s = STATUS[status] || [status, 'p-muted'];
-    return '<span class="pill ' + s[1] + '">' + esc(I18n.t(s[0])) + '</span>';
+    const s = STATUS[status] || [status, 'p-muted', ''];
+    const ico = s[2] ? '<span class="pico">' + s[2] + '</span>' : '';
+    return '<span class="pill ' + s[1] + '">' + ico + esc(I18n.t(s[0])) + '</span>';
   }
 
-  function money(n) { return n == null ? '—' : '<span class="num">' + Number(n).toLocaleString('en-US') + '</span>' + I18n.t(' ر.س'); }
+  /* شارة حالة عامة بأيقونة إلزامية بجانب اللون — للاستخدام المباشر بدل <span class="pill"> */
+  function statusPill(cls, text, icon) {
+    const ico = icon ? '<span class="pico">' + icon + '</span>' : '';
+    return '<span class="pill ' + cls + '">' + ico + esc(I18n.t(text)) + '</span>';
+  }
+
+  /** صنف لون شريط التقدّم حسب الانحراف عن الخطة (§7-2).
+     أخضر: فعلي ≥ مخطط · كهرماني: متأخر 1..threshold · أحمر: متأخر > threshold · رمادي: لم يبدأ.
+     الحدّ يُقرأ من إعدادات المشروع (افتراضي 10 نقاط — §13-5). */
+  function barClass(actual, planned, threshold) {
+    const a = Number(actual) || 0, p = Number(planned);
+    const th = (threshold == null ? 10 : Number(threshold));
+    if (!a && (!p || p <= 0)) return 'b-none';
+    if (a <= 0 && p > 0) return 'b-none';
+    if (p == null || isNaN(p)) return 'b-ok';
+    const gap = p - a;
+    if (gap <= 0) return 'b-ok';
+    if (gap <= th) return 'b-warn';
+    return 'b-danger';
+  }
+
+  /* تنسيق الأرقام (§10-3، §13-6): العرض بلا كسور (لا أحد يقرأ الهللات في عقد بالملايين)،
+     مع الإبقاء على الدقة الكاملة في البيانات والتصدير. التقريب في المُنسّق فقط. */
+  function fmtInt(n) { return Math.round(Number(n) || 0).toLocaleString('en-US'); }
+  function money(n) { return n == null ? '—' : '<span class="num">' + fmtInt(n) + '</span>' + I18n.t(' ر.س'); }
 
   /** عرض مرفق: رابط قابل للفتح إن كان مرفوعاً فعلياً على الخادم، وإلا الاسم فقط */
   function att(f) {
@@ -752,7 +799,7 @@
       '<div class="flex"><span style="font-size:40px;filter:drop-shadow(0 0 14px rgba(224,164,88,.7))">👁</span>' +
       '<div><b style="font-size:17px">' + I18n.t('عين المالك') + '</b><div class="small muted" style="margin-top:4px">' + I18n.t('حالة مشاريعك بنظرة واحدة: الإنجاز، الزمن، التكلفة — دون الحاجة لقراءة التقارير') + '</div></div>' +
       '<span class="spacer"></span>' +
-      '<button class="btn ghost sm" data-nav="vision">👁 ' + I18n.t('رؤية المشروع') + '</button>' +
+      '<button class="btn ghost sm" data-nav="vision">👁 ' + I18n.t('خريطة الإنجاز') + '</button>' +
       '<button class="btn ghost sm" data-nav="cameras">🎥 ' + I18n.t('الكاميرات') + '</button></div></div>' + html;
 
     el.querySelectorAll('[data-nav]').forEach(function (b) {
@@ -783,8 +830,8 @@
       '<div><b>' + I18n.t('البث المباشر من الموقع') + '</b><div class="small muted" style="margin-top:3px">' +
       (media ? I18n.t('بث RTSP حي عبر خادم الوسائط، ') : '') + I18n.t('تُحلَّل اللقطات بذكاء بصير كل 30 دقيقة لاستخراج نسب الإنجاز وتنبيهات السلامة تلقائياً') + '</div></div>' +
       '<span class="spacer"></span>' +
-      (media ? '<span class="pill p-ok">📡 ' + I18n.t('خادم البث متصل') + '</span>' : (canManage ? '<span class="pill p-warn">' + I18n.t('البث الحي غير مهيأ — MEDIA_SERVER_URL') + '</span>' : '')) +
-      '<span class="pill p-ok">● ' + cams.filter(function (c) { return c.status === 'online'; }).length + ' ' + I18n.t('كاميرا متصلة') + '</span></div></div>' +
+      (media ? statusPill('p-ok', 'خادم البث متصل', '📡') : statusPill('p-none', 'الكاميرات غير مفعّلة — تواصل مع مدير النظام', '—')) +
+      statusPill('p-ok', cams.filter(function (c) { return c.status === 'online'; }).length + ' ' + I18n.t('كاميرا متصلة'), '●') + '</div></div>' +
 
       '<div class="grid g2 mb">' +
       cams.map(function (c, i) {
@@ -821,7 +868,7 @@
         '<div><label class="fl">' + I18n.t('مسار البث (على خادم الوسائط)') + '</label><input class="inp num" id="cm-path" placeholder="cam5" dir="ltr"></div>' +
         '<div><label class="fl">&nbsp;</label><button class="btn block" id="cm-add">' + I18n.t('ربط الكاميرا') + '</button></div>' +
         '</div>' +
-        '<div class="small muted mt">💡 ' + I18n.t('للبث الحي: شغّل خادم الوسائط MediaMTX واضبط فيه مصدر RTSP للكاميرا بنفس المسار، ثم عرّف MEDIA_SERVER_URL في .env — التفاصيل في صفحة التكامل والإعدادات.') + '</div></div>' : '') +
+        (ctx.U.role === 'admin' ? '<div class="small muted mt">💡 ' + I18n.t('للبث الحي: شغّل خادم الوسائط MediaMTX واضبط فيه مصدر RTSP للكاميرا بنفس المسار، ثم عرّف MEDIA_SERVER_URL في .env — التفاصيل في صفحة التكامل والإعدادات.') + '</div>' : '') + '</div>' : '') +
 
       // تنبيهات السلامة المرصودة من الكاميرات → تقارير حوادث قابلة للأرشفة والطباعة
       (function () {
@@ -1601,9 +1648,9 @@
       '<h3 class="mt">' + I18n.t('سجل الإرسال') + ' <span class="hint">' + I18n.t('التقارير اليدوية وإشعارات دورة المراجعة الآلية') + '</span></h3>' +
       (ctx.S.messages.length ? '<div class="tbl-wrap" style="max-height:50vh;overflow-y:auto"><table class="tbl"><thead><tr><th>' + I18n.t('النوع') + '</th><th>' + I18n.t('القناة') + '</th><th>' + I18n.t('إلى') + '</th><th>' + I18n.t('الموضوع') + '</th><th>' + I18n.t('التاريخ') + '</th><th>' + I18n.t('الحالة') + '</th></tr></thead><tbody>' +
         ctx.S.messages.slice().reverse().map(function (m) {
-          const statusPill = m.status === 'failed' ? '<span class="pill p-danger">' + I18n.t('فشل الإرسال ✗') + '</span>'
-            : m.status === 'sent_demo' ? '<span class="pill p-warn">' + I18n.t('محاكاة (القناة غير مهيأة)') + '</span>'
-            : '<span class="pill p-ok">' + I18n.t('أُرسل فعلياً ✓') + '</span>';
+          const statusPill = m.status === 'failed' ? window.ViewsShared.statusPill('p-danger', 'فشل الإرسال', '✕')
+            : m.status === 'sent_demo' ? window.ViewsShared.statusPill('p-none', 'الإرسال غير مفعّل', '—')
+            : window.ViewsShared.statusPill('p-ok', 'أُرسل فعلياً', '✓');
           return '<tr><td class="small">' + (m.auto ? '🔔 ' + I18n.t('إشعار آلي') : '📄 ' + I18n.t('تقرير')) + '</td>' +
             '<td>' + (m.channel === 'whatsapp' ? '💬 ' + I18n.t('واتساب') : '📧 ' + I18n.t('إيميل')) + '</td><td class="num">' + esc(m.to || '') + '</td><td class="small">' + esc(m.title) + '</td><td class="small muted num">' + esc(m.date) + '</td><td>' + statusPill + '</td></tr>';
         }).join('') + '</tbody></table></div>' : '<div class="empty">' + I18n.t('لا رسائل بعد') + '</div>') +
@@ -1650,11 +1697,21 @@
     if (mPdf) mPdf.addEventListener('click', function () { downloadPdf(mPdf, '/api/actions/progress-report?period=monthly&lang=' + I18n.getLang(), 'Monthly-Report.pdf'); });
   }
 
-  const DEFAULT_THRESHOLDS = { slaReviewDays: 7, warrantyWarnDays: 90, contractorDelayPct: 3, healthAlertGrade: 'C' };
+  const DEFAULT_THRESHOLDS = { slaReviewDays: 7, warrantyWarnDays: 90, contractorDelayPct: 3, progressAmberPct: 10, healthAlertGrade: 'C' };
   function thresholdsOf(P) { return Object.assign({}, DEFAULT_THRESHOLDS, (P && P.thresholds) || {}); }
 
+  /* شريط تقدّم ملوّن حسب الانحراف — يقرأ حدّ التنبيه من إعدادات المشروع (§7-2، §13-5) */
+  function progressBar(actual, planned, P) {
+    const th = thresholdsOf(P).progressAmberPct;
+    const cls = barClass(actual, planned, th);
+    const w = Math.max(0, Math.min(100, Number(actual) || 0));
+    return '<div class="bar ' + cls + '"><i style="width:' + w + '%"></i></div>';
+  }
+
   window.ViewsShared = {
-    pill: pill, money: money, millions: millions, toast: toast, modal: modal,
+    pill: pill, statusPill: statusPill, money: money, millions: millions, fmtInt: fmtInt,
+    barClass: barClass, progressBar: progressBar,
+    toast: toast, modal: modal,
     discOf: discOf, floorName: floorName, weightedProgress: weightedProgress,
     thresholds: thresholdsOf, DEFAULT_THRESHOLDS: DEFAULT_THRESHOLDS,
     summarize: summarize, STATUS: STATUS, esc: esc, att: att,

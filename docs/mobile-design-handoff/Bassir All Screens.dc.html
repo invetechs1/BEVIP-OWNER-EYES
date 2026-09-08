@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #07080b; }
+  a { color: #7ea6ff; text-decoration: none; }
+  a:hover { color: #a6c1ff; }
+</style>
+</helmet>
+
+<div dir="rtl" style="background:#07080b;color:#e8eaf0;font-family:'IBM Plex Sans Arabic',sans-serif;padding:44px 48px 80px">
+
+  <div style="max-width:1340px;margin:0 auto 38px">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;color:#6f7789;direction:ltr">BASSIR BEVIP · OWNER EYES · MOBILE</div>
+    <div style="font-family:'Instrument Serif',serif;font-size:44px;margin-top:12px">الشاشات الأربعة عشر</div>
+    <div style="font-size:13.5px;color:#8b93a5;line-height:2;margin-top:10px;max-width:660px">كل شاشات تطبيق الجوال بحجمها الحقيقي (390×844) — iOS و Android. النسخة التفاعلية في <a href="Bassir Mobile App.dc.html">Bassir Mobile App</a>.</div>
+  </div>
+
+  <div style="max-width:1340px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:34px">
+    <sc-for list="{{ screens }}" as="s" hint-placeholder-count="14">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:baseline;gap:9px">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#3f6dff;direction:ltr">{{ s.n }}</span>
+          <span style="font-size:13.5px;font-weight:600">{{ s.t }}</span>
+        </div>
+        <div style="font-size:11px;color:#6f7789;line-height:1.8;min-height:34px">{{ s.d }}</div>
+        <div style="width:100%;aspect-ratio:392/848;border-radius:38px;background:#000;padding:9px;box-shadow:0 26px 60px -26px rgba(0,0,0,.9),0 0 0 1px #23262e">
+          <div style="width:100%;height:100%;border-radius:30px;overflow:hidden;background:#0d0f13;display:flex;flex-direction:column">
+            <div style="height:34px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 18px;background:#11141a;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#e8eaf0;direction:ltr;position:relative">
+              <span>9:41</span>
+              <div style="position:absolute;left:50%;transform:translateX(-50%);width:74px;height:20px;border-radius:99px;background:#000"></div>
+              <span style="font-size:9.5px;color:#8b93a5">5G ▪▪ 84%</span>
+            </div>
+            <div style="flex:1;min-height:0">
+              <dc-import name="Bassir Screen" screen="{{ s.id }}" role="{{ s.role }}" hint-size="100%,100%"></dc-import>
+            </div>
+            <div style="flex:none;height:16px;background:#11141a;display:grid;place-items:center">
+              <div style="width:100px;height:4px;border-radius:99px;background:#3a4051"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1200}}">
+class Component extends DCLogic {
+  renderVals() {
+    const S = [
+      ['01','login','تسجيل الدخول + التحقق','خطوتان في AuthStack واحد: إدخال رقم الجوال، ثم رمز التحقق OTP. الحساب يُنشئه الاستشاري.','owner'],
+      ['02','home','لوحة المشروع','الإنجاز الكلي، مؤشرات الصرف والتأخير، وقائمة ما ينتظر إجراءً من المستخدم.','owner'],
+      ['03','drawings','المخططات 2D','عارض اللوحات مع التكبير والقياس والطبقات، وفهرس اللوحات وحالة الاعتماد.','consultant'],
+      ['04','model','النموذج 3D','عارض IFC/GLB مُحسّن للجوال، مع المقاطع والقياس وتشغيل/إطفاء الطبقات.','consultant'],
+      ['05','boq','جدول الكميات BOQ','بنود الكميات لكل مقاول مع نسبة التنفيذ المعتمدة لكل بند.','tech'],
+      ['06','schedule','الجدول الزمني','مراحل المشروع وتواريخها ونسب الإنجاز مقابل المخطط.','owner'],
+      ['07','payments','المستخلصات والدفعات','قيمة كل مستخلص وحالته في دورة الاعتماد حتى الدفع.','owner'],
+      ['08','contractors','المقاولون','المقاولون ونطاق أعمالهم ونسب التنفيذ وحساباتهم في التطبيق.','consultant'],
+      ['09','tech','المكتب الفني','مهام المراجعة والاعتماد الفني: الرسومات التنفيذية، العينات، تدقيق المستخلصات.','tech'],
+      ['10','reports','التقارير اليومية','تقرير العمالة والمعدات والأعمال المنفذة والطقس، للتوقيع من الاستشاري.','contractor'],
+      ['11','photos','الصور الميدانية','التقاط موسوم بالموقع والدور واللوحة، ويعمل دون اتصال ويزامن لاحقاً.','contractor'],
+      ['12','rfi','الملاحظات و RFI','طلبات المعلومات والملاحظات مع المسؤول والمدة المتبقية.','consultant'],
+      ['13','notif','الإشعارات','اعتمادات مطلوبة، تجاوز مدد، مخططات جديدة، واكتمال المزامنة.','owner'],
+      ['14','profile','الملف الشخصي','الدور الحالي، اللغة، التنزيل للعمل دون اتصال، الإشعارات، الخروج.','owner']
+    ];
+    return { screens: S.map(([n, id, t, d, role]) => ({ n, id, t, d, role })) };
+  }
+}
+</script>
+</body>
+</html>

@@ -12,12 +12,16 @@ const path = require('path');
 const ROOT = path.join(__dirname, '..');
 const read = function (p) { return fs.readFileSync(path.join(ROOT, p), 'utf8'); };
 
+// الترتيب مطابق لوسوم <script> في public/index.html (i18n أولاً لتوفير I18n)
 const SCRIPTS = [
+  'public/js/i18n.js',
   'shared/seed-data.js',
   'shared/api-core.js',
   'public/js/api.js',
   'public/js/charts.js',
   'public/js/viewer.js',
+  'public/js/bim-viewer.js',
+  'public/js/dxf-viewer.js',
   'public/js/views.js',
   'public/js/views2.js',
   'public/js/views3.js',

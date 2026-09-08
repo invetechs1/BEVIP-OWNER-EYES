@@ -196,7 +196,9 @@
     'طلبات وعروض RFP': 'RFP Requests & Proposals',
     'عدد التعارضات: حرجة / جوهرية / ثانوية، ونسبة المُغلق منها من الفحص السابق.': 'Number of clashes: critical / major / minor, and the percentage closed since the previous check.',
     'عدد النسخ': 'Number of Versions',
+    'عرض BIM/IFC حقيقي داخل المتصفح (بلا خدمة خارجية). ملفات DWG/RVT الأصلية تحتاج مسار Autodesk APS.': 'A real BIM/IFC viewer inside the browser (no external service). Original DWG/RVT files require the Autodesk APS pathway.',
     'عرض RFP': 'RFP Proposal',
+    'عرض نموذج BIM ثلاثي الأبعاد (برج بصير)': 'View 3D BIM Model (Bassir Tower)',
     'عند وصول لقطة من كاميرا مربوطة، يحلل ذكاء بصير الصورة ويقارن الإنجاز المرصود بنسبة إنجاز الدور/التخصص في نموذج BIM وجدول الكميات — فيسهل التحقق من التقدم الفعلي مقابل النموذج.': 'When a shot arrives from a linked camera, Bassir AI analyzes the image and compares the observed progress with the floor/discipline progress percentage in the BIM model and BOQ — making it easy to verify actual progress against the model.',
     'عنوان الوثيقة': 'Document Title',
     'غير مربوط': 'Not Linked',
@@ -231,6 +233,7 @@
     'لدى الاستشاري أو المالك': 'With Consultant or Owner',
     'لم يعيّن استشاري': 'No consultant assigned',
     'لوحة المشاريع': 'Projects Dashboard',
+    'المشروع الحالي': 'Current Project',
     'ما نجح وما يُحسَّن في مشاريع قادمة.': 'What worked well and what should be improved in future projects.',
     'متأخرة عن المهلة': 'Overdue',
     'متأخرة — ': 'Overdue — ',
@@ -281,6 +284,7 @@
     'نسخة احتياطية الآن': 'Back Up Now',
     'نسخة جديدة': 'New Version',
     'نسخة — آخرها ': 'versions — latest on ',
+    'نشاط متأخر': 'Overdue Activity',
     'نص الاستفسار': 'Query Text',
     'نص الرد (يُوثق بتوقيعك وتاريخه)': 'Response Text (recorded with your signature & date)',
     'نظام بصير هو الـCDE المعتمد: الرفع والاعتماد والأرشفة والتكويد.': 'The Bassir system is the approved CDE: upload, approval, archiving, and coding.',
@@ -1121,7 +1125,10 @@
       '<div class="m-actions"><button class="btn block" id="bm-local">⬆ ' + I18n.t('رفع النموذج وربطه بجدول الكميات') + '</button></div>' +
       '<div class="small muted" id="bm-progress"></div></div></div>' +
 
-      '<div class="card mt"><h3>🏢 ' + I18n.t('سجل نماذج المشروع') + '</h3>' +
+      '<div class="card mt"><div class="flex" style="justify-content:space-between;flex-wrap:wrap">' +
+      '<h3 style="margin:0">🏢 ' + I18n.t('سجل نماذج المشروع') + '</h3>' +
+      '<button class="btn sm" id="bm-demo3d">🧊 ' + I18n.t('عرض نموذج BIM ثلاثي الأبعاد (برج بصير)') + '</button></div>' +
+      '<div class="small muted mb">' + I18n.t('عرض BIM/IFC حقيقي داخل المتصفح (بلا خدمة خارجية). ملفات DWG/RVT الأصلية تحتاج مسار Autodesk APS.') + '</div>' +
       (models.length ?
         '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>' + I18n.t('الكود') + '</th><th>' + I18n.t('النموذج') + '</th><th>' + I18n.t('الإصدار') + '</th><th>' + I18n.t('المصدر') + '</th><th>' + I18n.t('الحجم') + '</th><th>' + I18n.t('التاريخ') + '</th><th>' + I18n.t('الربط') + '</th><th></th></tr></thead><tbody>' +
         models.map(function (m) {
@@ -1132,10 +1139,27 @@
             '<td class="small num">' + fmtSize(m.size) + '</td>' +
             '<td class="small muted num">' + esc(m.date || '') + '</td>' +
             '<td>' + (m.linkedBoq ? '<span class="pill p-ok">' + I18n.t('مربوط بجدول الكميات ✓') + '</span>' : '<span class="pill p-muted">' + I18n.t('غير مربوط') + '</span>') + '</td>' +
-            '<td>' + (m.url ? '<a class="btn ghost sm" href="' + esc(m.url) + '" target="_blank">' + I18n.t('فتح') + ' ↗</a>' : '') + '</td></tr>';
+            '<td><div class="flex" style="gap:6px">' +
+            (m.url && /\.ifc$/i.test(m.url) ? '<button class="btn sm" data-bim3d="' + esc(m.url) + '" data-bimname="' + esc(m.name) + '">🧊 3D</button>' : '') +
+            (m.url ? '<a class="btn ghost sm" href="' + esc(m.url) + '" target="_blank">' + I18n.t('فتح') + ' ↗</a>' : '') + '</div></td></tr>';
         }).join('') + '</tbody></table></div>'
         : '<div class="empty"><div class="e-ico">🏢</div>' + I18n.t('لا نماذج بعد — اربط سحابياً أو ارفع من الجهاز') + '</div>') +
       '</div>';
+
+    function open3d(o) {
+      // عرض IFC ثلاثي الأبعاد يعمل داخل المتصفح بالكامل (web-ifc + three.js) — بلا خادم
+      if (!window.BimViewer) { toast('عارض النماذج غير متوفر', true); return; }
+      window.BimViewer.open(o);
+    }
+    const demo3d = el.querySelector('#bm-demo3d');
+    if (demo3d) demo3d.addEventListener('click', function () {
+      open3d({ title: 'برج بصير التجاري — نموذج BIM ثلاثي الأبعاد', url: '/vendor/bim/BassirTower.ifc' });
+    });
+    el.querySelectorAll('[data-bim3d]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        open3d({ title: b.getAttribute('data-bimname') || 'نموذج BIM', url: b.getAttribute('data-bim3d') });
+      });
+    });
 
     el.querySelector('#bm-cloud').addEventListener('click', async function () {
       const name = el.querySelector('#bm-cname').value.trim();
@@ -1298,6 +1322,27 @@
       }).length;
     }
 
+    /* عدد الأنشطة المتأخرة (§6-1، §9-2/9): بنود بانتظار إجراء تجاوزت مدة المراجعة (SLA).
+       يحل محل عدّاد «ملفات المستودع» عديم الدلالة القراري. */
+    function overdueFor(pid) {
+      const sla = (VS.thresholds((Sall.projects.find(function (p) { return p.id === pid; }) || {})).slaReviewDays) || 7;
+      const now = Date.now();
+      function pastSla(x) {
+        const d = x.date || x.submittedDate || x.createdAt;
+        if (!d) return false;
+        const t = new Date(d).getTime();
+        return !isNaN(t) && (now - t) > sla * 86400000;
+      }
+      let n = 0;
+      ['shopDrawings', 'materials', 'scheduleSubmittals', 'wirs', 'changeOrders', 'payments'].forEach(function (c) {
+        n += countFor(pid, c, function (x) { return x.status === 'pending' && pastSla(x); });
+      });
+      ['rfis', 'ncrs'].forEach(function (c) {
+        n += countFor(pid, c, function (x) { return x.status === 'open' && pastSla(x); });
+      });
+      return n;
+    }
+
     el.innerHTML =
       '<div class="card mb"><h3>🗂️ ' + I18n.t('لوحة المشاريع') + ' <span class="hint">' + I18n.t('اختر المشروع لتعمل عليه — كل الصفحات والبيانات تتبع المشروع المحدد') + '</span></h3></div>' +
       '<div class="grid g2">' +
@@ -1306,18 +1351,22 @@
         const nCont = countFor(p.id, 'contractors');
         const nPend = ['shopDrawings', 'materials', 'scheduleSubmittals', 'wirs', 'changeOrders', 'payments']
           .reduce(function (a, c) { return a + countFor(p.id, c, function (x) { return x.status === 'pending'; }); }, 0);
-        const nFiles = countFor(p.id, 'files');
+        const nOverdue = overdueFor(p.id);
         const prog = p.progressActual || 0;
+        const planned = p.progressPlanned != null ? p.progressPlanned : null;
+        const zc = function (v) { return v ? 'num' : 'num zero'; };
         return '<div class="card" style="border-color:' + (active ? 'var(--accent)' : 'var(--border)') + '">' +
           '<div class="flex" style="justify-content:space-between">' +
           '<h3 style="margin:0">🏗️ ' + esc(p.name) + '</h3>' +
-          (active ? '<span class="pill p-ok">' + I18n.t('المشروع الحالي ✓') + '</span>' : '<button class="btn sm" data-selproj="' + p.id + '">' + I18n.t('فتح والعمل عليه') + ' ←</button>') + '</div>' +
+          (active ? VS.statusPill('p-ok', 'المشروع الحالي', '✓') : '<button class="btn sm" data-selproj="' + p.id + '">' + I18n.t('فتح والعمل عليه') + ' ←</button>') + '</div>' +
           '<div class="small muted" style="margin:8px 0">' + esc(p.location || '—') + ' · 👨‍💼 ' + esc(p.consultantName || I18n.t('لم يعيّن استشاري')) + '</div>' +
-          '<div class="flex" style="gap:8px;margin:10px 0"><div class="bar" style="flex:1"><i style="width:' + prog + '%"></i></div><b class="num small">' + prog + '%</b></div>' +
+          '<div class="flex" style="gap:8px;margin:10px 0">' + VS.progressBar(prog, planned, p) +
+          '<b class="num small">' + prog + '%</b>' +
+          (planned != null ? '<span class="small muted num">/ ' + I18n.t('المخطط') + ' ' + planned + '%</span>' : '') + '</div>' +
           '<div class="grid g3 small" style="gap:8px;text-align:center">' +
-          '<div class="card" style="padding:10px"><b class="num">' + nCont + '</b><div class="muted" style="font-size:11px">' + I18n.t('مقاول') + '</div></div>' +
-          '<div class="card" style="padding:10px"><b class="num" style="color:' + (nPend ? 'var(--warn)' : 'var(--ok)') + '">' + nPend + '</b><div class="muted" style="font-size:11px">' + I18n.t('بانتظار الاعتماد') + '</div></div>' +
-          '<div class="card" style="padding:10px"><b class="num">' + nFiles + '</b><div class="muted" style="font-size:11px">' + I18n.t('ملف بالمستودع') + '</div></div>' +
+          '<div class="card" style="padding:10px"><b class="' + zc(nCont) + '">' + nCont + '</b><div class="muted" style="font-size:11px">' + I18n.t('مقاول') + '</div></div>' +
+          '<div class="card" style="padding:10px"><b class="' + zc(nPend) + '"' + (nPend ? ' style="color:var(--status-warning)"' : '') + '>' + nPend + '</b><div class="muted" style="font-size:11px">' + I18n.t('بانتظار الاعتماد') + '</div></div>' +
+          '<div class="card" style="padding:10px"><b class="' + zc(nOverdue) + '"' + (nOverdue ? ' style="color:var(--status-critical)"' : '') + '>' + nOverdue + '</b><div class="muted" style="font-size:11px">' + I18n.t('نشاط متأخر') + '</div></div>' +
           '</div>' +
           '<div class="small muted mt num">' + I18n.t('الميزانية: ') + VS.millions(p.budgetPlanned || 0) + (p.startPlanned ? ' · ' + esc(p.startPlanned) + ' ← ' + esc(p.endPlanned || '') : '') + '</div>' +
           '</div>';
