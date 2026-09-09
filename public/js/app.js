@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const VS = window.ViewsShared, VR = window.ViewsRoles, VM = window.ViewsModules, VH = window.ViewsHandover;
+  const VS = window.ViewsShared, VR = window.ViewsRoles, VM = window.ViewsModules, VH = window.ViewsHandover, VX = window.ViewsExtra;
   const esc = VS.esc;
   const t = I18n.t;
 
@@ -126,6 +126,7 @@
         { id: 'create', label: 'إنشاء', roles: ['admin', 'consultant'], render: VR.renderDailyReport },
         { id: 'send', label: 'إرسال', render: VS.renderReports }
       ]) },
+    { id: 'schedule', title: 'الجدول الزمني', icon: '📅', sec: 'الموقع والمتابعة', roles: OWNER_SET, render: VX.renderSchedule },
 
     // === 5 · المستندات والنماذج ===
     { id: 'documents', title: 'المستندات', icon: '🗄️', sec: 'المستندات والنماذج', roles: OWNER_SET,
@@ -154,6 +155,8 @@
 
     // === أعمالي (المقاول) ===
     { id: 'home', title: 'لوحة المقاول', icon: '🏗️', sec: 'أعمالي', roles: ['contractor'], render: VR.renderContractorHome },
+    { id: 'boq-c', title: 'جدول الكميات', icon: '📐', sec: 'أعمالي', roles: ['contractor'], render: VX.renderContractorBoq },
+    { id: 'schedule-c', title: 'الجدول الزمني', icon: '📅', sec: 'أعمالي', roles: ['contractor'], render: VX.renderSchedule },
     { id: 'submittals-c', title: 'تقديماتي', icon: '📋', sec: 'أعمالي', roles: ['contractor'], render: VM.renderSubmissions },
     { id: 'handover-c', title: 'ملاحظاتي وضماناتي', icon: '🏁', sec: 'أعمالي', roles: ['contractor'], render: VH.renderHandover },
     { id: 'documents-c', title: 'مستنداتي', icon: '📚', sec: 'أعمالي', roles: ['contractor'], render: VR.renderArchive }
