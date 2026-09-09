@@ -409,7 +409,7 @@
               '<td class="small">' + esc(VS.floorName(ctx, it.location) || it.location || '') + '</td>' +
               '<td>' + (it.severity === 'major' ? '<span class="pill p-danger">' + I18n.t('جوهرية') + '</span>' : '<span class="pill p-warn">' + I18n.t('ثانوية') + '</span>') + '</td>' +
               '<td class="small muted num">' + esc(it.raisedDate || '') + '</td>' +
-              '<td>' + (it.file && it.file.url ? '<a class="btn ghost sm" href="' + esc(it.file.url) + '" target="_blank">⬇ ' + I18n.t('تحميل المرفق') + '</a>' : '<span class="muted small">—</span>') + '</td>' +
+              '<td>' + (it.file && it.file.url ? '<a class="btn ghost sm" href="' + esc(it.file.url) + '" target="_blank">📎 ' + I18n.t('فتح') + '</a>' : '<span class="muted small">—</span>') + '</td>' +
               '<td>' + (it.status === 'closed' ? '<span class="pill p-ok">' + I18n.t('مغلقة ✓') + '</span><div class="small muted num">' + esc(it.closedDate || '') + '</div>' : '<span class="pill p-warn">' + I18n.t('مفتوحة') + '</span>') + '</td>' +
               '<td>' + ((canManage || isContractor) && it.status === 'open' ? '<button class="btn sm" data-plclose="' + it.id + '">✅ ' + I18n.t('إغلاق') + '</button>' : '') + '</td></tr>';
           }).join('') + '</tbody></table></div></div>';
@@ -504,7 +504,7 @@
           '<td class="small">' + esc(contractorName(ctx, w.contractorId)) + '</td>' +
           '<td class="small muted num">' + esc(w.startDate || '') + '</td><td class="small num">' + esc(w.endDate || '') + '</td>' +
           '<td class="num small">' + (w.months || '—') + I18n.t(' شهر') + '</td>' +
-          '<td>' + (w.file && w.file.url ? '<a class="btn ghost sm" href="' + esc(w.file.url) + '" target="_blank">⬇ ' + I18n.t('تحميل المرفق') + '</a>' : '<span class="muted small">—</span>') + '</td>' +
+          '<td>' + (w.file && w.file.url ? '<a class="btn ghost sm" href="' + esc(w.file.url) + '" target="_blank">📎 ' + I18n.t('فتح') + '</a>' : '<span class="muted small">—</span>') + '</td>' +
           '<td>' + st + '</td></tr>';
       }).join('') + '</tbody></table></div>' +
       (items.length ? '' : '<div class="empty"><div class="e-ico">🛡️</div>' + I18n.t('لا ضمانات مسجلة') + '</div>') + '</div>';
@@ -554,7 +554,7 @@
       items.map(function (k) {
         return '<tr><td>' + esc(k.area) + '</td><td class="num">' + (k.count || '') + '</td><td class="small">' + esc(k.handedTo || '') + '</td>' +
           '<td class="small">' + esc(k.by || '') + '</td><td class="small muted num">' + (k.date || '<span class="pill p-warn">' + I18n.t('لم تُسلّم') + '</span>') + '</td>' +
-          '<td>' + (k.file && k.file.url ? '<a class="btn ghost sm" href="' + esc(k.file.url) + '" target="_blank">⬇ ' + I18n.t('تحميل المرفق') + '</a>' : '<span class="muted small">—</span>') + '</td>' +
+          '<td>' + (k.file && k.file.url ? '<a class="btn ghost sm" href="' + esc(k.file.url) + '" target="_blank">📎 ' + I18n.t('فتح') + '</a>' : '<span class="muted small">—</span>') + '</td>' +
           '<td class="small">' + (k.signature ? '✍️ ' + esc(k.signature) : '—') + '</td></tr>';
       }).join('') + '</tbody></table></div>' +
       (items.length ? '' : '<div class="empty"><div class="e-ico">🔑</div>' + I18n.t('لا سجلات') + '</div>') + '</div>';

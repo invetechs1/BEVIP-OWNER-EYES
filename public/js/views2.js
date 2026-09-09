@@ -1726,7 +1726,7 @@
       cols: [
         { h: I18n.t('الاستفسار'), r: function (it) { return '<b>' + esc(it.title) + '</b><div class="small muted" style="max-width:340px">' + esc(it.question || '') + '</div>'; } },
         { h: I18n.t('الرد الفني'), r: function (it) { return it.answer ? '<div class="small" style="max-width:300px;color:var(--ok)">' + esc(it.answer) + '</div>' + sigCell(it) : '<span class="muted small">' + I18n.t('بانتظار الرد') + '</span>'; } },
-        { h: I18n.t('المرفق'), r: function (it) { return it.file && it.file.url ? '<a class="btn ghost sm" href="' + esc(it.file.url) + '" target="_blank">⬇ ' + I18n.t('تحميل المرفق') + '</a>' : '<span class="muted small">—</span>'; } }
+        { h: I18n.t('المرفق'), r: function (it) { return it.file && it.file.url ? '<a class="btn ghost sm" href="' + esc(it.file.url) + '" target="_blank">📎 ' + I18n.t('فتح') + '</a>' : '<span class="muted small">—</span>'; } }
       ],
       fields: [
         { k: 'contractorId', label: I18n.t('المقاول'), type: 'contractor' }, { k: 'ref', label: I18n.t('المرجع'), type: 'text' },
