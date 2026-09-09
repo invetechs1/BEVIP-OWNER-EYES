@@ -527,6 +527,9 @@
       if (collection === 'payments' && (status === 'approved' || status === 'approved_notes')) {
         applyPaymentEffects(item);
       }
+      if (collection === 'scheduleSubmittals' && (status === 'approved' || status === 'approved_notes')) {
+        applyScheduleEffects(item);
+      }
       const decision = status === 'rejected' ? 'رفض' : 'اعتماد';
       if (item.contractorId) {
         pushNotification({ contractorId: item.contractorId }, 'decision',
@@ -536,6 +539,24 @@
       audit(user, 'review', decision + ' — ' + labelOf(collection, item));
       persist();
       return item;
+    }
+
+    /** أثر اعتماد البرنامج الزمني المقدَّم: يصبح الجدول الزمني الرسمي للمشروع.
+       يستبدل مراحل الجدول للمشروع بالمهام المستخرَجة من ملف المقاول المعتمد. */
+    function applyScheduleEffects(sub) {
+      const tasks = sub.parsedTasks;
+      if (!Array.isArray(tasks) || !tasks.length) return;
+      const pid = sub.projectId || 'P1';
+      db.scheduleTasks = (db.scheduleTasks || []).filter(function (t) { return (t.projectId || 'P1') !== pid; });
+      tasks.forEach(function (t) {
+        db.scheduleTasks.push({
+          id: nextId('T'), projectId: pid,
+          name: t.name || 'مهمة',
+          startPlanned: t.start || '', endPlanned: t.end || '',
+          startActual: t.startActual || null, endActual: t.endActual || null,
+          progress: Math.max(0, Math.min(100, Number(t.progress) || 0))
+        });
+      });
     }
 
     /** أثر اعتماد المستخلص: تحديث نسب البنود + المبالغ المستلمة */
