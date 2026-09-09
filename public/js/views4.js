@@ -402,13 +402,14 @@
         const co = list.filter(function (x) { return x.status === 'open'; }).length;
         return '<div style="margin-top:14px"><b>👷 ' + esc(contractorName(ctx, cid)) + '</b> ' +
           '<span class="pill ' + (co ? 'p-warn' : 'p-ok') + '">' + co + ' ' + I18n.t('مفتوحة') + ' / ' + list.length + '</span>' +
-          '<div class="tbl-wrap" style="margin-top:8px"><table class="tbl"><thead><tr><th>' + I18n.t('المرجع') + '</th><th>' + I18n.t('الملاحظة') + '</th><th>' + I18n.t('الموقع') + '</th><th>' + I18n.t('الخطورة') + '</th><th>' + I18n.t('أُثيرت') + '</th><th>' + I18n.t('الحالة / الإغلاق') + '</th><th></th></tr></thead><tbody>' +
+          '<div class="tbl-wrap" style="margin-top:8px"><table class="tbl"><thead><tr><th>' + I18n.t('المرجع') + '</th><th>' + I18n.t('الملاحظة') + '</th><th>' + I18n.t('الموقع') + '</th><th>' + I18n.t('الخطورة') + '</th><th>' + I18n.t('أُثيرت') + '</th><th>' + I18n.t('المرفق') + '</th><th>' + I18n.t('الحالة / الإغلاق') + '</th><th></th></tr></thead><tbody>' +
           list.map(function (it) {
             return '<tr><td class="num small"><b>' + esc(it.ref || '') + '</b>' + (it.docCode ? '<div class="muted" style="font-size:10px;color:var(--accent2)">' + esc(it.docCode) + '</div>' : '') + '</td>' +
               '<td>' + esc(it.title) + (it.notes ? '<div class="small muted">' + esc(it.notes) + '</div>' : '') + '</td>' +
               '<td class="small">' + esc(VS.floorName(ctx, it.location) || it.location || '') + '</td>' +
               '<td>' + (it.severity === 'major' ? '<span class="pill p-danger">' + I18n.t('جوهرية') + '</span>' : '<span class="pill p-warn">' + I18n.t('ثانوية') + '</span>') + '</td>' +
               '<td class="small muted num">' + esc(it.raisedDate || '') + '</td>' +
+              '<td>' + (it.file && it.file.url ? '<a class="btn ghost sm" href="' + esc(it.file.url) + '" target="_blank">⬇ ' + I18n.t('تحميل المرفق') + '</a>' : '<span class="muted small">—</span>') + '</td>' +
               '<td>' + (it.status === 'closed' ? '<span class="pill p-ok">' + I18n.t('مغلقة ✓') + '</span><div class="small muted num">' + esc(it.closedDate || '') + '</div>' : '<span class="pill p-warn">' + I18n.t('مفتوحة') + '</span>') + '</td>' +
               '<td>' + ((canManage || isContractor) && it.status === 'open' ? '<button class="btn sm" data-plclose="' + it.id + '">✅ ' + I18n.t('إغلاق') + '</button>' : '') + '</td></tr>';
           }).join('') + '</tbody></table></div></div>';
@@ -427,6 +428,7 @@
         '<div class="grid g2"><div><label class="fl">' + I18n.t('الموقع') + '</label><select class="inp" id="pl-loc">' +
         ctx.S.projects[0].floors.map(function (f) { return '<option value="' + f.id + '">' + esc(f.name) + '</option>'; }).join('') + '</select></div>' +
         '<div><label class="fl">' + I18n.t('الخطورة') + '</label><select class="inp" id="pl-sev"><option value="minor">' + I18n.t('ثانوية') + '</option><option value="major">' + I18n.t('جوهرية') + '</option></select></div></div>' +
+        '<label class="fl">' + I18n.t('مرفق (اختياري)') + '</label><input class="inp" id="pl-file" type="file">' +
         '<div class="m-actions"><button class="btn" id="pl-ok">' + I18n.t('حفظ وإسناد للمقاول') + '</button><button class="btn mutedb" id="pl-cancel">' + I18n.t('إلغاء') + '</button></div>'
       );
       m.querySelector('#pl-cancel').addEventListener('click', function () { m.remove(); });
@@ -434,12 +436,15 @@
         const title = m.querySelector('#pl-title').value.trim();
         if (!title) { toast(I18n.t('أدخل نص الملاحظة'), true); return; }
         try {
-          await Api.create('punchList', {
+          const data = {
             contractorId: m.querySelector('#pl-cont').value,
             ref: m.querySelector('#pl-ref').value || 'PL-' + Math.floor(Math.random() * 900 + 100),
             title: title, location: m.querySelector('#pl-loc').value, severity: m.querySelector('#pl-sev').value,
             status: 'open', raisedDate: todayStr(), closedDate: null
-          });
+          };
+          const f = m.querySelector('#pl-file').files[0];
+          if (f) data.file = await Api.upload(f, { category: 'وثائق فنية' });
+          await Api.create('punchList', data);
           m.remove(); toast(I18n.t('✅ أُضيفت الملاحظة وأُسندت للمقاول (أُشعر بها)')); ctx.refresh();
         } catch (e) { toast(e.message, true); }
       });
@@ -490,7 +495,7 @@
       '<div class="card"><div class="flex" style="justify-content:space-between;flex-wrap:wrap">' +
       '<h3 style="margin:0">🛡️ ' + I18n.t('سجل ضمانات الموردين والمقاولين من الباطن') + '</h3>' +
       (canAdd ? '<button class="btn sm" id="wr-add">➕ ' + I18n.t('إضافة ضمان') + '</button>' : '') + '</div>' +
-      '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>' + I18n.t('الكود') + '</th><th>' + I18n.t('البند/النظام') + '</th><th>' + I18n.t('المورّد') + '</th><th>' + I18n.t('المقاول') + '</th><th>' + I18n.t('البداية') + '</th><th>' + I18n.t('الانتهاء') + '</th><th>' + I18n.t('المدة') + '</th><th>' + I18n.t('الحالة') + '</th></tr></thead><tbody>' +
+      '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>' + I18n.t('الكود') + '</th><th>' + I18n.t('البند/النظام') + '</th><th>' + I18n.t('المورّد') + '</th><th>' + I18n.t('المقاول') + '</th><th>' + I18n.t('البداية') + '</th><th>' + I18n.t('الانتهاء') + '</th><th>' + I18n.t('المدة') + '</th><th>' + I18n.t('المرفق') + '</th><th>' + I18n.t('الحالة') + '</th></tr></thead><tbody>' +
       items.map(function (w) {
         const d = daysFromNow(w.endDate);
         const st = d == null ? '' : d < 0 ? '<span class="pill p-danger">' + I18n.t('منتهٍ') + '</span>' : d <= 90 ? '<span class="pill p-warn">≤ ' + d + ' ' + I18n.t('يوم') + '</span>' : '<span class="pill p-ok">' + I18n.t('ساري') + '</span>';
@@ -498,7 +503,9 @@
           '<td>' + esc(w.item) + '</td><td class="small">' + esc(w.supplier || '') + '</td>' +
           '<td class="small">' + esc(contractorName(ctx, w.contractorId)) + '</td>' +
           '<td class="small muted num">' + esc(w.startDate || '') + '</td><td class="small num">' + esc(w.endDate || '') + '</td>' +
-          '<td class="num small">' + (w.months || '—') + I18n.t(' شهر') + '</td><td>' + st + '</td></tr>';
+          '<td class="num small">' + (w.months || '—') + I18n.t(' شهر') + '</td>' +
+          '<td>' + (w.file && w.file.url ? '<a class="btn ghost sm" href="' + esc(w.file.url) + '" target="_blank">⬇ ' + I18n.t('تحميل المرفق') + '</a>' : '<span class="muted small">—</span>') + '</td>' +
+          '<td>' + st + '</td></tr>';
       }).join('') + '</tbody></table></div>' +
       (items.length ? '' : '<div class="empty"><div class="e-ico">🛡️</div>' + I18n.t('لا ضمانات مسجلة') + '</div>') + '</div>';
 
@@ -543,10 +550,11 @@
     el.innerHTML =
       '<div class="card"><div class="flex" style="justify-content:space-between;flex-wrap:wrap">' +
       '<h3 style="margin:0">🔑 ' + I18n.t('سجل تسليم المفاتيح') + '</h3>' + (canAdd ? '<button class="btn sm" id="k-add">➕ ' + I18n.t('تسجيل تسليم') + '</button>' : '') + '</div>' +
-      '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>' + I18n.t('المنطقة') + '</th><th>' + I18n.t('عدد المفاتيح') + '</th><th>' + I18n.t('سُلّمت إلى') + '</th><th>' + I18n.t('بواسطة') + '</th><th>' + I18n.t('التاريخ') + '</th><th>' + I18n.t('التوقيع') + '</th></tr></thead><tbody>' +
+      '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>' + I18n.t('المنطقة') + '</th><th>' + I18n.t('عدد المفاتيح') + '</th><th>' + I18n.t('سُلّمت إلى') + '</th><th>' + I18n.t('بواسطة') + '</th><th>' + I18n.t('التاريخ') + '</th><th>' + I18n.t('المرفق') + '</th><th>' + I18n.t('التوقيع') + '</th></tr></thead><tbody>' +
       items.map(function (k) {
         return '<tr><td>' + esc(k.area) + '</td><td class="num">' + (k.count || '') + '</td><td class="small">' + esc(k.handedTo || '') + '</td>' +
           '<td class="small">' + esc(k.by || '') + '</td><td class="small muted num">' + (k.date || '<span class="pill p-warn">' + I18n.t('لم تُسلّم') + '</span>') + '</td>' +
+          '<td>' + (k.file && k.file.url ? '<a class="btn ghost sm" href="' + esc(k.file.url) + '" target="_blank">⬇ ' + I18n.t('تحميل المرفق') + '</a>' : '<span class="muted small">—</span>') + '</td>' +
           '<td class="small">' + (k.signature ? '✍️ ' + esc(k.signature) : '—') + '</td></tr>';
       }).join('') + '</tbody></table></div>' +
       (items.length ? '' : '<div class="empty"><div class="e-ico">🔑</div>' + I18n.t('لا سجلات') + '</div>') + '</div>';
@@ -559,6 +567,7 @@
         '<div class="grid g2"><div><label class="fl">' + I18n.t('عدد المفاتيح') + '</label><input class="inp num" id="k-count" type="number"></div>' +
         '<div><label class="fl">' + I18n.t('سُلّمت إلى') + '</label><input class="inp" id="k-to"></div></div>' +
         '<label class="fl">' + I18n.t('التوقيع باسم') + '</label><input class="inp" id="k-sig" value="' + esc(ctx.U.name) + '">' +
+        '<label class="fl">' + I18n.t('مرفق (اختياري)') + '</label><input class="inp" id="k-file" type="file">' +
         '<div class="m-actions"><button class="btn" id="k-ok">' + I18n.t('تسجيل') + '</button><button class="btn mutedb" id="k-cancel">' + I18n.t('إلغاء') + '</button></div>'
       );
       m.querySelector('#k-cancel').addEventListener('click', function () { m.remove(); });
@@ -566,11 +575,14 @@
         const area = m.querySelector('#k-area').value.trim();
         if (!area) { toast(I18n.t('أدخل المنطقة'), true); return; }
         try {
-          await Api.create('keysLog', {
+          const data = {
             area: area, count: Number(m.querySelector('#k-count').value) || 0,
             handedTo: m.querySelector('#k-to').value, by: ctx.U.name, date: todayStr(),
             signature: m.querySelector('#k-sig').value
-          });
+          };
+          const f = m.querySelector('#k-file').files[0];
+          if (f) data.file = await Api.upload(f, { category: 'وثائق فنية' });
+          await Api.create('keysLog', data);
           m.remove(); toast(I18n.t('✅ سُجّل تسليم المفاتيح')); ctx.refresh();
         } catch (e) { toast(e.message, true); }
       });
