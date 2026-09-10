@@ -50,7 +50,8 @@
     users: 'مستخدم', contractors: 'مقاول', projects: 'مشروع', photos: 'صورة', comments: 'رد',
     bimModels: 'نموذج BIM', bimDocs: 'وثيقة BIM',
     handoverItems: 'بند تسليم', punchList: 'ملاحظة تسليم Punch', warranties: 'ضمان',
-    keysLog: 'تسليم مفاتيح', incidents: 'تقرير حادث', scheduleTasks: 'مرحلة مشروع'
+    keysLog: 'تسليم مفاتيح', incidents: 'تقرير حادث', scheduleTasks: 'مرحلة مشروع',
+    drawingMappings: 'ربط منطقة مخطط', bimMappings: 'ربط عنصر BIM'
   };
 
   function labelOf(collection, item) {
@@ -112,7 +113,10 @@
     warranties: ['contractor', 'consultant', 'admin'],
     keysLog: ['consultant', 'admin', 'owner_rep'],
     incidents: ['consultant', 'admin'],
-    scheduleTasks: ['consultant', 'admin']
+    scheduleTasks: ['consultant', 'admin'],
+    // ربط مناطق المخططات وعناصر BIM ببنود جدول الكميات
+    drawingMappings: ['consultant', 'admin'],
+    bimMappings: ['consultant', 'admin']
   };
 
   function createCore(db, persist, opts) {
@@ -228,6 +232,9 @@
       s.warranties = db.warranties || [];
       s.keysLog = db.keysLog || [];
       s.incidents = db.incidents || [];
+      // ربط مناطق المخططات وعناصر BIM ببنود جدول الكميات (§11/§6 من وثيقة المتطلبات)
+      s.drawingMappings = db.drawingMappings || [];
+      s.bimMappings = db.bimMappings || [];
       // المالك يطلع على وثائق مشروعه (قراءة) — يقيدها نطاق المشروع أدناه
       s.files = (role === 'admin' || role === 'owner_rep' || role === 'consultant' || role === 'owner') ? (db.files || []) : [];
       s.messages = db.messages;

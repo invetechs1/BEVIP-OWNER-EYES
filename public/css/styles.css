@@ -358,6 +358,9 @@ textarea.inp { resize: vertical; min-height: 80px; }
   border-radius: 8px; padding: 6px 10px; font-size: 12px; cursor: pointer; font-family: inherit;
 }
 .dv-tool.active { border-color: var(--accent); color: var(--accent2); background: rgba(224, 164, 88, .12); font-weight: 700; }
+.dv-maptool { background: var(--panel); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 6px 10px; font-size: 12px; cursor: pointer; font-family: inherit; }
+.dv-maptool.active { border-color: var(--accent); color: var(--accent2); background: rgba(224, 164, 88, .12); font-weight: 700; }
+.btn.active { outline: 2px solid var(--accent); outline-offset: 1px; }
 .dv-color { width: 22px; height: 22px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
 .dv-color.active { border-color: #fff; box-shadow: 0 0 0 2px var(--accent); }
 .dv-stage-wrap { background: #0a0d13; border: 1px solid var(--border); border-radius: 12px; padding: 8px; overflow: auto; max-height: 58vh; }
