@@ -1140,7 +1140,7 @@
             '<td class="small muted num">' + esc(m.date || '') + '</td>' +
             '<td>' + (m.linkedBoq ? '<span class="pill p-ok">' + I18n.t('مربوط بجدول الكميات ✓') + '</span>' : '<span class="pill p-muted">' + I18n.t('غير مربوط') + '</span>') + '</td>' +
             '<td><div class="flex" style="gap:6px">' +
-            (m.url && /\.ifc$/i.test(m.url) ? '<button class="btn sm" data-bim3d="' + esc(m.url) + '" data-bimname="' + esc(m.name) + '">🧊 3D</button>' : '') +
+            (m.url && /\.ifc$/i.test(m.url) ? '<button class="btn sm" data-bim3d="' + esc(m.url) + '" data-bimname="' + esc(m.name) + '" data-bimid="' + esc(m.id) + '">🧊 3D</button>' : '') +
             (m.url ? '<a class="btn ghost sm" href="' + esc(m.url) + '" target="_blank">' + I18n.t('فتح') + ' ↗</a>' : '') + '</div></td></tr>';
         }).join('') + '</tbody></table></div>'
         : '<div class="empty"><div class="e-ico">🏢</div>' + I18n.t('لا نماذج بعد — اربط سحابياً أو ارفع من الجهاز') + '</div>') +
@@ -1152,12 +1152,19 @@
       window.BimViewer.open(o);
     }
     const demo3d = el.querySelector('#bm-demo3d');
+    const canMapBim = ['consultant', 'admin'].indexOf(ctx.U.role) !== -1;
     if (demo3d) demo3d.addEventListener('click', function () {
-      open3d({ title: 'برج بصير التجاري — نموذج BIM ثلاثي الأبعاد', url: '/vendor/bim/BassirTower.ifc' });
+      // زر العرض السريع يفتح نفس ملف النموذج المسجّل في السجل أدناه — نجد معرّفه الحقيقي
+      // ليعمل الربط ببنود الكميات هنا أيضاً، لا فقط عبر زر "3D" داخل السجل
+      const registered = (ctx.S.bimModels || []).find(function (mm) { return mm.url === '/vendor/bim/BassirTower.ifc'; });
+      open3d({ title: 'برج بصير التجاري — نموذج BIM ثلاثي الأبعاد', url: '/vendor/bim/BassirTower.ifc', ctx: ctx, modelId: registered ? registered.id : null, canMap: canMapBim });
     });
     el.querySelectorAll('[data-bim3d]').forEach(function (b) {
       b.addEventListener('click', function () {
-        open3d({ title: b.getAttribute('data-bimname') || 'نموذج BIM', url: b.getAttribute('data-bim3d') });
+        open3d({
+          title: b.getAttribute('data-bimname') || 'نموذج BIM', url: b.getAttribute('data-bim3d'),
+          ctx: ctx, modelId: b.getAttribute('data-bimid'), canMap: canMapBim
+        });
       });
     });
 

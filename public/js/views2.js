@@ -318,6 +318,7 @@
     'المخطط': 'Drawing',
     'الربط': 'Linking',
     'مربوط بجدول الكميات ✓': 'Linked to BOQ ✓',
+    'منطقة مربوطة': 'linked area(s)',
     'اختر ملف النموذج أولاً': 'Select the model file first',
     '✅ رُفع النموذج "': '✅ Model "',
     '" وربط بجدول الكميات — أصبح مرئياً للمالك في صفحة رؤية المشروع': '" uploaded and linked to the BOQ — now visible to the owner on the Project Vision page',
@@ -1469,14 +1470,16 @@
       '<div><label class="fl">' + I18n.t('الملف') + '</label><input class="inp" id="pd-file" type="file" accept=".dwg,.dxf,.pdf"></div>' +
       '</div>' +
       '<button class="btn sm mb" id="pd-add">' + I18n.t('➕ رفع المخطط وربطه بجدول الكميات') + '</button>' +
-      '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>' + I18n.t('المرجع') + '</th><th>' + I18n.t('المخطط') + '</th><th>' + I18n.t('الدور') + '</th><th>' + I18n.t('التخصص') + '</th><th>' + I18n.t('التاريخ') + '</th><th>' + I18n.t('الربط') + '</th></tr></thead><tbody>' +
+      '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>' + I18n.t('المرجع') + '</th><th>' + I18n.t('المخطط') + '</th><th>' + I18n.t('الدور') + '</th><th>' + I18n.t('التخصص') + '</th><th>' + I18n.t('التاريخ') + '</th><th>' + I18n.t('الربط') + '</th><th></th></tr></thead><tbody>' +
       (ctx.S.planDrawings || []).map(function (dr) {
         const d = discOf(ctx, dr.discipline);
+        const nLinked = (ctx.S.drawingMappings || []).filter(function (m) { return m.drawingId === dr.id; }).length;
         return '<tr><td class="num small"><b>' + esc(dr.ref) + '</b></td><td>' + esc(dr.title) + '<div class="small muted">📎 ' + VS.att(dr.file) + '</div></td>' +
           '<td class="small">' + (dr.floor === 'ELEV' ? I18n.t('الواجهات') : esc(VS.floorName(ctx, dr.floor))) + '</td>' +
           '<td class="small">' + d.icon + ' ' + esc(d.name) + '</td>' +
           '<td class="small muted num">' + esc(dr.date || '') + '</td>' +
-          '<td><span class="pill p-ok">' + I18n.t('مربوط بجدول الكميات ✓') + '</span></td></tr>';
+          '<td>' + (nLinked ? '<span class="pill p-ok">' + nLinked + ' ' + I18n.t('منطقة مربوطة') + '</span>' : '<span class="pill p-muted">' + I18n.t('غير مربوط') + '</span>') + '</td>' +
+          '<td><button class="btn ghost sm" data-dview="' + esc(dr.id) + '">' + I18n.t('فتح') + ' ↗</button></td></tr>';
       }).join('') + '</tbody></table></div></div>';
 
     el.querySelector('#bim-up').addEventListener('click', async function () {
@@ -1498,7 +1501,7 @@
     el.querySelectorAll('[data-dview]').forEach(function (b) {
       b.addEventListener('click', function () {
         const dr = (ctx.S.planDrawings || []).find(function (x) { return x.id === b.getAttribute('data-dview'); });
-        if (dr) window.DrawingViewer.open(ctx, 'planDrawings', dr, { canEdit: true, canReview: false });
+        if (dr) window.DrawingViewer.open(ctx, 'planDrawings', dr, { canEdit: true, canReview: false, showMap: true, canMap: ['consultant', 'admin'].indexOf(ctx.U.role) !== -1 });
       });
     });
     el.querySelector('#pd-add').addEventListener('click', async function () {

@@ -10,6 +10,24 @@
 (function () {
   'use strict';
 
+  I18n.registerDict({
+    'ربط بجدول الكميات': 'Link to BOQ',
+    'عرض الربط بجدول الكميات': 'View BOQ Linking',
+    'أداة الربط': 'Mapping Tool',
+    'تحديد': 'Select',
+    'رسم منطقة جديدة': 'Draw New Area',
+    'اختر منطقة مرسومة، أو ارسم منطقة جديدة لربطها ببند كميات.': 'Select a drawn area, or draw a new one to link it to a BOQ item.',
+    'منطقة مرتبطة': 'Mapped Area',
+    'منطقة جديدة — لم تُحفظ بعد': 'New Area — Not Saved Yet',
+    'نسبة التخصيص': 'Allocation',
+    'تغيير الربط': 'Change Link',
+    'نسبة التخصيص لهذه المنطقة': 'Allocation for this area',
+    'حذف المنطقة': 'Delete Area',
+    'حذف هذه المنطقة نهائياً؟': 'Permanently delete this area?',
+    'تم الحذف': 'Deleted',
+    'ارسم منطقة جديدة — الآن اربطها ببند كميات في اللوحة الجانبية': 'New area drawn — now link it to a BOQ item in the side panel'
+  });
+
   const esc = Charts.esc;
   const APPROVAL_COLS = ['shopDrawings', 'materials', 'scheduleSubmittals', 'wirs', 'changeOrders', 'payments',
     'methodStatements', 'claims', 'valueEngineering', 'handoverDocs'];
@@ -64,9 +82,15 @@
     const canReview = !!opts.canReview && APPROVAL_COLS.indexOf(collection) !== -1 && item.status === 'pending';
     const canRespond = !!opts.canRespond && item.status !== 'pending';
     const canDraw = canEdit || canRespond;
+    // مناطق مرتبطة ببنود الكميات (§6/§8 من وثيقة المتطلبات): العرض متاح لأي دور يفتح مخططاً يدعمه (المالك يرى الاعتماد الفعلي)،
+    // بينما الإنشاء/التعديل يقتصر على الاستشاري/الأدمن فقط.
+    const showMap = !!opts.showMap;
+    const canMap = showMap && !!opts.canMap;
+    const canDeleteMap = canMap && ctx.U.role === 'admin'; // الحذف متاح للأدمن فقط — يطابق قاعدة النظام العامة (deleteItem)
     let anns = JSON.parse(JSON.stringify(item.annotations || []));
     let tool = 'pen', color = COLORS[0], stampIdx = 0, current = null, dirty = false;
     let page = 1, numPages = 1, pdfDoc = null, viewingRev = null; // viewingRev: عرض نسخة مؤرشفة للقراءة
+    let mapMode = false, mapTool = 'select', mapDraft = null, mapSelected = null;
 
     const back = document.createElement('div');
     back.className = 'modal-back';
@@ -85,6 +109,7 @@
       '<button class="btn mutedb sm" id="dv-next">›</button></span>' +
       VS.pill(item.status || '') +
       (f.url ? '<a class="btn ghost sm" href="' + esc(f.url) + '" target="_blank">⬇ الملف الأصلي</a>' : '') +
+      (showMap ? '<button class="btn mutedb sm" id="dv-maptoggle">🗺️ ' + (canMap ? I18n.t('ربط بجدول الكميات') : I18n.t('عرض الربط بجدول الكميات')) + '</button>' : '') +
       '<button class="btn mutedb sm" id="dv-close">✕ إغلاق</button></div>' +
 
       (canDraw ?
@@ -106,7 +131,21 @@
         '<button class="btn sm" id="dv-save">💾 ' + (canRespond ? 'حفظ ردودي على نفس المستند' : 'حفظ الترميز') + '</button>' +
         '</div>' : '') +
 
-      '<div class="dv-body"><div class="dv-stage-wrap"><div class="dv-stage" id="dv-stage">' +
+      (showMap ?
+        '<div class="dv-tools" id="dv-maptools" style="display:none">' +
+        '<span class="small muted">' + I18n.t('أداة الربط') + ':</span>' +
+        '<button class="dv-maptool active" data-maptool="select">✋ ' + I18n.t('تحديد') + '</button>' +
+        (canMap ? '<button class="dv-maptool" data-maptool="draw">▭ ' + I18n.t('رسم منطقة جديدة') + '</button>' : '') +
+        '<span class="spacer"></span>' +
+        '<span class="small muted" style="display:flex;gap:12px;align-items:center">' +
+        '<span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#30a46c;margin-inline-end:4px"></i>' + I18n.t('معتمد بالكامل') + '</span>' +
+        '<span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#f5a524;margin-inline-end:4px"></i>' + I18n.t('إنجاز جزئي') + '</span>' +
+        '<span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#3a4258;margin-inline-end:4px"></i>' + I18n.t('لم يبدأ') + '</span>' +
+        '</span></div>' : '') +
+
+      '<div class="dv-body"><div class="dv-stage-wrap"><div class="dv-stage" id="dv-stage"' +
+      (f.isDxf ? ' style="min-height:60vh"' : '') + '>' + // dv-dxf-host أدناه absolute بلا ارتفاع طبيعي؛ بلا هذا يبقى dv-stage صفر الارتفاع
+
       (f.isImage
         ? '<img id="dv-img" src="' + esc(f.url) + '" alt="" draggable="false">'
         : f.isPdf
@@ -124,9 +163,11 @@
               '<div class="dv-sheet-sub">' + esc(item.ref || '') + (f.name ? ' · ' + esc(f.name) : '') + '</div>' +
               '<div class="dv-sheet-note">ورقة ترميز — الملف الأصلي بصيغة غير قابلة للمعاينة داخل المتصفح' + (f.url ? ' (حمّله من الزر أعلاه)' : '') + '</div></div>') +
       '<canvas id="dv-canvas"' + (f.isDxf ? ' style="display:none"' : '') + '></canvas>' +
+      (showMap ? '<div id="dv-maplayer" style="position:absolute;inset:0;display:none"></div>' : '') +
       '</div></div>' +
 
       '<div class="dv-side">' +
+      (showMap ? '<div class="dv-pins" id="dv-mappanel" style="display:none"></div>' : '') +
       '<div class="dv-pins" id="dv-pins"></div>' +
       '<div id="dv-history"></div>' +
       (canReview ?
@@ -222,8 +263,12 @@
       }
     }
 
+    // مهمة العرض الحالية على نفس الكانفس — PDF.js يمنع بدء عرض جديد قبل انتهاء/إلغاء السابق صراحةً
+    // (مثلاً عند نقر "التالي/السابق" بسرعة قبل اكتمال عرض الصفحة الأولى)
+    let pdfRenderTask = null;
     async function renderPdfPage() {
       if (!pdfDoc) return;
+      if (pdfRenderTask) { try { pdfRenderTask.cancel(); await pdfRenderTask.promise; } catch (e) { /* إلغاء متوقع — نتجاهله */ } }
       const pg = await pdfDoc.getPage(page);
       const wrapW = Math.max(stage.parentElement.clientWidth - 20, 640);
       const vp1 = pg.getViewport({ scale: 1 });
@@ -232,7 +277,9 @@
       pdfCanvas.width = vp.width; pdfCanvas.height = vp.height;
       pdfCanvas.style.width = Math.round(vp.width / devicePixelRatio) + 'px';
       pdfCanvas.style.height = Math.round(vp.height / devicePixelRatio) + 'px';
-      await pg.render({ canvasContext: pdfCanvas.getContext('2d'), viewport: vp }).promise;
+      pdfRenderTask = pg.render({ canvasContext: pdfCanvas.getContext('2d'), viewport: vp });
+      try { await pdfRenderTask.promise; } catch (e) { if (e && e.name === 'RenderingCancelledException') return; throw e; }
+      pdfRenderTask = null;
       back.querySelector('#dv-pageno').textContent = page + ' / ' + numPages;
       fit();
     }
@@ -240,7 +287,7 @@
     function gotoPage(d) {
       const n = Math.min(numPages, Math.max(1, page + d));
       if (n === page) return;
-      page = n; current = null;
+      page = n; current = null; mapSelected = null;
       renderPdfPage();
     }
     back.querySelector('#dv-prev').addEventListener('click', function () { gotoPage(1); });  // RTL: السابق يميناً
@@ -255,6 +302,7 @@
       canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
       cx2.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
       redraw();
+      if (showMap && mapMode) renderMapLayer();
     }
 
     function W() { return canvas.clientWidth; }
@@ -417,6 +465,206 @@
     function pos(ev) {
       const r = canvas.getBoundingClientRect();
       return [(ev.clientX - r.left) / r.width, (ev.clientY - r.top) / r.height];
+    }
+
+    // ============ ربط مناطق المخطط ببنود الكميات (§6 من وثيقة المتطلبات) ============
+    // كل منطقة مستطيلة تُخزَّن بإحداثيات منسوبة (0..1) لنفس الصفحة، ونفس نمط تخزين
+    // الترميز أعلاه — وتُلوَّن حسب نسبة إنجاز بند الكميات المربوط بها (bq.progress)،
+    // بلا أي حساب مواز؛ نفس مصدر الحقيقة الذي تعتمده لوحة القيادة والتقارير.
+    const mapLayer = showMap ? back.querySelector('#dv-maplayer') : null;
+    const mapPanel = showMap ? back.querySelector('#dv-mappanel') : null;
+
+    function mapStatusColor(bq) {
+      if (!bq) return null;
+      const p = bq.progress || 0;
+      if (p >= 100) return '#30a46c';
+      if (p > 0) return '#f5a524';
+      return '#3a4258';
+    }
+    function pageMappings() {
+      if (!showMap) return [];
+      return (ctx.S.drawingMappings || []).filter(function (m) { return m.drawingId === item.id && (m.page || 1) === page; });
+    }
+    function boqOf(m) { return (ctx.S.boqItems || []).find(function (b) { return b.id === m.boqItemId; }) || null; }
+    function relevantBoq() {
+      return (ctx.S.boqItems || []).filter(function (b) { return !item.floor || item.floor === 'ELEV' || b.floor === item.floor; })
+        .sort(function (a, b) { return (a.code || '').localeCompare(b.code || ''); });
+    }
+    function mapPosPct(ev) {
+      const r = mapLayer.getBoundingClientRect();
+      return [Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width)), Math.max(0, Math.min(1, (ev.clientY - r.top) / r.height))];
+    }
+
+    /** منطقة مرسومة للتو ولم تُحفظ بعد — لا تُكتب على الخادم إلا بعد اختيار بند كميات صراحةً (§ لا سجلات يتيمة) */
+    function renderPendingPanel() {
+      const x = Math.min(mapDraft.from[0], mapDraft.to[0]), y = Math.min(mapDraft.from[1], mapDraft.to[1]);
+      const w = Math.abs(mapDraft.to[0] - mapDraft.from[0]), h = Math.abs(mapDraft.to[1] - mapDraft.from[1]);
+      mapPanel.innerHTML =
+        '<b class="small">▭ ' + I18n.t('منطقة جديدة — لم تُحفظ بعد') + '</b>' +
+        '<div class="mt">' +
+        '<label class="fl">' + I18n.t('اربط ببند كميات') + '</label>' +
+        '<select class="inp" id="dm-boqsel"><option value="">' + I18n.t('اختر بند كميات...') + '</option>' +
+        relevantBoq().map(function (b) { return '<option value="' + b.id + '">' + esc(b.code || b.id) + ' — ' + esc(b.description || '') + '</option>'; }).join('') + '</select>' +
+        '<label class="fl">' + I18n.t('نسبة التخصيص لهذه المنطقة') + '</label>' +
+        '<input class="inp num" id="dm-pct" type="number" min="1" max="100" value="100">' +
+        '<div class="m-actions">' +
+        '<button class="btn sm" id="dm-save">💾 ' + I18n.t('حفظ الربط') + '</button>' +
+        '<button class="btn mutedb sm" id="dm-cancel">' + I18n.t('إلغاء') + '</button>' +
+        '</div></div>';
+      mapPanel.querySelector('#dm-save').addEventListener('click', async function () {
+        const boqItemId = mapPanel.querySelector('#dm-boqsel').value;
+        if (!boqItemId) { VS.toast(I18n.t('اختر بند كميات...'), true); return; }
+        const pct = Math.max(1, Math.min(100, Number(mapPanel.querySelector('#dm-pct').value) || 100));
+        try {
+          const created = await Api.create('drawingMappings', {
+            drawingId: item.id, projectId: ctx.projectId, page: page, x: x, y: y, w: w, h: h,
+            boqItemId: boqItemId, allocationPct: pct
+          });
+          mapDraft = null;
+          await ctx.refreshSilent();
+          mapSelected = created;
+          VS.toast(I18n.t('تم الربط بنجاح'));
+          renderMapLayer(); renderMapPanel();
+        } catch (e) { VS.toast(e.message, true); }
+      });
+      mapPanel.querySelector('#dm-cancel').addEventListener('click', function () {
+        mapDraft = null; // لم يُكتب شيء على الخادم بعد — إلغاء نظيف بلا أي أثر
+        renderMapLayer(); renderMapPanel();
+      });
+    }
+
+    function renderMapPanel() {
+      if (!mapPanel) return;
+      if (mapDraft) { renderPendingPanel(); return; }
+      if (!mapSelected) {
+        mapPanel.innerHTML = '<div class="small muted">' + I18n.t('اختر منطقة مرسومة، أو ارسم منطقة جديدة لربطها ببند كميات.') + '</div>';
+        return;
+      }
+      const m = mapSelected;
+      const bq = boqOf(m);
+      let html = '<b class="small">📐 ' + I18n.t('منطقة مرتبطة') + '</b>';
+      if (bq) {
+        html += '<div class="mt small"><b>' + esc(bq.code || bq.id) + '</b> — ' + esc(bq.description || '') + '</div>' +
+          '<div class="flex" style="justify-content:space-between;margin-top:8px"><span class="small muted">' + I18n.t('الإنجاز المعتمد') + '</span><b class="num small">' + (bq.progress || 0) + '%</b></div>' +
+          '<div class="bar" style="margin-top:4px"><i style="width:' + (bq.progress || 0) + '%;background:' + mapStatusColor(bq) + '"></i></div>' +
+          '<div class="small muted mt">' + I18n.t('نسبة التخصيص') + ': <b class="num">' + (m.allocationPct || 100) + '%</b></div>';
+      }
+      if (canMap) {
+        html += '<div class="mt" style="border-top:1px solid var(--border);padding-top:10px">' +
+          '<label class="fl">' + (bq ? I18n.t('تغيير الربط') : I18n.t('اربط ببند كميات')) + '</label>' +
+          '<select class="inp" id="dm-boqsel"><option value="">' + I18n.t('اختر بند كميات...') + '</option>' +
+          relevantBoq().map(function (b) {
+            return '<option value="' + b.id + '"' + (m.boqItemId === b.id ? ' selected' : '') + '>' + esc(b.code || b.id) + ' — ' + esc(b.description || '') + '</option>';
+          }).join('') + '</select>' +
+          '<label class="fl">' + I18n.t('نسبة التخصيص لهذه المنطقة') + '</label>' +
+          '<input class="inp num" id="dm-pct" type="number" min="1" max="100" value="' + (m.allocationPct || 100) + '">' +
+          '<div class="m-actions">' +
+          '<button class="btn sm" id="dm-save">💾 ' + I18n.t('حفظ الربط') + '</button>' +
+          (canDeleteMap ? '<button class="btn danger sm" id="dm-del">🗑 ' + I18n.t('حذف المنطقة') + '</button>' : '') +
+          '</div></div>';
+      }
+      mapPanel.innerHTML = html;
+      const saveBtn = mapPanel.querySelector('#dm-save');
+      if (saveBtn) saveBtn.addEventListener('click', async function () {
+        const boqItemId = mapPanel.querySelector('#dm-boqsel').value;
+        if (!boqItemId) { VS.toast(I18n.t('اختر بند كميات...'), true); return; }
+        const pct = Math.max(1, Math.min(100, Number(mapPanel.querySelector('#dm-pct').value) || 100));
+        try {
+          await Api.update('drawingMappings', m.id, { boqItemId: boqItemId, allocationPct: pct });
+          await ctx.refreshSilent();
+          VS.toast(I18n.t('تم الربط بنجاح'));
+          mapSelected = (ctx.S.drawingMappings || []).find(function (x) { return x.id === m.id; }) || null;
+          renderMapLayer(); renderMapPanel();
+        } catch (e) { VS.toast(e.message, true); }
+      });
+      const delBtn = mapPanel.querySelector('#dm-del');
+      if (delBtn) delBtn.addEventListener('click', async function () {
+        if (!confirm(I18n.t('حذف هذه المنطقة نهائياً؟'))) return;
+        try {
+          await Api.remove('drawingMappings', m.id);
+          await ctx.refreshSilent();
+          mapSelected = null;
+          VS.toast(I18n.t('تم الحذف'));
+          renderMapLayer(); renderMapPanel();
+        } catch (e) { VS.toast(e.message, true); }
+      });
+    }
+
+    function renderMapLayer() {
+      if (!mapLayer) return;
+      mapLayer.innerHTML = '';
+      pageMappings().forEach(function (m) {
+        const bq = boqOf(m);
+        const box = document.createElement('div');
+        box.style.cssText = 'position:absolute;cursor:pointer;border:1.5px solid;left:' + (m.x * 100) + '%;top:' + (m.y * 100) + '%;width:' + (m.w * 100) + '%;height:' + (m.h * 100) + '%;';
+        const c = mapStatusColor(bq) || '#8b95a8';
+        box.style.borderColor = c;
+        box.style.background = c + (bq ? '46' : '22');
+        if (m === mapSelected || (mapSelected && mapSelected.id === m.id)) box.style.boxShadow = '0 0 0 2px var(--accent)';
+        box.title = bq ? (bq.code || bq.id) + ' — ' + (bq.progress || 0) + '%' : I18n.t('غير مربوط');
+        box.addEventListener('click', function (e) {
+          e.stopPropagation();
+          if (mapTool !== 'select') return;
+          mapDraft = null; // اختيار منطقة موجودة يُلغي أي رسم جديد غير محفوظ (لم يُكتب على الخادم أصلاً)
+          mapSelected = m;
+          renderMapLayer(); renderMapPanel();
+        });
+        mapLayer.appendChild(box);
+      });
+      if (mapDraft) {
+        const box = document.createElement('div');
+        const x = Math.min(mapDraft.from[0], mapDraft.to[0]), y = Math.min(mapDraft.from[1], mapDraft.to[1]);
+        const w = Math.abs(mapDraft.to[0] - mapDraft.from[0]), h = Math.abs(mapDraft.to[1] - mapDraft.from[1]);
+        box.style.cssText = 'position:absolute;border:1.5px dashed var(--accent);background:rgba(224,164,88,.18);left:' + (x * 100) + '%;top:' + (y * 100) + '%;width:' + (w * 100) + '%;height:' + (h * 100) + '%;';
+        mapLayer.appendChild(box);
+      }
+    }
+
+    if (showMap) {
+      const toggleBtn = back.querySelector('#dv-maptoggle');
+      const maptools = back.querySelector('#dv-maptools');
+      toggleBtn.addEventListener('click', function () {
+        mapMode = !mapMode;
+        toggleBtn.classList.toggle('active', mapMode);
+        maptools.style.display = mapMode ? '' : 'none';
+        mapLayer.style.display = mapMode ? '' : 'none';
+        mapPanel.style.display = mapMode ? '' : 'none';
+        canvas.style.pointerEvents = mapMode ? 'none' : '';
+        if (mapMode) { renderMapLayer(); renderMapPanel(); }
+      });
+      back.querySelectorAll('.dv-maptool').forEach(function (b) {
+        b.addEventListener('click', function () {
+          mapTool = b.getAttribute('data-maptool');
+          back.querySelectorAll('.dv-maptool').forEach(function (x) { x.classList.toggle('active', x === b); });
+          mapLayer.style.cursor = mapTool === 'draw' ? 'crosshair' : 'default';
+        });
+      });
+    }
+
+    // رسم منطقة جديدة — الاستشاري/الأدمن فقط. العرض والتحديد أعلاه متاحان لأي دور (canMap ⊂ showMap)
+    if (canMap) {
+      let mapDown = null;
+      mapLayer.addEventListener('pointerdown', function (ev) {
+        if (mapTool !== 'draw') return;
+        mapDown = mapPosPct(ev);
+        mapDraft = { from: mapDown, to: mapDown };
+        mapLayer.setPointerCapture(ev.pointerId);
+      });
+      mapLayer.addEventListener('pointermove', function (ev) {
+        if (!mapDraft) return;
+        mapDraft.to = mapPosPct(ev);
+        renderMapLayer();
+      });
+      mapLayer.addEventListener('pointerup', function () {
+        if (!mapDraft) return;
+        const w = Math.abs(mapDraft.to[0] - mapDraft.from[0]), h = Math.abs(mapDraft.to[1] - mapDraft.from[1]);
+        if (w < 0.02 || h < 0.02) { mapDraft = null; renderMapLayer(); return; } // منطقة أصغر من أن تكون مقصودة
+        // لا كتابة على الخادم هنا — تبقى محلية فقط حتى يختار المستخدم بند كميات ويحفظ صراحةً (renderPendingPanel)
+        mapSelected = null;
+        mapTool = 'select';
+        back.querySelectorAll('.dv-maptool').forEach(function (x2) { x2.classList.toggle('active', x2.getAttribute('data-maptool') === 'select'); });
+        renderMapLayer(); renderMapPanel();
+      });
     }
 
     if (canDraw) {

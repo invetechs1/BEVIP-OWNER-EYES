@@ -361,6 +361,9 @@ textarea.inp { resize: vertical; min-height: 80px; }
   border-radius: 8px; padding: 6px 10px; font-size: 12px; cursor: pointer; font-family: inherit;
 }
 .dv-tool.active { border-color: var(--accent); color: var(--accent2); background: rgba(224, 164, 88, .12); font-weight: 700; }
+.dv-maptool { background: var(--panel); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 6px 10px; font-size: 12px; cursor: pointer; font-family: inherit; }
+.dv-maptool.active { border-color: var(--accent); color: var(--accent2); background: rgba(224, 164, 88, .12); font-weight: 700; }
+.btn.active { outline: 2px solid var(--accent); outline-offset: 1px; }
 .dv-color { width: 22px; height: 22px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
 .dv-color.active { border-color: #fff; box-shadow: 0 0 0 2px var(--accent); }
 .dv-stage-wrap { background: #0a0d13; border: 1px solid var(--border); border-radius: 12px; padding: 8px; overflow: auto; max-height: 58vh; }
@@ -1323,7 +1326,8 @@ textarea.inp { resize: vertical; min-height: 80px; }
     users: 'مستخدم', contractors: 'مقاول', projects: 'مشروع', photos: 'صورة', comments: 'رد',
     bimModels: 'نموذج BIM', bimDocs: 'وثيقة BIM',
     handoverItems: 'بند تسليم', punchList: 'ملاحظة تسليم Punch', warranties: 'ضمان',
-    keysLog: 'تسليم مفاتيح', incidents: 'تقرير حادث', scheduleTasks: 'مرحلة مشروع'
+    keysLog: 'تسليم مفاتيح', incidents: 'تقرير حادث', scheduleTasks: 'مرحلة مشروع',
+    drawingMappings: 'ربط منطقة مخطط', bimMappings: 'ربط عنصر BIM'
   };
 
   function labelOf(collection, item) {
@@ -1385,7 +1389,10 @@ textarea.inp { resize: vertical; min-height: 80px; }
     warranties: ['contractor', 'consultant', 'admin'],
     keysLog: ['consultant', 'admin', 'owner_rep'],
     incidents: ['consultant', 'admin'],
-    scheduleTasks: ['consultant', 'admin']
+    scheduleTasks: ['consultant', 'admin'],
+    // ربط مناطق المخططات وعناصر BIM ببنود جدول الكميات
+    drawingMappings: ['consultant', 'admin'],
+    bimMappings: ['consultant', 'admin']
   };
 
   function createCore(db, persist, opts) {
@@ -1501,6 +1508,9 @@ textarea.inp { resize: vertical; min-height: 80px; }
       s.warranties = db.warranties || [];
       s.keysLog = db.keysLog || [];
       s.incidents = db.incidents || [];
+      // ربط مناطق المخططات وعناصر BIM ببنود جدول الكميات (§11/§6 من وثيقة المتطلبات)
+      s.drawingMappings = db.drawingMappings || [];
+      s.bimMappings = db.bimMappings || [];
       // المالك يطلع على وثائق مشروعه (قراءة) — يقيدها نطاق المشروع أدناه
       s.files = (role === 'admin' || role === 'owner_rep' || role === 'consultant' || role === 'owner') ? (db.files || []) : [];
       s.messages = db.messages;
@@ -2405,6 +2415,24 @@ textarea.inp { resize: vertical; min-height: 80px; }
 (function () {
   'use strict';
 
+  I18n.registerDict({
+    'ربط بجدول الكميات': 'Link to BOQ',
+    'عرض الربط بجدول الكميات': 'View BOQ Linking',
+    'أداة الربط': 'Mapping Tool',
+    'تحديد': 'Select',
+    'رسم منطقة جديدة': 'Draw New Area',
+    'اختر منطقة مرسومة، أو ارسم منطقة جديدة لربطها ببند كميات.': 'Select a drawn area, or draw a new one to link it to a BOQ item.',
+    'منطقة مرتبطة': 'Mapped Area',
+    'منطقة جديدة — لم تُحفظ بعد': 'New Area — Not Saved Yet',
+    'نسبة التخصيص': 'Allocation',
+    'تغيير الربط': 'Change Link',
+    'نسبة التخصيص لهذه المنطقة': 'Allocation for this area',
+    'حذف المنطقة': 'Delete Area',
+    'حذف هذه المنطقة نهائياً؟': 'Permanently delete this area?',
+    'تم الحذف': 'Deleted',
+    'ارسم منطقة جديدة — الآن اربطها ببند كميات في اللوحة الجانبية': 'New area drawn — now link it to a BOQ item in the side panel'
+  });
+
   const esc = Charts.esc;
   const APPROVAL_COLS = ['shopDrawings', 'materials', 'scheduleSubmittals', 'wirs', 'changeOrders', 'payments',
     'methodStatements', 'claims', 'valueEngineering', 'handoverDocs'];
@@ -2459,9 +2487,15 @@ textarea.inp { resize: vertical; min-height: 80px; }
     const canReview = !!opts.canReview && APPROVAL_COLS.indexOf(collection) !== -1 && item.status === 'pending';
     const canRespond = !!opts.canRespond && item.status !== 'pending';
     const canDraw = canEdit || canRespond;
+    // مناطق مرتبطة ببنود الكميات (§6/§8 من وثيقة المتطلبات): العرض متاح لأي دور يفتح مخططاً يدعمه (المالك يرى الاعتماد الفعلي)،
+    // بينما الإنشاء/التعديل يقتصر على الاستشاري/الأدمن فقط.
+    const showMap = !!opts.showMap;
+    const canMap = showMap && !!opts.canMap;
+    const canDeleteMap = canMap && ctx.U.role === 'admin'; // الحذف متاح للأدمن فقط — يطابق قاعدة النظام العامة (deleteItem)
     let anns = JSON.parse(JSON.stringify(item.annotations || []));
     let tool = 'pen', color = COLORS[0], stampIdx = 0, current = null, dirty = false;
     let page = 1, numPages = 1, pdfDoc = null, viewingRev = null; // viewingRev: عرض نسخة مؤرشفة للقراءة
+    let mapMode = false, mapTool = 'select', mapDraft = null, mapSelected = null;
 
     const back = document.createElement('div');
     back.className = 'modal-back';
@@ -2480,6 +2514,7 @@ textarea.inp { resize: vertical; min-height: 80px; }
       '<button class="btn mutedb sm" id="dv-next">›</button></span>' +
       VS.pill(item.status || '') +
       (f.url ? '<a class="btn ghost sm" href="' + esc(f.url) + '" target="_blank">⬇ الملف الأصلي</a>' : '') +
+      (showMap ? '<button class="btn mutedb sm" id="dv-maptoggle">🗺️ ' + (canMap ? I18n.t('ربط بجدول الكميات') : I18n.t('عرض الربط بجدول الكميات')) + '</button>' : '') +
       '<button class="btn mutedb sm" id="dv-close">✕ إغلاق</button></div>' +
 
       (canDraw ?
@@ -2501,7 +2536,21 @@ textarea.inp { resize: vertical; min-height: 80px; }
         '<button class="btn sm" id="dv-save">💾 ' + (canRespond ? 'حفظ ردودي على نفس المستند' : 'حفظ الترميز') + '</button>' +
         '</div>' : '') +
 
-      '<div class="dv-body"><div class="dv-stage-wrap"><div class="dv-stage" id="dv-stage">' +
+      (showMap ?
+        '<div class="dv-tools" id="dv-maptools" style="display:none">' +
+        '<span class="small muted">' + I18n.t('أداة الربط') + ':</span>' +
+        '<button class="dv-maptool active" data-maptool="select">✋ ' + I18n.t('تحديد') + '</button>' +
+        (canMap ? '<button class="dv-maptool" data-maptool="draw">▭ ' + I18n.t('رسم منطقة جديدة') + '</button>' : '') +
+        '<span class="spacer"></span>' +
+        '<span class="small muted" style="display:flex;gap:12px;align-items:center">' +
+        '<span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#30a46c;margin-inline-end:4px"></i>' + I18n.t('معتمد بالكامل') + '</span>' +
+        '<span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#f5a524;margin-inline-end:4px"></i>' + I18n.t('إنجاز جزئي') + '</span>' +
+        '<span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#3a4258;margin-inline-end:4px"></i>' + I18n.t('لم يبدأ') + '</span>' +
+        '</span></div>' : '') +
+
+      '<div class="dv-body"><div class="dv-stage-wrap"><div class="dv-stage" id="dv-stage"' +
+      (f.isDxf ? ' style="min-height:60vh"' : '') + '>' + // dv-dxf-host أدناه absolute بلا ارتفاع طبيعي؛ بلا هذا يبقى dv-stage صفر الارتفاع
+
       (f.isImage
         ? '<img id="dv-img" src="' + esc(f.url) + '" alt="" draggable="false">'
         : f.isPdf
@@ -2519,9 +2568,11 @@ textarea.inp { resize: vertical; min-height: 80px; }
               '<div class="dv-sheet-sub">' + esc(item.ref || '') + (f.name ? ' · ' + esc(f.name) : '') + '</div>' +
               '<div class="dv-sheet-note">ورقة ترميز — الملف الأصلي بصيغة غير قابلة للمعاينة داخل المتصفح' + (f.url ? ' (حمّله من الزر أعلاه)' : '') + '</div></div>') +
       '<canvas id="dv-canvas"' + (f.isDxf ? ' style="display:none"' : '') + '></canvas>' +
+      (showMap ? '<div id="dv-maplayer" style="position:absolute;inset:0;display:none"></div>' : '') +
       '</div></div>' +
 
       '<div class="dv-side">' +
+      (showMap ? '<div class="dv-pins" id="dv-mappanel" style="display:none"></div>' : '') +
       '<div class="dv-pins" id="dv-pins"></div>' +
       '<div id="dv-history"></div>' +
       (canReview ?
@@ -2617,8 +2668,12 @@ textarea.inp { resize: vertical; min-height: 80px; }
       }
     }
 
+    // مهمة العرض الحالية على نفس الكانفس — PDF.js يمنع بدء عرض جديد قبل انتهاء/إلغاء السابق صراحةً
+    // (مثلاً عند نقر "التالي/السابق" بسرعة قبل اكتمال عرض الصفحة الأولى)
+    let pdfRenderTask = null;
     async function renderPdfPage() {
       if (!pdfDoc) return;
+      if (pdfRenderTask) { try { pdfRenderTask.cancel(); await pdfRenderTask.promise; } catch (e) { /* إلغاء متوقع — نتجاهله */ } }
       const pg = await pdfDoc.getPage(page);
       const wrapW = Math.max(stage.parentElement.clientWidth - 20, 640);
       const vp1 = pg.getViewport({ scale: 1 });
@@ -2627,7 +2682,9 @@ textarea.inp { resize: vertical; min-height: 80px; }
       pdfCanvas.width = vp.width; pdfCanvas.height = vp.height;
       pdfCanvas.style.width = Math.round(vp.width / devicePixelRatio) + 'px';
       pdfCanvas.style.height = Math.round(vp.height / devicePixelRatio) + 'px';
-      await pg.render({ canvasContext: pdfCanvas.getContext('2d'), viewport: vp }).promise;
+      pdfRenderTask = pg.render({ canvasContext: pdfCanvas.getContext('2d'), viewport: vp });
+      try { await pdfRenderTask.promise; } catch (e) { if (e && e.name === 'RenderingCancelledException') return; throw e; }
+      pdfRenderTask = null;
       back.querySelector('#dv-pageno').textContent = page + ' / ' + numPages;
       fit();
     }
@@ -2635,7 +2692,7 @@ textarea.inp { resize: vertical; min-height: 80px; }
     function gotoPage(d) {
       const n = Math.min(numPages, Math.max(1, page + d));
       if (n === page) return;
-      page = n; current = null;
+      page = n; current = null; mapSelected = null;
       renderPdfPage();
     }
     back.querySelector('#dv-prev').addEventListener('click', function () { gotoPage(1); });  // RTL: السابق يميناً
@@ -2650,6 +2707,7 @@ textarea.inp { resize: vertical; min-height: 80px; }
       canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
       cx2.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
       redraw();
+      if (showMap && mapMode) renderMapLayer();
     }
 
     function W() { return canvas.clientWidth; }
@@ -2814,6 +2872,206 @@ textarea.inp { resize: vertical; min-height: 80px; }
       return [(ev.clientX - r.left) / r.width, (ev.clientY - r.top) / r.height];
     }
 
+    // ============ ربط مناطق المخطط ببنود الكميات (§6 من وثيقة المتطلبات) ============
+    // كل منطقة مستطيلة تُخزَّن بإحداثيات منسوبة (0..1) لنفس الصفحة، ونفس نمط تخزين
+    // الترميز أعلاه — وتُلوَّن حسب نسبة إنجاز بند الكميات المربوط بها (bq.progress)،
+    // بلا أي حساب مواز؛ نفس مصدر الحقيقة الذي تعتمده لوحة القيادة والتقارير.
+    const mapLayer = showMap ? back.querySelector('#dv-maplayer') : null;
+    const mapPanel = showMap ? back.querySelector('#dv-mappanel') : null;
+
+    function mapStatusColor(bq) {
+      if (!bq) return null;
+      const p = bq.progress || 0;
+      if (p >= 100) return '#30a46c';
+      if (p > 0) return '#f5a524';
+      return '#3a4258';
+    }
+    function pageMappings() {
+      if (!showMap) return [];
+      return (ctx.S.drawingMappings || []).filter(function (m) { return m.drawingId === item.id && (m.page || 1) === page; });
+    }
+    function boqOf(m) { return (ctx.S.boqItems || []).find(function (b) { return b.id === m.boqItemId; }) || null; }
+    function relevantBoq() {
+      return (ctx.S.boqItems || []).filter(function (b) { return !item.floor || item.floor === 'ELEV' || b.floor === item.floor; })
+        .sort(function (a, b) { return (a.code || '').localeCompare(b.code || ''); });
+    }
+    function mapPosPct(ev) {
+      const r = mapLayer.getBoundingClientRect();
+      return [Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width)), Math.max(0, Math.min(1, (ev.clientY - r.top) / r.height))];
+    }
+
+    /** منطقة مرسومة للتو ولم تُحفظ بعد — لا تُكتب على الخادم إلا بعد اختيار بند كميات صراحةً (§ لا سجلات يتيمة) */
+    function renderPendingPanel() {
+      const x = Math.min(mapDraft.from[0], mapDraft.to[0]), y = Math.min(mapDraft.from[1], mapDraft.to[1]);
+      const w = Math.abs(mapDraft.to[0] - mapDraft.from[0]), h = Math.abs(mapDraft.to[1] - mapDraft.from[1]);
+      mapPanel.innerHTML =
+        '<b class="small">▭ ' + I18n.t('منطقة جديدة — لم تُحفظ بعد') + '</b>' +
+        '<div class="mt">' +
+        '<label class="fl">' + I18n.t('اربط ببند كميات') + '</label>' +
+        '<select class="inp" id="dm-boqsel"><option value="">' + I18n.t('اختر بند كميات...') + '</option>' +
+        relevantBoq().map(function (b) { return '<option value="' + b.id + '">' + esc(b.code || b.id) + ' — ' + esc(b.description || '') + '</option>'; }).join('') + '</select>' +
+        '<label class="fl">' + I18n.t('نسبة التخصيص لهذه المنطقة') + '</label>' +
+        '<input class="inp num" id="dm-pct" type="number" min="1" max="100" value="100">' +
+        '<div class="m-actions">' +
+        '<button class="btn sm" id="dm-save">💾 ' + I18n.t('حفظ الربط') + '</button>' +
+        '<button class="btn mutedb sm" id="dm-cancel">' + I18n.t('إلغاء') + '</button>' +
+        '</div></div>';
+      mapPanel.querySelector('#dm-save').addEventListener('click', async function () {
+        const boqItemId = mapPanel.querySelector('#dm-boqsel').value;
+        if (!boqItemId) { VS.toast(I18n.t('اختر بند كميات...'), true); return; }
+        const pct = Math.max(1, Math.min(100, Number(mapPanel.querySelector('#dm-pct').value) || 100));
+        try {
+          const created = await Api.create('drawingMappings', {
+            drawingId: item.id, projectId: ctx.projectId, page: page, x: x, y: y, w: w, h: h,
+            boqItemId: boqItemId, allocationPct: pct
+          });
+          mapDraft = null;
+          await ctx.refreshSilent();
+          mapSelected = created;
+          VS.toast(I18n.t('تم الربط بنجاح'));
+          renderMapLayer(); renderMapPanel();
+        } catch (e) { VS.toast(e.message, true); }
+      });
+      mapPanel.querySelector('#dm-cancel').addEventListener('click', function () {
+        mapDraft = null; // لم يُكتب شيء على الخادم بعد — إلغاء نظيف بلا أي أثر
+        renderMapLayer(); renderMapPanel();
+      });
+    }
+
+    function renderMapPanel() {
+      if (!mapPanel) return;
+      if (mapDraft) { renderPendingPanel(); return; }
+      if (!mapSelected) {
+        mapPanel.innerHTML = '<div class="small muted">' + I18n.t('اختر منطقة مرسومة، أو ارسم منطقة جديدة لربطها ببند كميات.') + '</div>';
+        return;
+      }
+      const m = mapSelected;
+      const bq = boqOf(m);
+      let html = '<b class="small">📐 ' + I18n.t('منطقة مرتبطة') + '</b>';
+      if (bq) {
+        html += '<div class="mt small"><b>' + esc(bq.code || bq.id) + '</b> — ' + esc(bq.description || '') + '</div>' +
+          '<div class="flex" style="justify-content:space-between;margin-top:8px"><span class="small muted">' + I18n.t('الإنجاز المعتمد') + '</span><b class="num small">' + (bq.progress || 0) + '%</b></div>' +
+          '<div class="bar" style="margin-top:4px"><i style="width:' + (bq.progress || 0) + '%;background:' + mapStatusColor(bq) + '"></i></div>' +
+          '<div class="small muted mt">' + I18n.t('نسبة التخصيص') + ': <b class="num">' + (m.allocationPct || 100) + '%</b></div>';
+      }
+      if (canMap) {
+        html += '<div class="mt" style="border-top:1px solid var(--border);padding-top:10px">' +
+          '<label class="fl">' + (bq ? I18n.t('تغيير الربط') : I18n.t('اربط ببند كميات')) + '</label>' +
+          '<select class="inp" id="dm-boqsel"><option value="">' + I18n.t('اختر بند كميات...') + '</option>' +
+          relevantBoq().map(function (b) {
+            return '<option value="' + b.id + '"' + (m.boqItemId === b.id ? ' selected' : '') + '>' + esc(b.code || b.id) + ' — ' + esc(b.description || '') + '</option>';
+          }).join('') + '</select>' +
+          '<label class="fl">' + I18n.t('نسبة التخصيص لهذه المنطقة') + '</label>' +
+          '<input class="inp num" id="dm-pct" type="number" min="1" max="100" value="' + (m.allocationPct || 100) + '">' +
+          '<div class="m-actions">' +
+          '<button class="btn sm" id="dm-save">💾 ' + I18n.t('حفظ الربط') + '</button>' +
+          (canDeleteMap ? '<button class="btn danger sm" id="dm-del">🗑 ' + I18n.t('حذف المنطقة') + '</button>' : '') +
+          '</div></div>';
+      }
+      mapPanel.innerHTML = html;
+      const saveBtn = mapPanel.querySelector('#dm-save');
+      if (saveBtn) saveBtn.addEventListener('click', async function () {
+        const boqItemId = mapPanel.querySelector('#dm-boqsel').value;
+        if (!boqItemId) { VS.toast(I18n.t('اختر بند كميات...'), true); return; }
+        const pct = Math.max(1, Math.min(100, Number(mapPanel.querySelector('#dm-pct').value) || 100));
+        try {
+          await Api.update('drawingMappings', m.id, { boqItemId: boqItemId, allocationPct: pct });
+          await ctx.refreshSilent();
+          VS.toast(I18n.t('تم الربط بنجاح'));
+          mapSelected = (ctx.S.drawingMappings || []).find(function (x) { return x.id === m.id; }) || null;
+          renderMapLayer(); renderMapPanel();
+        } catch (e) { VS.toast(e.message, true); }
+      });
+      const delBtn = mapPanel.querySelector('#dm-del');
+      if (delBtn) delBtn.addEventListener('click', async function () {
+        if (!confirm(I18n.t('حذف هذه المنطقة نهائياً؟'))) return;
+        try {
+          await Api.remove('drawingMappings', m.id);
+          await ctx.refreshSilent();
+          mapSelected = null;
+          VS.toast(I18n.t('تم الحذف'));
+          renderMapLayer(); renderMapPanel();
+        } catch (e) { VS.toast(e.message, true); }
+      });
+    }
+
+    function renderMapLayer() {
+      if (!mapLayer) return;
+      mapLayer.innerHTML = '';
+      pageMappings().forEach(function (m) {
+        const bq = boqOf(m);
+        const box = document.createElement('div');
+        box.style.cssText = 'position:absolute;cursor:pointer;border:1.5px solid;left:' + (m.x * 100) + '%;top:' + (m.y * 100) + '%;width:' + (m.w * 100) + '%;height:' + (m.h * 100) + '%;';
+        const c = mapStatusColor(bq) || '#8b95a8';
+        box.style.borderColor = c;
+        box.style.background = c + (bq ? '46' : '22');
+        if (m === mapSelected || (mapSelected && mapSelected.id === m.id)) box.style.boxShadow = '0 0 0 2px var(--accent)';
+        box.title = bq ? (bq.code || bq.id) + ' — ' + (bq.progress || 0) + '%' : I18n.t('غير مربوط');
+        box.addEventListener('click', function (e) {
+          e.stopPropagation();
+          if (mapTool !== 'select') return;
+          mapDraft = null; // اختيار منطقة موجودة يُلغي أي رسم جديد غير محفوظ (لم يُكتب على الخادم أصلاً)
+          mapSelected = m;
+          renderMapLayer(); renderMapPanel();
+        });
+        mapLayer.appendChild(box);
+      });
+      if (mapDraft) {
+        const box = document.createElement('div');
+        const x = Math.min(mapDraft.from[0], mapDraft.to[0]), y = Math.min(mapDraft.from[1], mapDraft.to[1]);
+        const w = Math.abs(mapDraft.to[0] - mapDraft.from[0]), h = Math.abs(mapDraft.to[1] - mapDraft.from[1]);
+        box.style.cssText = 'position:absolute;border:1.5px dashed var(--accent);background:rgba(224,164,88,.18);left:' + (x * 100) + '%;top:' + (y * 100) + '%;width:' + (w * 100) + '%;height:' + (h * 100) + '%;';
+        mapLayer.appendChild(box);
+      }
+    }
+
+    if (showMap) {
+      const toggleBtn = back.querySelector('#dv-maptoggle');
+      const maptools = back.querySelector('#dv-maptools');
+      toggleBtn.addEventListener('click', function () {
+        mapMode = !mapMode;
+        toggleBtn.classList.toggle('active', mapMode);
+        maptools.style.display = mapMode ? '' : 'none';
+        mapLayer.style.display = mapMode ? '' : 'none';
+        mapPanel.style.display = mapMode ? '' : 'none';
+        canvas.style.pointerEvents = mapMode ? 'none' : '';
+        if (mapMode) { renderMapLayer(); renderMapPanel(); }
+      });
+      back.querySelectorAll('.dv-maptool').forEach(function (b) {
+        b.addEventListener('click', function () {
+          mapTool = b.getAttribute('data-maptool');
+          back.querySelectorAll('.dv-maptool').forEach(function (x) { x.classList.toggle('active', x === b); });
+          mapLayer.style.cursor = mapTool === 'draw' ? 'crosshair' : 'default';
+        });
+      });
+    }
+
+    // رسم منطقة جديدة — الاستشاري/الأدمن فقط. العرض والتحديد أعلاه متاحان لأي دور (canMap ⊂ showMap)
+    if (canMap) {
+      let mapDown = null;
+      mapLayer.addEventListener('pointerdown', function (ev) {
+        if (mapTool !== 'draw') return;
+        mapDown = mapPosPct(ev);
+        mapDraft = { from: mapDown, to: mapDown };
+        mapLayer.setPointerCapture(ev.pointerId);
+      });
+      mapLayer.addEventListener('pointermove', function (ev) {
+        if (!mapDraft) return;
+        mapDraft.to = mapPosPct(ev);
+        renderMapLayer();
+      });
+      mapLayer.addEventListener('pointerup', function () {
+        if (!mapDraft) return;
+        const w = Math.abs(mapDraft.to[0] - mapDraft.from[0]), h = Math.abs(mapDraft.to[1] - mapDraft.from[1]);
+        if (w < 0.02 || h < 0.02) { mapDraft = null; renderMapLayer(); return; } // منطقة أصغر من أن تكون مقصودة
+        // لا كتابة على الخادم هنا — تبقى محلية فقط حتى يختار المستخدم بند كميات ويحفظ صراحةً (renderPendingPanel)
+        mapSelected = null;
+        mapTool = 'select';
+        back.querySelectorAll('.dv-maptool').forEach(function (x2) { x2.classList.toggle('active', x2.getAttribute('data-maptool') === 'select'); });
+        renderMapLayer(); renderMapPanel();
+      });
+    }
+
     if (canDraw) {
       canvas.style.cursor = 'crosshair';
       canvas.addEventListener('pointerdown', function (ev) {
@@ -2957,9 +3215,43 @@ textarea.inp { resize: vertical; min-height: 80px; }
  * بصير | عارض BIM/IFC ثلاثي الأبعاد الحقيقي (web-ifc + three.js)
  * يفتح ملف IFC فعلياً داخل المتصفح، يقرأ هندسته، ويعرضه بتدوير/تكبير تفاعلي
  * — بلا أي خدمة خارجية. (DWG/RVT الأصلية تحتاج مسار Autodesk APS المنفصل.)
+ *
+ * ربط عناصر BIM ببنود جدول الكميات (§10-12 من وثيقة المتطلبات):
+ * كل عنصر في النموذج (عمود، بلاطة، لوح واجهة...) له expressID حقيقي من ملف الـIFC.
+ * عند تمرير ctx + modelId، يُلوَّن كل عنصر حسب نسبة إنجاز بند الكميات المربوط به —
+ * فيتحول من داكن/شفاف (غير مربوط) إلى كهرماني (جزئي) إلى أخضر ساطع (معتمد بالكامل)،
+ * بنفس مصدر الحقيقة الذي تعتمده لوحة القيادة والتقارير (bq.progress) — لا حساب مواز.
+ * إن كان canMap=true (استشاري/أدمن)، يمكن النقر على عنصر وربطه ببند كميات مباشرة.
  */
 (function () {
   'use strict';
+
+  I18n.registerDict({
+    'ربط عناصر النموذج ببنود الكميات': 'Link Model Elements to BOQ Items',
+    'اختر عنصراً في النموذج لعرض تفاصيله': 'Select an element in the model to see its details',
+    'العنصر': 'Element',
+    'الفئة': 'Category',
+    'المعرّف الفريد (GUID)': 'Unique ID (GUID)',
+    'بند الكميات المربوط': 'Linked BOQ Item',
+    'غير مربوط بعد': 'Not linked yet',
+    'اربط ببند كميات': 'Link to a BOQ Item',
+    'اختر بند كميات...': 'Select a BOQ item…',
+    'نسبة التخصيص لهذا العنصر': 'Allocation for this element',
+    'حفظ الربط': 'Save Link',
+    'إلغاء الربط': 'Remove Link',
+    'تم الربط بنجاح': 'Linked successfully',
+    'تم إلغاء الربط': 'Link removed',
+    'الإنجاز المعتمد': 'Approved Progress',
+    'القيمة المعتمدة': 'Approved Value',
+    'دلالة الألوان': 'Color Key',
+    'غير مربوط': 'Not linked',
+    'لم يبدأ': 'Not started',
+    'إنجاز جزئي': 'Partially approved',
+    'معتمد بالكامل': 'Fully approved',
+    'عناصر مربوطة': 'elements linked',
+    'انقر أي عنصر في النموذج لعرض تفاصيله أو ربطه ببند كميات.': 'Click any element in the model to see its details or link it to a BOQ item.',
+    'عنصر بلا اسم': 'Unnamed element'
+  });
 
   let webifcPromise = null;
   function loadThree() { return import('/vendor/bim/three.module.js'); }
@@ -2978,30 +3270,63 @@ textarea.inp { resize: vertical; min-height: 80px; }
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
+  // ألوان الحالة — نفس القيم الدلالية المستخدمة في باقي النظام (styles.css) لا حساب مواز
+  const COL_OK = 0x30a46c, COL_WARN = 0xf5a524, COL_NONE = 0x3a4258;
+
+  /** يحسب حالة العنصر ولونه من نسبة إنجاز بند الكميات المربوط به فقط (bq.progress — مصدر الحقيقة الوحيد) */
+  function statusOf(boqItem) {
+    if (!boqItem) return { key: 'unlinked', color: null };
+    const p = boqItem.progress || 0;
+    if (p >= 100) return { key: 'ok', color: COL_OK, pct: p };
+    if (p > 0) return { key: 'warn', color: COL_WARN, pct: p };
+    return { key: 'none', color: COL_NONE, pct: p };
+  }
+
   /**
-   * فتح عارض BIM. opts: { title, url } — url لملف IFC.
+   * فتح عارض BIM.
+   * opts: { title, url, ctx, modelId, canMap }
+   *  - ctx + modelId: يُفعّلان تلوين العناصر حسب اعتماد بنود الكميات المربوطة (لكل الأدوار، قراءة).
+   *  - canMap: يُظهر لوحة الربط الجانبية للنقر وربط/إلغاء ربط عنصر ببند كميات (استشاري/أدمن فقط).
    */
   async function open(opts) {
     opts = opts || {};
+    const ctx = opts.ctx || null;
+    const modelId = opts.modelId || null;
+    const canMap = !!opts.canMap && !!ctx && !!modelId;
+    const canDelete = canMap && ctx.U.role === 'admin'; // الحذف متاح للأدمن فقط — يطابق قاعدة النظام العامة (deleteItem)
+    const showPanel = !!ctx; // لوحة القراءة تظهر لأي دور مرّر ctx، والربط الفعلي يقتصر على canMap
+
     const back = document.createElement('div');
     back.className = 'modal-back';
     back.innerHTML =
       '<div class="dv-wrap" style="width:min(1280px,97vw)">' +
-      '<div class="dv-head"><div><b>🧊 ' + esc(opts.title || 'نموذج BIM') + '</b>' +
-      '<div class="small muted" id="bv-info">جارٍ تحميل محرك BIM وقراءة النموذج...</div></div>' +
+      '<div class="dv-head"><div><b>🧊 ' + esc(opts.title || I18n.t('نموذج BIM')) + '</b>' +
+      '<div class="small muted" id="bv-info">' + I18n.t('جارٍ تحميل محرك BIM وقراءة النموذج...') + '</div></div>' +
       '<span class="spacer"></span>' +
       '<div class="flex" style="gap:6px">' +
-      '<button class="btn mutedb sm" id="bv-fit">⤢ ملاءمة</button>' +
-      '<button class="btn mutedb sm" id="bv-wire">🔲 شبكي</button>' +
-      '<button class="btn mutedb sm" id="bv-close">✕ إغلاق</button></div></div>' +
-      '<div class="bv-stage" id="bv-stage" style="position:relative;background:#0d1017;border:1px solid var(--border);border-radius:12px;height:70vh;overflow:hidden">' +
-      '<div id="bv-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#8b95a8;flex-direction:column;gap:10px">' +
-      '<div style="font-size:34px">🧊</div><div class="small">جارٍ بناء النموذج ثلاثي الأبعاد...</div></div></div>' +
-      '<div class="small muted mt">🖱 اسحب للتدوير · عجلة الماوس للتكبير · اسحب باليمين للتحريك</div>' +
+      '<button class="btn mutedb sm" id="bv-fit">⤢ ' + I18n.t('ملاءمة') + '</button>' +
+      '<button class="btn mutedb sm" id="bv-wire">🔲 ' + I18n.t('شبكي') + '</button>' +
+      '<button class="btn mutedb sm" id="bv-close">✕ ' + I18n.t('إغلاق') + '</button></div></div>' +
+
+      '<div class="dv-body">' +
+      '<div class="dv-stage-wrap" style="padding:0">' +
+      '<div class="bv-stage" id="bv-stage" style="position:relative;background:#0d1017;border-radius:12px;height:70vh;overflow:hidden">' +
+      '<div id="bv-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#8b95a8;flex-direction:column;gap:10px;z-index:2">' +
+      '<div style="font-size:34px">🧊</div><div class="small">' + I18n.t('جارٍ بناء النموذج ثلاثي الأبعاد...') + '</div></div></div>' +
+      '<div class="small muted mt">🖱 ' + I18n.t('اسحب للتدوير · عجلة الماوس للتكبير · اسحب باليمين للتحريك') + (showPanel ? ' · ' + I18n.t('انقر عنصراً لعرض تفاصيله') : '') + '</div>' +
+      '</div>' +
+      (showPanel ?
+        '<div class="dv-side" id="bv-side">' +
+        '<div class="dv-pins" id="bv-legend"></div>' +
+        '<div class="dv-review" id="bv-panel"><div class="small muted">' + I18n.t('اختر عنصراً في النموذج لعرض تفاصيله') + '</div></div>' +
+        '</div>' : '') +
+      '</div>' +
       '</div>';
     document.body.appendChild(back);
     const stage = back.querySelector('#bv-stage');
     const info = back.querySelector('#bv-info');
+    const panelEl = back.querySelector('#bv-panel');
+    const legendEl = back.querySelector('#bv-legend');
     const toast = (window.ViewsShared && window.ViewsShared.toast) || function (m) { console.log(m); };
 
     function close() { cancelAnimationFrame(raf); try { renderer && renderer.dispose(); } catch (e) {} back.remove(); window.removeEventListener('resize', onResize); }
@@ -3009,8 +3334,139 @@ textarea.inp { resize: vertical; min-height: 80px; }
     back.addEventListener('click', function (e) { if (e.target === back) close(); });
 
     let THREE, renderer, scene, camera, root, raf = 0, meshes = [], wire = false;
+    let selected = null; // آخر مesh مُختار
+    const elementInfo = {}; // expressID -> {name, globalId, category}
+    let mappings = {}; // expressID -> سجل الربط الحالي (من ctx.S.bimMappings)
+
     // مدار يدوي (بلا اعتماد إضافي)
     const cam = { theta: Math.PI * 0.25, phi: Math.PI * 0.32, dist: 20, target: null };
+
+    function boqOptions() {
+      if (!ctx) return [];
+      return (ctx.S.boqItems || []).slice().sort(function (a, b) { return (a.code || '').localeCompare(b.code || ''); });
+    }
+
+    function refreshMappings() {
+      mappings = {};
+      if (!ctx || !modelId) return;
+      (ctx.S.bimMappings || []).forEach(function (m) {
+        if (m.bimModelId === modelId) mappings[m.elementExpressId] = m;
+      });
+    }
+
+    function boqOf(mapping) {
+      if (!mapping || !ctx) return null;
+      return (ctx.S.boqItems || []).find(function (b) { return b.id === mapping.boqItemId; }) || null;
+    }
+
+    /** يعيد تلوين كل عناصر النموذج حسب حالة الربط والاعتماد الحالية (يُستدعى بعد كل تغيير) */
+    function recolorAll() {
+      if (!ctx || !modelId) return;
+      refreshMappings();
+      meshes.forEach(function (mesh) {
+        const id = mesh.userData.expressID;
+        const mapping = mappings[id];
+        if (!mapping) {
+          // غير مربوط بعد: نُبقي اللون الأصلي لكن نُخفّف الشفافية (تحذير بصري بلا فقدان شكل النموذج)
+          mesh.material.color.copy(mesh.userData.baseColor);
+          mesh.material.opacity = Math.min(mesh.userData.baseOpacity, 0.35);
+          mesh.material.transparent = true;
+          return;
+        }
+        const st = statusOf(boqOf(mapping));
+        mesh.material.color.setHex(st.color);
+        mesh.material.opacity = 1;
+        mesh.material.transparent = false;
+      });
+    }
+
+    function renderLegend() {
+      if (!legendEl) return;
+      const linked = Object.keys(mappings).length;
+      legendEl.innerHTML =
+        '<b class="small">' + I18n.t('دلالة الألوان') + '</b>' +
+        '<div class="small muted" style="margin-top:8px;display:flex;flex-direction:column;gap:6px">' +
+        '<span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#30a46c;margin-inline-end:6px"></i>' + I18n.t('معتمد بالكامل') + '</span>' +
+        '<span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#f5a524;margin-inline-end:6px"></i>' + I18n.t('إنجاز جزئي') + '</span>' +
+        '<span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#3a4258;margin-inline-end:6px"></i>' + I18n.t('لم يبدأ') + '</span>' +
+        '<span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#8b95a8;opacity:.4;margin-inline-end:6px"></i>' + I18n.t('غير مربوط') + '</span>' +
+        '</div><div class="small muted mt" style="border-top:1px solid var(--border);padding-top:8px">' +
+        '<b class="num">' + linked + '</b> ' + I18n.t('عناصر مربوطة') + '</div>';
+    }
+
+    function renderPanel() {
+      if (!panelEl) return;
+      if (!selected) {
+        panelEl.innerHTML = '<div class="small muted">' + I18n.t('انقر أي عنصر في النموذج لعرض تفاصيله أو ربطه ببند كميات.') + '</div>';
+        return;
+      }
+      const id = selected.userData.expressID;
+      const info2 = elementInfo[id] || {};
+      const mapping = mappings[id];
+      const bq = boqOf(mapping);
+      const st = statusOf(bq);
+
+      let html = '<b class="small">🔩 ' + esc(info2.name || I18n.t('عنصر بلا اسم')) + '</b>' +
+        '<div class="small muted" style="margin:6px 0">' + esc(info2.category || '') + '</div>' +
+        '<div class="small" style="font-family:monospace;font-size:10.5px;color:var(--muted);word-break:break-all">' + esc(info2.globalId || '') + '</div>';
+
+      if (bq) {
+        html += '<div class="mt" style="border-top:1px solid var(--border);padding-top:10px">' +
+          '<div class="small"><b>' + I18n.t('بند الكميات المربوط') + ':</b> ' + esc(bq.code || bq.id) + ' — ' + esc(bq.description || '') + '</div>' +
+          '<div class="flex" style="justify-content:space-between;margin-top:8px"><span class="small muted">' + I18n.t('الإنجاز المعتمد') + '</span><b class="num small">' + (bq.progress || 0) + '%</b></div>' +
+          '<div class="bar" style="margin-top:4px"><i style="width:' + (bq.progress || 0) + '%;background:' + (st.key === 'ok' ? '#30a46c' : st.key === 'warn' ? '#f5a524' : '#3a4258') + '"></i></div>' +
+          '<div class="flex" style="justify-content:space-between;margin-top:8px"><span class="small muted">' + I18n.t('القيمة المعتمدة') + '</span><b class="num small">' + Math.round((bq.qty || 0) * (bq.unitPrice || 0) * (bq.progress || 0) / 100).toLocaleString('en-US') + ' ' + I18n.t('ر.س') + '</b></div>' +
+          '</div>';
+      } else {
+        html += '<div class="mt small muted" style="border-top:1px solid var(--border);padding-top:10px">' + I18n.t('غير مربوط بعد') + '</div>';
+      }
+
+      if (canMap) {
+        html += '<div class="mt" style="border-top:1px solid var(--border);padding-top:10px">' +
+          '<label class="fl">' + (bq ? I18n.t('تغيير الربط') : I18n.t('اربط ببند كميات')) + '</label>' +
+          '<select class="inp" id="bv-boqsel"><option value="">' + I18n.t('اختر بند كميات...') + '</option>' +
+          boqOptions().map(function (b) {
+            return '<option value="' + b.id + '"' + (mapping && mapping.boqItemId === b.id ? ' selected' : '') + '>' + esc(b.code || b.id) + ' — ' + esc(b.description || '') + '</option>';
+          }).join('') + '</select>' +
+          '<label class="fl">' + I18n.t('نسبة التخصيص لهذا العنصر') + '</label>' +
+          '<input class="inp num" id="bv-pct" type="number" min="1" max="100" value="' + (mapping ? mapping.allocationPct : 100) + '">' +
+          '<div class="m-actions">' +
+          '<button class="btn sm" id="bv-savelink">💾 ' + I18n.t('حفظ الربط') + '</button>' +
+          (mapping && canDelete ? '<button class="btn danger sm" id="bv-unlink">' + I18n.t('إلغاء الربط') + '</button>' : '') +
+          '</div></div>';
+      }
+      panelEl.innerHTML = html;
+
+      const saveBtn = panelEl.querySelector('#bv-savelink');
+      if (saveBtn) saveBtn.addEventListener('click', async function () {
+        const boqItemId = panelEl.querySelector('#bv-boqsel').value;
+        if (!boqItemId) { toast(I18n.t('اختر بند كميات...'), true); return; }
+        const pct = Math.max(1, Math.min(100, Number(panelEl.querySelector('#bv-pct').value) || 100));
+        try {
+          if (mapping) {
+            await Api.update('bimMappings', mapping.id, { boqItemId: boqItemId, allocationPct: pct });
+          } else {
+            await Api.create('bimMappings', {
+              bimModelId: modelId, elementExpressId: id, projectId: ctx.projectId,
+              elementName: info2.name || '', elementCategory: info2.category || '', globalId: info2.globalId || '',
+              boqItemId: boqItemId, allocationPct: pct
+            });
+          }
+          await ctx.refreshSilent();
+          toast(I18n.t('تم الربط بنجاح'));
+          recolorAll(); renderLegend(); renderPanel();
+        } catch (e) { toast(e.message, true); }
+      });
+      const unlinkBtn = panelEl.querySelector('#bv-unlink');
+      if (unlinkBtn) unlinkBtn.addEventListener('click', async function () {
+        try {
+          await Api.remove('bimMappings', mapping.id);
+          await ctx.refreshSilent();
+          toast(I18n.t('تم إلغاء الربط'));
+          recolorAll(); renderLegend(); renderPanel();
+        } catch (e) { toast(e.message, true); }
+      });
+    }
 
     try {
       THREE = await loadThree();
@@ -3022,7 +3478,7 @@ textarea.inp { resize: vertical; min-height: 80px; }
       const resp = await fetch(opts.url);
       if (!resp.ok) throw new Error('تعذّر جلب ملف النموذج');
       const buf = new Uint8Array(await resp.arrayBuffer());
-      const modelID = api.OpenModel(buf);
+      const modelIfcID = api.OpenModel(buf);
 
       scene = new THREE.Scene();
       scene.background = new THREE.Color(0x0d1017);
@@ -3031,15 +3487,15 @@ textarea.inp { resize: vertical; min-height: 80px; }
 
       const box = new THREE.Box3();
       let meshCount = 0, triCount = 0;
+      const expressIDs = [];
 
-      api.StreamAllMeshes(modelID, function (placedMesh) {
+      api.StreamAllMeshes(modelIfcID, function (placedMesh) {
         const geos = placedMesh.geometries;
         for (let i = 0; i < geos.size(); i++) {
           const pg = geos.get(i);
-          const geo = api.GetGeometry(modelID, pg.geometryExpressID);
+          const geo = api.GetGeometry(modelIfcID, pg.geometryExpressID);
           const verts = api.GetVertexArray(geo.GetVertexData(), geo.GetVertexDataSize());
           const idx = api.GetIndexArray(geo.GetIndexData(), geo.GetIndexDataSize());
-          // verts: [px,py,pz,nx,ny,nz, ...]
           const nV = verts.length / 6;
           const pos = new Float32Array(nV * 3), nor = new Float32Array(nV * 3);
           for (let v = 0; v < nV; v++) {
@@ -3059,6 +3515,9 @@ textarea.inp { resize: vertical; min-height: 80px; }
           const m = pg.flatTransformation;
           mesh.matrixAutoUpdate = false;
           mesh.matrix.set(m[0], m[4], m[8], m[12], m[1], m[5], m[9], m[13], m[2], m[6], m[10], m[14], m[3], m[7], m[11], m[15]);
+          mesh.userData.expressID = placedMesh.expressID;
+          mesh.userData.baseColor = mat.color.clone();
+          mesh.userData.baseOpacity = c.w;
           root.add(mesh);
           meshes.push(mesh);
           bg.computeBoundingBox();
@@ -3066,18 +3525,31 @@ textarea.inp { resize: vertical; min-height: 80px; }
           box.union(bb);
           meshCount++;
           triCount += idx.length / 3;
-          // تحرير ذاكرة web-ifc
           geo.delete && geo.delete();
         }
+        if (showPanel && expressIDs.indexOf(placedMesh.expressID) === -1) expressIDs.push(placedMesh.expressID);
       });
-      api.CloseModel(modelID);
 
-      // إضاءة
+      // نقرأ خصائص كل عنصر (الاسم، GUID، التصنيف) قبل إغلاق النموذج — تُستخدم في لوحة التفاصيل
+      if (showPanel && api.properties && api.properties.getItemProperties) {
+        for (let i = 0; i < expressIDs.length; i++) {
+          const eid = expressIDs[i];
+          try {
+            const props = await api.properties.getItemProperties(modelIfcID, eid, false);
+            elementInfo[eid] = {
+              name: (props.Name && props.Name.value) || '',
+              globalId: (props.GlobalId && props.GlobalId.value) || '',
+              category: (props.PredefinedType && props.PredefinedType.value) || ''
+            };
+          } catch (e) { /* عنصر لا يدعم قراءة الخصائص — نتجاهله بأمان */ }
+        }
+      }
+      api.CloseModel(modelIfcID);
+
       scene.add(new THREE.AmbientLight(0xffffff, 0.65));
       const d1 = new THREE.DirectionalLight(0xffffff, 0.8); d1.position.set(1, 2, 1.5); scene.add(d1);
       const d2 = new THREE.DirectionalLight(0xafc4ff, 0.35); d2.position.set(-1, -0.5, -1); scene.add(d2);
 
-      // كاميرا وملاءمة
       const center = box.getCenter(new THREE.Vector3());
       const size = box.getSize(new THREE.Vector3());
       cam.target = center;
@@ -3090,8 +3562,10 @@ textarea.inp { resize: vertical; min-height: 80px; }
       stage.appendChild(renderer.domElement);
       const loading = back.querySelector('#bv-loading'); if (loading) loading.remove();
 
-      info.innerHTML = '✅ نموذج IFC حقيقي — <b class="num">' + meshCount + '</b> عنصر · <b class="num">' + Math.round(triCount).toLocaleString('en-US') + '</b> مثلث';
+      info.innerHTML = '✅ ' + I18n.t('نموذج IFC حقيقي') + ' — <b class="num">' + meshCount + '</b> ' + I18n.t('عنصر') + ' · <b class="num">' + Math.round(triCount).toLocaleString('en-US') + '</b> ' + I18n.t('مثلث');
       window.BimViewer._last = { meshCount: meshCount, triCount: triCount };
+
+      if (showPanel) { recolorAll(); renderLegend(); renderPanel(); }
 
       function applyCam() {
         const t = cam.target;
@@ -3114,30 +3588,56 @@ textarea.inp { resize: vertical; min-height: 80px; }
       }
       window.addEventListener('resize', onResize);
 
-      // تحكم بالماوس
-      let drag = null;
-      renderer.domElement.addEventListener('pointerdown', function (e) { drag = { x: e.clientX, y: e.clientY, btn: e.button }; renderer.domElement.setPointerCapture(e.pointerId); });
+      // تحكم بالماوس + تمييز نقرة عادية (اختيار) عن سحب (تدوير/تحريك)
+      let drag = null, downPt = null;
+      renderer.domElement.addEventListener('pointerdown', function (e) {
+        drag = { x: e.clientX, y: e.clientY, btn: e.button };
+        downPt = { x: e.clientX, y: e.clientY, t: Date.now() };
+        renderer.domElement.setPointerCapture(e.pointerId);
+      });
       renderer.domElement.addEventListener('pointermove', function (e) {
         if (!drag) return;
         const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag.x = e.clientX; drag.y = e.clientY;
-        if (drag.btn === 2 || e.shiftKey) { // تحريك
+        if (drag.btn === 2 || e.shiftKey) {
           const panScale = cam.dist * 0.0015;
           const right = new THREE.Vector3().subVectors(camera.position, cam.target).cross(camera.up).normalize();
           const up = camera.up.clone();
           cam.target.addScaledVector(right, -dx * panScale).addScaledVector(up, dy * panScale);
-        } else { // تدوير
+        } else {
           cam.theta -= dx * 0.008;
           cam.phi = Math.max(0.05, Math.min(Math.PI - 0.05, cam.phi - dy * 0.008));
         }
         applyCam();
       });
-      renderer.domElement.addEventListener('pointerup', function () { drag = null; });
+      renderer.domElement.addEventListener('pointerup', function (e) {
+        drag = null;
+        if (showPanel && downPt && Math.abs(e.clientX - downPt.x) < 5 && Math.abs(e.clientY - downPt.y) < 5 && Date.now() - downPt.t < 500 && (e.button === 0)) {
+          pick(e);
+        }
+        downPt = null;
+      });
       renderer.domElement.addEventListener('contextmenu', function (e) { e.preventDefault(); });
       renderer.domElement.addEventListener('wheel', function (e) {
         e.preventDefault();
         cam.dist = Math.max(0.5, cam.dist * (e.deltaY > 0 ? 1.12 : 0.89));
         applyCam();
       }, { passive: false });
+
+      const raycaster = new THREE.Raycaster();
+      const ndc = new THREE.Vector2();
+      function pick(e) {
+        const rect = renderer.domElement.getBoundingClientRect();
+        ndc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(ndc, camera);
+        const hits = raycaster.intersectObjects(meshes, false);
+        if (selected) selected.material.emissive && selected.material.emissive.setHex(0x000000);
+        if (!hits.length) { selected = null; renderPanel(); return; }
+        selected = hits[0].object;
+        if (!selected.material.emissive) selected.material.emissive = new THREE.Color(0x000000);
+        selected.material.emissive.setHex(0x3a2a10);
+        renderPanel();
+      }
 
       back.querySelector('#bv-fit').addEventListener('click', function () {
         cam.target = center.clone(); cam.dist = Math.max(size.x, size.y, size.z, 1) * 2.2;
@@ -5047,7 +5547,7 @@ textarea.inp { resize: vertical; min-height: 80px; }
       b.addEventListener('click', function () {
         const dr = (ctx.S.planDrawings || []).find(function (x) { return x.id === b.getAttribute('data-dview'); });
         const canEdit = ['consultant', 'admin'].indexOf(ctx.U.role) !== -1;
-        if (dr) window.DrawingViewer.open(ctx, 'planDrawings', dr, { canEdit: canEdit, canReview: false });
+        if (dr) window.DrawingViewer.open(ctx, 'planDrawings', dr, { canEdit: canEdit, canReview: false, showMap: true, canMap: canEdit });
       });
     });
     // من الواجهة: الضغط على أي دور يفتحه تلقائياً في عرض المخططات مع تفصيل تخصصاته
@@ -5658,6 +6158,7 @@ textarea.inp { resize: vertical; min-height: 80px; }
     'أبرز الإنجازات (سطر لكل بند)': 'Key Achievements (one line per item)',
     'المعوقات (سطر لكل بند)': 'Obstacles (one line per item)',
     'الصور': 'Photos',
+    'المرفق': 'Attachment',
     'المرفقات': 'Attachments',
     'حفظ التقرير الأسبوعي': 'Save Weekly Report',
     '🗄️ أرشيف التقارير الأسبوعية': '🗄️ Weekly Reports Archive',
@@ -5775,6 +6276,7 @@ textarea.inp { resize: vertical; min-height: 80px; }
     'المخطط': 'Drawing',
     'الربط': 'Linking',
     'مربوط بجدول الكميات ✓': 'Linked to BOQ ✓',
+    'منطقة مربوطة': 'linked area(s)',
     'اختر ملف النموذج أولاً': 'Select the model file first',
     '✅ رُفع النموذج "': '✅ Model "',
     '" وربط بجدول الكميات — أصبح مرئياً للمالك في صفحة رؤية المشروع': '" uploaded and linked to the BOQ — now visible to the owner on the Project Vision page',
@@ -6926,14 +7428,16 @@ textarea.inp { resize: vertical; min-height: 80px; }
       '<div><label class="fl">' + I18n.t('الملف') + '</label><input class="inp" id="pd-file" type="file" accept=".dwg,.dxf,.pdf"></div>' +
       '</div>' +
       '<button class="btn sm mb" id="pd-add">' + I18n.t('➕ رفع المخطط وربطه بجدول الكميات') + '</button>' +
-      '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>' + I18n.t('المرجع') + '</th><th>' + I18n.t('المخطط') + '</th><th>' + I18n.t('الدور') + '</th><th>' + I18n.t('التخصص') + '</th><th>' + I18n.t('التاريخ') + '</th><th>' + I18n.t('الربط') + '</th></tr></thead><tbody>' +
+      '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>' + I18n.t('المرجع') + '</th><th>' + I18n.t('المخطط') + '</th><th>' + I18n.t('الدور') + '</th><th>' + I18n.t('التخصص') + '</th><th>' + I18n.t('التاريخ') + '</th><th>' + I18n.t('الربط') + '</th><th></th></tr></thead><tbody>' +
       (ctx.S.planDrawings || []).map(function (dr) {
         const d = discOf(ctx, dr.discipline);
+        const nLinked = (ctx.S.drawingMappings || []).filter(function (m) { return m.drawingId === dr.id; }).length;
         return '<tr><td class="num small"><b>' + esc(dr.ref) + '</b></td><td>' + esc(dr.title) + '<div class="small muted">📎 ' + VS.att(dr.file) + '</div></td>' +
           '<td class="small">' + (dr.floor === 'ELEV' ? I18n.t('الواجهات') : esc(VS.floorName(ctx, dr.floor))) + '</td>' +
           '<td class="small">' + d.icon + ' ' + esc(d.name) + '</td>' +
           '<td class="small muted num">' + esc(dr.date || '') + '</td>' +
-          '<td><span class="pill p-ok">' + I18n.t('مربوط بجدول الكميات ✓') + '</span></td></tr>';
+          '<td>' + (nLinked ? '<span class="pill p-ok">' + nLinked + ' ' + I18n.t('منطقة مربوطة') + '</span>' : '<span class="pill p-muted">' + I18n.t('غير مربوط') + '</span>') + '</td>' +
+          '<td><button class="btn ghost sm" data-dview="' + esc(dr.id) + '">' + I18n.t('فتح') + ' ↗</button></td></tr>';
       }).join('') + '</tbody></table></div></div>';
 
     el.querySelector('#bim-up').addEventListener('click', async function () {
@@ -6955,7 +7459,7 @@ textarea.inp { resize: vertical; min-height: 80px; }
     el.querySelectorAll('[data-dview]').forEach(function (b) {
       b.addEventListener('click', function () {
         const dr = (ctx.S.planDrawings || []).find(function (x) { return x.id === b.getAttribute('data-dview'); });
-        if (dr) window.DrawingViewer.open(ctx, 'planDrawings', dr, { canEdit: true, canReview: false });
+        if (dr) window.DrawingViewer.open(ctx, 'planDrawings', dr, { canEdit: true, canReview: false, showMap: true, canMap: ['consultant', 'admin'].indexOf(ctx.U.role) !== -1 });
       });
     });
     el.querySelector('#pd-add').addEventListener('click', async function () {
@@ -7176,13 +7680,18 @@ textarea.inp { resize: vertical; min-height: 80px; }
   const SEVERITIES = { low: [I18n.t('منخفضة'), 'p-muted'], medium: [I18n.t('متوسطة'), 'p-warn'], high: [I18n.t('عالية'), 'p-danger'], minor: [I18n.t('ثانوية'), 'p-warn'], major: [I18n.t('جوهرية'), 'p-danger'], critical: [I18n.t('حرجة'), 'p-danger'] };
   function sev(s) { const v = SEVERITIES[s] || [s, 'p-muted']; return '<span class="pill ' + v[1] + '">' + esc(I18n.t(v[0])) + '</span>'; }
   function sigCell(it) { return it.signature ? '<div class="sig">✍️ ' + esc(it.signature) + ' · ' + esc(it.signDate) + '</div>' : ''; }
+  /** عمود مرفق موحّد لكل تبويبات المكتب الفني التي تدعم رفع ملف (hasFile) */
+  function attachCol() {
+    return { h: I18n.t('المرفق'), r: function (it) { return it.file && it.file.url ? '<a class="btn ghost sm" href="' + esc(it.file.url) + '" target="_blank">📎 ' + I18n.t('فتح') + '</a>' : '<span class="muted small">—</span>'; } };
+  }
 
   const TECH_TABS = [
     { col: 'rfis', name: I18n.t('الاستفسارات الفنية RFI'), icon: '❓', desc: I18n.t('الرد على استفسارات المقاولين وحسم تعارضات المخططات والمواصفات'),
-      pendingOf: function (x) { return x.status === 'open'; },
+      pendingOf: function (x) { return x.status === 'open'; }, hasFile: true,
       cols: [
         { h: I18n.t('الاستفسار'), r: function (it) { return '<b>' + esc(it.title) + '</b><div class="small muted" style="max-width:340px">' + esc(it.question || '') + '</div>'; } },
-        { h: I18n.t('الرد الفني'), r: function (it) { return it.answer ? '<div class="small" style="max-width:300px;color:var(--ok)">' + esc(it.answer) + '</div>' + sigCell(it) : '<span class="muted small">' + I18n.t('بانتظار الرد') + '</span>'; } }
+        { h: I18n.t('الرد الفني'), r: function (it) { return it.answer ? '<div class="small" style="max-width:300px;color:var(--ok)">' + esc(it.answer) + '</div>' + sigCell(it) : '<span class="muted small">' + I18n.t('بانتظار الرد') + '</span>'; } },
+        attachCol()
       ],
       fields: [
         { k: 'contractorId', label: I18n.t('المقاول'), type: 'contractor' }, { k: 'ref', label: I18n.t('المرجع'), type: 'text' },
@@ -7194,11 +7703,12 @@ textarea.inp { resize: vertical; min-height: 80px; }
       } },
 
     { col: 'ncrs', name: I18n.t('عدم المطابقة NCR'), icon: '🚫', desc: I18n.t('رصد الأعمال المخالفة للمواصفات ومتابعة الإجراءات التصحيحية حتى الإغلاق'),
-      pendingOf: function (x) { return x.status === 'open'; },
+      pendingOf: function (x) { return x.status === 'open'; }, hasFile: true,
       cols: [
         { h: I18n.t('المخالفة'), r: function (it) { return '<b>' + esc(it.title) + '</b><div class="small muted" style="max-width:320px">' + esc(it.description || '') + '</div>'; } },
         { h: I18n.t('الخطورة'), r: function (it) { return sev(it.severity); } },
-        { h: I18n.t('الإجراء التصحيحي'), r: function (it) { return it.correctiveAction ? '<div class="small" style="max-width:280px">' + esc(it.correctiveAction) + '</div>' + sigCell(it) : '<span class="muted small">—</span>'; } }
+        { h: I18n.t('الإجراء التصحيحي'), r: function (it) { return it.correctiveAction ? '<div class="small" style="max-width:280px">' + esc(it.correctiveAction) + '</div>' + sigCell(it) : '<span class="muted small">—</span>'; } },
+        attachCol()
       ],
       fields: [
         { k: 'contractorId', label: I18n.t('المقاول'), type: 'contractor' }, { k: 'ref', label: I18n.t('المرجع'), type: 'text' },
@@ -7211,9 +7721,10 @@ textarea.inp { resize: vertical; min-height: 80px; }
       } },
 
     { col: 'siteInstructions', name: I18n.t('التعليمات الموقعية'), icon: '📢', desc: I18n.t('إصدار تعليمات ملزمة للمقاولين ومتابعة تنفيذها'),
-      pendingOf: function (x) { return x.status === 'issued'; },
+      pendingOf: function (x) { return x.status === 'issued'; }, hasFile: true,
       cols: [
-        { h: I18n.t('التعليمات'), r: function (it) { return '<b>' + esc(it.title) + '</b><div class="small muted" style="max-width:360px">' + esc(it.details || '') + '</div>' + sigCell(it); } }
+        { h: I18n.t('التعليمات'), r: function (it) { return '<b>' + esc(it.title) + '</b><div class="small muted" style="max-width:360px">' + esc(it.details || '') + '</div>' + sigCell(it); } },
+        attachCol()
       ],
       fields: [
         { k: 'contractorId', label: I18n.t('المقاول'), type: 'contractor' }, { k: 'ref', label: I18n.t('المرجع'), type: 'text' },
@@ -7225,11 +7736,12 @@ textarea.inp { resize: vertical; min-height: 80px; }
       } },
 
     { col: 'methodStatements', name: I18n.t('أساليب التنفيذ وITP'), icon: '🧾', desc: I18n.t('اعتماد بيانات طرق التنفيذ وخطط الفحص والاختبار المقدمة من المقاولين'),
-      pendingOf: function (x) { return x.status === 'pending'; },
+      pendingOf: function (x) { return x.status === 'pending'; }, hasFile: true,
       cols: [
         { h: I18n.t('النوع'), r: function (it) { return '<span class="pill p-muted">' + I18n.t(it.kind === 'itp' ? 'خطة فحص ITP' : 'أسلوب تنفيذ MS') + '</span>'; } },
-        { h: I18n.t('العنوان'), r: function (it) { return '<b>' + esc(it.title) + '</b>' + (it.file ? '<div class="small muted">📎 ' + VS.att(it.file) + '</div>' : ''); } },
-        { h: I18n.t('الملاحظات'), r: function (it) { return (it.notes ? '<div class="small">' + esc(it.notes) + '</div>' : '<span class="muted small">—</span>') + sigCell(it); } }
+        { h: I18n.t('العنوان'), r: function (it) { return '<b>' + esc(it.title) + '</b>'; } },
+        { h: I18n.t('الملاحظات'), r: function (it) { return (it.notes ? '<div class="small">' + esc(it.notes) + '</div>' : '<span class="muted small">—</span>') + sigCell(it); } },
+        attachCol()
       ],
       fields: [
         { k: 'contractorId', label: I18n.t('المقاول'), type: 'contractor' },
@@ -7242,11 +7754,12 @@ textarea.inp { resize: vertical; min-height: 80px; }
       } },
 
     { col: 'materialTests', name: I18n.t('اختبارات المواد'), icon: '🧪', desc: I18n.t('توثيق نتائج الاختبارات المعملية والحقلية (خرسانة، تربة، ضغط، شد...)'),
-      pendingOf: function (x) { return x.result === 'fail'; },
+      pendingOf: function (x) { return x.result === 'fail'; }, hasFile: true,
       cols: [
         { h: I18n.t('الاختبار'), r: function (it) { return '<b>' + esc(it.title) + '</b><div class="small muted">🏛️ ' + esc(it.lab || '') + '</div>'; } },
         { h: I18n.t('المطلوب / النتيجة'), r: function (it) { return '<div class="small num">' + I18n.t('المطلوب: ') + esc(it.target || '—') + '</div><div class="small num"><b>' + I18n.t('النتيجة: ') + esc(it.value || '—') + '</b></div>' + (it.notes ? '<div class="small muted">' + esc(it.notes) + '</div>' : ''); } },
-        { h: I18n.t('الحكم'), r: function (it) { return pill(it.result); } }
+        { h: I18n.t('الحكم'), r: function (it) { return pill(it.result); } },
+        attachCol()
       ],
       fields: [
         { k: 'contractorId', label: I18n.t('المقاول'), type: 'contractor' }, { k: 'ref', label: I18n.t('المرجع'), type: 'text' },
@@ -7258,10 +7771,11 @@ textarea.inp { resize: vertical; min-height: 80px; }
       statusKey: 'result' },
 
     { col: 'meetings', name: I18n.t('محاضر الاجتماعات'), icon: '🤝', desc: I18n.t('محاضر اجتماعات التنسيق الأسبوعية وقراراتها'),
-      pendingOf: function () { return false; }, noContractor: true, noStatus: true,
+      pendingOf: function () { return false; }, noContractor: true, noStatus: true, hasFile: true,
       cols: [
         { h: I18n.t('الاجتماع'), r: function (it) { return '<b>' + esc(it.title) + '</b><div class="small muted">' + I18n.t('الحضور: ') + esc(it.attendees || '') + '</div>'; } },
-        { h: I18n.t('أبرز البنود والقرارات'), r: function (it) { return '<ul style="margin-right:16px;font-size:12.5px;line-height:1.9;max-width:380px">' + (it.items || []).map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>'; } }
+        { h: I18n.t('أبرز البنود والقرارات'), r: function (it) { return '<ul style="margin-right:16px;font-size:12.5px;line-height:1.9;max-width:380px">' + (it.items || []).map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>'; } },
+        attachCol()
       ],
       fields: [
         { k: 'ref', label: I18n.t('المرجع'), type: 'text' }, { k: 'title', label: I18n.t('عنوان الاجتماع'), type: 'text' },
@@ -7270,10 +7784,11 @@ textarea.inp { resize: vertical; min-height: 80px; }
       ] },
 
     { col: 'snags', name: I18n.t('قوائم الملاحظات'), icon: '📌', desc: I18n.t('ملاحظات الاستلام الابتدائي (Snag List) ومتابعة إغلاقها قبل التسليم'),
-      pendingOf: function (x) { return x.status === 'open'; },
+      pendingOf: function (x) { return x.status === 'open'; }, hasFile: true,
       cols: [
         { h: I18n.t('الملاحظة'), r: function (it) { return '<b>' + esc(it.title) + '</b>' + sigCell(it); } },
-        { h: I18n.t('الموقع'), r: function (it, ctx) { return '<span class="pill p-muted">' + esc(VS.floorName(ctx, it.location)) + '</span>'; } }
+        { h: I18n.t('الموقع'), r: function (it, ctx) { return '<span class="pill p-muted">' + esc(VS.floorName(ctx, it.location)) + '</span>'; } },
+        attachCol()
       ],
       fields: [
         { k: 'contractorId', label: I18n.t('المقاول'), type: 'contractor' }, { k: 'ref', label: I18n.t('المرجع'), type: 'text' },
@@ -7285,11 +7800,12 @@ textarea.inp { resize: vertical; min-height: 80px; }
       } },
 
     { col: 'hseReports', name: I18n.t('السلامة HSE'), icon: '🦺', desc: I18n.t('مخالفات وحوادث وملاحظات السلامة والصحة المهنية بالموقع'),
-      pendingOf: function (x) { return x.status === 'open'; },
+      pendingOf: function (x) { return x.status === 'open'; }, hasFile: true,
       cols: [
         { h: I18n.t('النوع'), r: function (it) { return '<span class="pill ' + (it.kind === 'incident' ? 'p-danger' : it.kind === 'violation' ? 'p-warn' : 'p-info') + '">' + esc(I18n.t(HSE_KINDS[it.kind] || it.kind)) + '</span>'; } },
         { h: I18n.t('التقرير'), r: function (it) { return '<b>' + esc(it.title) + '</b><div class="small muted" style="max-width:330px">' + esc(it.details || '') + '</div>' + sigCell(it); } },
-        { h: I18n.t('الخطورة'), r: function (it) { return sev(it.severity); } }
+        { h: I18n.t('الخطورة'), r: function (it) { return sev(it.severity); } },
+        attachCol()
       ],
       fields: [
         { k: 'contractorId', label: I18n.t('المقاول'), type: 'contractor' }, { k: 'ref', label: I18n.t('المرجع'), type: 'text' },
@@ -7303,12 +7819,13 @@ textarea.inp { resize: vertical; min-height: 80px; }
       } },
 
     { col: 'claims', name: I18n.t('المطالبات وEOT'), icon: '⚖️', desc: I18n.t('دراسة مطالبات المقاولين المالية وطلبات تمديد المدة والتوصية بشأنها'),
-      pendingOf: function (x) { return x.status === 'pending'; },
+      pendingOf: function (x) { return x.status === 'pending'; }, hasFile: true,
       cols: [
         { h: I18n.t('النوع'), r: function (it) { return '<span class="pill p-muted">' + I18n.t(it.kind === 'eot' ? 'تمديد مدة EOT' : 'مطالبة مالية') + '</span>'; } },
         { h: I18n.t('المطالبة'), r: function (it) { return '<b>' + esc(it.title) + '</b>'; } },
         { h: I18n.t('القيمة / المدة'), r: function (it) { return (it.amount ? '<div class="num small">' + money(it.amount) + '</div>' : '') + (it.days ? '<div class="num small">+' + it.days + I18n.t(' يوم') + '</div>' : ''); } },
-        { h: I18n.t('القرار'), r: function (it) { return (it.notes ? '<div class="small" style="max-width:240px">' + esc(it.notes) + '</div>' : '<span class="muted small">—</span>') + sigCell(it); } }
+        { h: I18n.t('القرار'), r: function (it) { return (it.notes ? '<div class="small" style="max-width:240px">' + esc(it.notes) + '</div>' : '<span class="muted small">—</span>') + sigCell(it); } },
+        attachCol()
       ],
       fields: [
         { k: 'contractorId', label: I18n.t('المقاول'), type: 'contractor' },
@@ -7322,11 +7839,12 @@ textarea.inp { resize: vertical; min-height: 80px; }
       } },
 
     { col: 'valueEngineering', name: I18n.t('الهندسة القيمية'), icon: '💡', desc: I18n.t('دراسة مقترحات خفض التكلفة مع الحفاظ على الجودة والوظيفة'),
-      pendingOf: function (x) { return x.status === 'pending'; },
+      pendingOf: function (x) { return x.status === 'pending'; }, hasFile: true,
       cols: [
         { h: I18n.t('المقترح'), r: function (it) { return '<b>' + esc(it.title) + '</b><div class="small muted" style="max-width:320px">' + esc(it.details || '') + '</div>'; } },
         { h: I18n.t('الوفر المتوقع'), r: function (it) { return '<b class="num" style="color:var(--ok)">' + money(it.saving) + '</b>'; } },
-        { h: I18n.t('القرار'), r: function (it) { return (it.notes ? '<div class="small">' + esc(it.notes) + '</div>' : '<span class="muted small">—</span>') + sigCell(it); } }
+        { h: I18n.t('القرار'), r: function (it) { return (it.notes ? '<div class="small">' + esc(it.notes) + '</div>' : '<span class="muted small">—</span>') + sigCell(it); } },
+        attachCol()
       ],
       fields: [
         { k: 'contractorId', label: I18n.t('المقاول'), type: 'contractor' }, { k: 'ref', label: I18n.t('المرجع'), type: 'text' },
@@ -7339,11 +7857,12 @@ textarea.inp { resize: vertical; min-height: 80px; }
       } },
 
     { col: 'correspondence', name: I18n.t('المراسلات'), icon: '📮', desc: I18n.t('سجل الخطابات الصادرة والواردة الرسمية للمشروع'),
-      pendingOf: function () { return false; }, noContractor: true, noStatus: true,
+      pendingOf: function () { return false; }, noContractor: true, noStatus: true, hasFile: true,
       cols: [
         { h: I18n.t('الاتجاه'), r: function (it) { return it.direction === 'out' ? '<span class="pill p-info">' + I18n.t('صادر ↗') + '</span>' : '<span class="pill p-warn">' + I18n.t('وارد ↙') + '</span>'; } },
         { h: I18n.t('الخطاب'), r: function (it) { return '<b>' + esc(it.title) + '</b>'; } },
-        { h: I18n.t('الجهة'), r: function (it) { return '<div class="small">' + (it.from ? I18n.t('من: ') + esc(it.from) + '<br>' : '') + I18n.t('إلى: ') + esc(it.to || '—') + '</div>'; } }
+        { h: I18n.t('الجهة'), r: function (it) { return '<div class="small">' + (it.from ? I18n.t('من: ') + esc(it.from) + '<br>' : '') + I18n.t('إلى: ') + esc(it.to || '—') + '</div>'; } },
+        attachCol()
       ],
       fields: [
         { k: 'ref', label: I18n.t('المرجع'), type: 'text' },
@@ -7404,10 +7923,11 @@ textarea.inp { resize: vertical; min-height: 80px; }
         if (f.type === 'date') return '<label class="fl">' + esc(I18n.t(f.label)) + '</label><input class="inp" id="' + id + '" type="date" value="' + new Date().toISOString().slice(0, 10) + '">';
         return '<label class="fl">' + esc(I18n.t(f.label)) + '</label><input class="inp" id="' + id + '">';
       }).join('') +
+      (tabDef.hasFile ? '<label class="fl">' + I18n.t('مرفق (اختياري)') + '</label><input class="inp" id="tf-file" type="file">' : '') +
       '<div class="m-actions"><button class="btn" id="tf-ok">' + I18n.t('حفظ') + '</button><button class="btn mutedb" id="tf-cancel">' + I18n.t('إلغاء') + '</button></div>'
     );
     m.querySelector('#tf-cancel').addEventListener('click', function () { m.remove(); });
-    m.querySelector('#tf-ok').addEventListener('click', function () {
+    m.querySelector('#tf-ok').addEventListener('click', async function () {
       const data = {};
       tabDef.fields.forEach(function (f) {
         if (f.k === 'ref') return; // لا حقل DOM له — يُولَّد المرجع من الخادم
@@ -7419,6 +7939,10 @@ textarea.inp { resize: vertical; min-height: 80px; }
       if (!data.title) { toast(I18n.t('أدخل العنوان'), true); return; }
       if (tabDef.col === 'meetings') data.by = ctx.U.name;
       if (tabDef.col === 'correspondence' && data.direction === 'out') data.by = ctx.U.name;
+      if (tabDef.hasFile) {
+        const files = m.querySelector('#tf-file').files;
+        if (files.length) data.file = await Api.upload(files[0], { category: 'وثائق فنية' });
+      }
       Api.create(tabDef.col, data)
         .then(function () { m.remove(); toast(I18n.t('✅ تمت الإضافة')); ctx.refresh(); })
         .catch(function (e) { toast(e.message, true); });
@@ -8856,7 +9380,7 @@ textarea.inp { resize: vertical; min-height: 80px; }
             '<td class="small muted num">' + esc(m.date || '') + '</td>' +
             '<td>' + (m.linkedBoq ? '<span class="pill p-ok">' + I18n.t('مربوط بجدول الكميات ✓') + '</span>' : '<span class="pill p-muted">' + I18n.t('غير مربوط') + '</span>') + '</td>' +
             '<td><div class="flex" style="gap:6px">' +
-            (m.url && /\.ifc$/i.test(m.url) ? '<button class="btn sm" data-bim3d="' + esc(m.url) + '" data-bimname="' + esc(m.name) + '">🧊 3D</button>' : '') +
+            (m.url && /\.ifc$/i.test(m.url) ? '<button class="btn sm" data-bim3d="' + esc(m.url) + '" data-bimname="' + esc(m.name) + '" data-bimid="' + esc(m.id) + '">🧊 3D</button>' : '') +
             (m.url ? '<a class="btn ghost sm" href="' + esc(m.url) + '" target="_blank">' + I18n.t('فتح') + ' ↗</a>' : '') + '</div></td></tr>';
         }).join('') + '</tbody></table></div>'
         : '<div class="empty"><div class="e-ico">🏢</div>' + I18n.t('لا نماذج بعد — اربط سحابياً أو ارفع من الجهاز') + '</div>') +
@@ -8868,12 +9392,19 @@ textarea.inp { resize: vertical; min-height: 80px; }
       window.BimViewer.open(o);
     }
     const demo3d = el.querySelector('#bm-demo3d');
+    const canMapBim = ['consultant', 'admin'].indexOf(ctx.U.role) !== -1;
     if (demo3d) demo3d.addEventListener('click', function () {
-      open3d({ title: 'برج بصير التجاري — نموذج BIM ثلاثي الأبعاد', url: '/vendor/bim/BassirTower.ifc' });
+      // زر العرض السريع يفتح نفس ملف النموذج المسجّل في السجل أدناه — نجد معرّفه الحقيقي
+      // ليعمل الربط ببنود الكميات هنا أيضاً، لا فقط عبر زر "3D" داخل السجل
+      const registered = (ctx.S.bimModels || []).find(function (mm) { return mm.url === '/vendor/bim/BassirTower.ifc'; });
+      open3d({ title: 'برج بصير التجاري — نموذج BIM ثلاثي الأبعاد', url: '/vendor/bim/BassirTower.ifc', ctx: ctx, modelId: registered ? registered.id : null, canMap: canMapBim });
     });
     el.querySelectorAll('[data-bim3d]').forEach(function (b) {
       b.addEventListener('click', function () {
-        open3d({ title: b.getAttribute('data-bimname') || 'نموذج BIM', url: b.getAttribute('data-bim3d') });
+        open3d({
+          title: b.getAttribute('data-bimname') || 'نموذج BIM', url: b.getAttribute('data-bim3d'),
+          ctx: ctx, modelId: b.getAttribute('data-bimid'), canMap: canMapBim
+        });
       });
     });
 
@@ -9514,13 +10045,14 @@ textarea.inp { resize: vertical; min-height: 80px; }
         const co = list.filter(function (x) { return x.status === 'open'; }).length;
         return '<div style="margin-top:14px"><b>👷 ' + esc(contractorName(ctx, cid)) + '</b> ' +
           '<span class="pill ' + (co ? 'p-warn' : 'p-ok') + '">' + co + ' ' + I18n.t('مفتوحة') + ' / ' + list.length + '</span>' +
-          '<div class="tbl-wrap" style="margin-top:8px"><table class="tbl"><thead><tr><th>' + I18n.t('المرجع') + '</th><th>' + I18n.t('الملاحظة') + '</th><th>' + I18n.t('الموقع') + '</th><th>' + I18n.t('الخطورة') + '</th><th>' + I18n.t('أُثيرت') + '</th><th>' + I18n.t('الحالة / الإغلاق') + '</th><th></th></tr></thead><tbody>' +
+          '<div class="tbl-wrap" style="margin-top:8px"><table class="tbl"><thead><tr><th>' + I18n.t('المرجع') + '</th><th>' + I18n.t('الملاحظة') + '</th><th>' + I18n.t('الموقع') + '</th><th>' + I18n.t('الخطورة') + '</th><th>' + I18n.t('أُثيرت') + '</th><th>' + I18n.t('المرفق') + '</th><th>' + I18n.t('الحالة / الإغلاق') + '</th><th></th></tr></thead><tbody>' +
           list.map(function (it) {
             return '<tr><td class="num small"><b>' + esc(it.ref || '') + '</b>' + (it.docCode ? '<div class="muted" style="font-size:10px;color:var(--accent2)">' + esc(it.docCode) + '</div>' : '') + '</td>' +
               '<td>' + esc(it.title) + (it.notes ? '<div class="small muted">' + esc(it.notes) + '</div>' : '') + '</td>' +
               '<td class="small">' + esc(VS.floorName(ctx, it.location) || it.location || '') + '</td>' +
               '<td>' + (it.severity === 'major' ? '<span class="pill p-danger">' + I18n.t('جوهرية') + '</span>' : '<span class="pill p-warn">' + I18n.t('ثانوية') + '</span>') + '</td>' +
               '<td class="small muted num">' + esc(it.raisedDate || '') + '</td>' +
+              '<td>' + (it.file && it.file.url ? '<a class="btn ghost sm" href="' + esc(it.file.url) + '" target="_blank">📎 ' + I18n.t('فتح') + '</a>' : '<span class="muted small">—</span>') + '</td>' +
               '<td>' + (it.status === 'closed' ? '<span class="pill p-ok">' + I18n.t('مغلقة ✓') + '</span><div class="small muted num">' + esc(it.closedDate || '') + '</div>' : '<span class="pill p-warn">' + I18n.t('مفتوحة') + '</span>') + '</td>' +
               '<td>' + ((canManage || isContractor) && it.status === 'open' ? '<button class="btn sm" data-plclose="' + it.id + '">✅ ' + I18n.t('إغلاق') + '</button>' : '') + '</td></tr>';
           }).join('') + '</tbody></table></div></div>';
@@ -9539,6 +10071,7 @@ textarea.inp { resize: vertical; min-height: 80px; }
         '<div class="grid g2"><div><label class="fl">' + I18n.t('الموقع') + '</label><select class="inp" id="pl-loc">' +
         ctx.S.projects[0].floors.map(function (f) { return '<option value="' + f.id + '">' + esc(f.name) + '</option>'; }).join('') + '</select></div>' +
         '<div><label class="fl">' + I18n.t('الخطورة') + '</label><select class="inp" id="pl-sev"><option value="minor">' + I18n.t('ثانوية') + '</option><option value="major">' + I18n.t('جوهرية') + '</option></select></div></div>' +
+        '<label class="fl">' + I18n.t('مرفق (اختياري)') + '</label><input class="inp" id="pl-file" type="file">' +
         '<div class="m-actions"><button class="btn" id="pl-ok">' + I18n.t('حفظ وإسناد للمقاول') + '</button><button class="btn mutedb" id="pl-cancel">' + I18n.t('إلغاء') + '</button></div>'
       );
       m.querySelector('#pl-cancel').addEventListener('click', function () { m.remove(); });
@@ -9546,12 +10079,15 @@ textarea.inp { resize: vertical; min-height: 80px; }
         const title = m.querySelector('#pl-title').value.trim();
         if (!title) { toast(I18n.t('أدخل نص الملاحظة'), true); return; }
         try {
-          await Api.create('punchList', {
+          const data = {
             contractorId: m.querySelector('#pl-cont').value,
             ref: m.querySelector('#pl-ref').value || 'PL-' + Math.floor(Math.random() * 900 + 100),
             title: title, location: m.querySelector('#pl-loc').value, severity: m.querySelector('#pl-sev').value,
             status: 'open', raisedDate: todayStr(), closedDate: null
-          });
+          };
+          const f = m.querySelector('#pl-file').files[0];
+          if (f) data.file = await Api.upload(f, { category: 'وثائق فنية' });
+          await Api.create('punchList', data);
           m.remove(); toast(I18n.t('✅ أُضيفت الملاحظة وأُسندت للمقاول (أُشعر بها)')); ctx.refresh();
         } catch (e) { toast(e.message, true); }
       });
@@ -9602,7 +10138,7 @@ textarea.inp { resize: vertical; min-height: 80px; }
       '<div class="card"><div class="flex" style="justify-content:space-between;flex-wrap:wrap">' +
       '<h3 style="margin:0">🛡️ ' + I18n.t('سجل ضمانات الموردين والمقاولين من الباطن') + '</h3>' +
       (canAdd ? '<button class="btn sm" id="wr-add">➕ ' + I18n.t('إضافة ضمان') + '</button>' : '') + '</div>' +
-      '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>' + I18n.t('الكود') + '</th><th>' + I18n.t('البند/النظام') + '</th><th>' + I18n.t('المورّد') + '</th><th>' + I18n.t('المقاول') + '</th><th>' + I18n.t('البداية') + '</th><th>' + I18n.t('الانتهاء') + '</th><th>' + I18n.t('المدة') + '</th><th>' + I18n.t('الحالة') + '</th></tr></thead><tbody>' +
+      '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>' + I18n.t('الكود') + '</th><th>' + I18n.t('البند/النظام') + '</th><th>' + I18n.t('المورّد') + '</th><th>' + I18n.t('المقاول') + '</th><th>' + I18n.t('البداية') + '</th><th>' + I18n.t('الانتهاء') + '</th><th>' + I18n.t('المدة') + '</th><th>' + I18n.t('المرفق') + '</th><th>' + I18n.t('الحالة') + '</th></tr></thead><tbody>' +
       items.map(function (w) {
         const d = daysFromNow(w.endDate);
         const st = d == null ? '' : d < 0 ? '<span class="pill p-danger">' + I18n.t('منتهٍ') + '</span>' : d <= 90 ? '<span class="pill p-warn">≤ ' + d + ' ' + I18n.t('يوم') + '</span>' : '<span class="pill p-ok">' + I18n.t('ساري') + '</span>';
@@ -9610,7 +10146,9 @@ textarea.inp { resize: vertical; min-height: 80px; }
           '<td>' + esc(w.item) + '</td><td class="small">' + esc(w.supplier || '') + '</td>' +
           '<td class="small">' + esc(contractorName(ctx, w.contractorId)) + '</td>' +
           '<td class="small muted num">' + esc(w.startDate || '') + '</td><td class="small num">' + esc(w.endDate || '') + '</td>' +
-          '<td class="num small">' + (w.months || '—') + I18n.t(' شهر') + '</td><td>' + st + '</td></tr>';
+          '<td class="num small">' + (w.months || '—') + I18n.t(' شهر') + '</td>' +
+          '<td>' + (w.file && w.file.url ? '<a class="btn ghost sm" href="' + esc(w.file.url) + '" target="_blank">📎 ' + I18n.t('فتح') + '</a>' : '<span class="muted small">—</span>') + '</td>' +
+          '<td>' + st + '</td></tr>';
       }).join('') + '</tbody></table></div>' +
       (items.length ? '' : '<div class="empty"><div class="e-ico">🛡️</div>' + I18n.t('لا ضمانات مسجلة') + '</div>') + '</div>';
 
@@ -9655,10 +10193,11 @@ textarea.inp { resize: vertical; min-height: 80px; }
     el.innerHTML =
       '<div class="card"><div class="flex" style="justify-content:space-between;flex-wrap:wrap">' +
       '<h3 style="margin:0">🔑 ' + I18n.t('سجل تسليم المفاتيح') + '</h3>' + (canAdd ? '<button class="btn sm" id="k-add">➕ ' + I18n.t('تسجيل تسليم') + '</button>' : '') + '</div>' +
-      '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>' + I18n.t('المنطقة') + '</th><th>' + I18n.t('عدد المفاتيح') + '</th><th>' + I18n.t('سُلّمت إلى') + '</th><th>' + I18n.t('بواسطة') + '</th><th>' + I18n.t('التاريخ') + '</th><th>' + I18n.t('التوقيع') + '</th></tr></thead><tbody>' +
+      '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>' + I18n.t('المنطقة') + '</th><th>' + I18n.t('عدد المفاتيح') + '</th><th>' + I18n.t('سُلّمت إلى') + '</th><th>' + I18n.t('بواسطة') + '</th><th>' + I18n.t('التاريخ') + '</th><th>' + I18n.t('المرفق') + '</th><th>' + I18n.t('التوقيع') + '</th></tr></thead><tbody>' +
       items.map(function (k) {
         return '<tr><td>' + esc(k.area) + '</td><td class="num">' + (k.count || '') + '</td><td class="small">' + esc(k.handedTo || '') + '</td>' +
           '<td class="small">' + esc(k.by || '') + '</td><td class="small muted num">' + (k.date || '<span class="pill p-warn">' + I18n.t('لم تُسلّم') + '</span>') + '</td>' +
+          '<td>' + (k.file && k.file.url ? '<a class="btn ghost sm" href="' + esc(k.file.url) + '" target="_blank">📎 ' + I18n.t('فتح') + '</a>' : '<span class="muted small">—</span>') + '</td>' +
           '<td class="small">' + (k.signature ? '✍️ ' + esc(k.signature) : '—') + '</td></tr>';
       }).join('') + '</tbody></table></div>' +
       (items.length ? '' : '<div class="empty"><div class="e-ico">🔑</div>' + I18n.t('لا سجلات') + '</div>') + '</div>';
@@ -9671,6 +10210,7 @@ textarea.inp { resize: vertical; min-height: 80px; }
         '<div class="grid g2"><div><label class="fl">' + I18n.t('عدد المفاتيح') + '</label><input class="inp num" id="k-count" type="number"></div>' +
         '<div><label class="fl">' + I18n.t('سُلّمت إلى') + '</label><input class="inp" id="k-to"></div></div>' +
         '<label class="fl">' + I18n.t('التوقيع باسم') + '</label><input class="inp" id="k-sig" value="' + esc(ctx.U.name) + '">' +
+        '<label class="fl">' + I18n.t('مرفق (اختياري)') + '</label><input class="inp" id="k-file" type="file">' +
         '<div class="m-actions"><button class="btn" id="k-ok">' + I18n.t('تسجيل') + '</button><button class="btn mutedb" id="k-cancel">' + I18n.t('إلغاء') + '</button></div>'
       );
       m.querySelector('#k-cancel').addEventListener('click', function () { m.remove(); });
@@ -9678,11 +10218,14 @@ textarea.inp { resize: vertical; min-height: 80px; }
         const area = m.querySelector('#k-area').value.trim();
         if (!area) { toast(I18n.t('أدخل المنطقة'), true); return; }
         try {
-          await Api.create('keysLog', {
+          const data = {
             area: area, count: Number(m.querySelector('#k-count').value) || 0,
             handedTo: m.querySelector('#k-to').value, by: ctx.U.name, date: todayStr(),
             signature: m.querySelector('#k-sig').value
-          });
+          };
+          const f = m.querySelector('#k-file').files[0];
+          if (f) data.file = await Api.upload(f, { category: 'وثائق فنية' });
+          await Api.create('keysLog', data);
           m.remove(); toast(I18n.t('✅ سُجّل تسليم المفاتيح')); ctx.refresh();
         } catch (e) { toast(e.message, true); }
       });
