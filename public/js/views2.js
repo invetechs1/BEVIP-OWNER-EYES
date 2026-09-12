@@ -937,6 +937,7 @@
       try {
         const res = await Api.addContractor({
           name: name, type: el.querySelector('#nc-type').value,
+          projectId: ctx.projectId, // اربط المقاول بالمشروع الحالي (وإلا يذهب افتراضياً لأول مشروع فيختفي)
           contractValue: el.querySelector('#nc-value').value,
           phone: el.querySelector('#nc-phone').value,
           startDate: el.querySelector('#nc-start').value, endDate: el.querySelector('#nc-end').value,
@@ -968,7 +969,9 @@
     const earned = items.reduce(function (a, b) { return a + b.qty * b.unitPrice * b.progress / 100; }, 0);
 
     const boqFiles = (ctx.S.files || []).filter(function (f) { return f.category === 'جداول الكميات BOQ'; });
+    const baselinePanel = (window.ViewsExtra && window.ViewsExtra.baselineReviewHtml) ? window.ViewsExtra.baselineReviewHtml(ctx, 'boqSubmittals') : '';
     el.innerHTML =
+      baselinePanel +
       '<div class="card"><div class="flex" style="justify-content:space-between;flex-wrap:wrap">' +
       '<h3 style="margin:0">' + I18n.t('📊 جدول الكميات BOQ ') + '<span class="hint">' + I18n.t('تحديث نسب الإنجاز هنا يغيّر سطوع المخططات مباشرة') + '</span></h3>' +
       (canEdit ? '<div class="flex"><input class="inp" id="bq-file" type="file" accept=".xlsx,.xls,.csv,.pdf" style="max-width:220px">' +
@@ -1002,11 +1005,47 @@
     if (bqUp) bqUp.addEventListener('click', async function () {
       const f = el.querySelector('#bq-file').files[0];
       if (!f) { toast(I18n.t('اختر ملف جدول الكميات أولاً'), true); return; }
+      // يجب اختيار مقاول لربط البنود به (لا يمكن رفع بنود بلا مالك)
+      if (boqState.contractor === 'all') { toast(I18n.t('اختر المقاول من القائمة أولاً ليُربط جدول الكميات به'), true); return; }
+      const c = ctx.S.contractors.find(function (x) { return x.id === boqState.contractor; });
+      if (!c) { toast(I18n.t('المقاول غير موجود'), true); return; }
+      bqUp.disabled = true;
       try {
-        await Api.upload(f, { category: 'جداول الكميات BOQ' });
-        toast(I18n.t('✅ رُفع جدول الكميات وكُوّد وربط بالمشروع — حدّث نسب البنود لتُربط بالإنجاز'));
+        const fileObj = await Api.upload(f, { category: 'جداول الكميات BOQ' });
+        let created = 0;
+        if (window.ViewsExtra && window.ViewsExtra.parseRows && /\.(csv|tsv|txt|xlsx|xlsm)$/i.test(f.name)) {
+          const rows = await window.ViewsExtra.parseRows(f);
+          if (rows.length) {
+            const head = rows[0].map(function (h) { return String(h).toLowerCase().trim(); });
+            const find = function (keys) { for (let i = 0; i < head.length; i++) { if (keys.some(function (k) { return head[i].indexOf(k) !== -1; })) return i; } return -1; };
+            const ci = { desc: find(['description', 'item', 'وصف', 'البند', 'الوصف']), unit: find(['unit', 'وحدة', 'الوحدة']), qty: find(['qty', 'quantity', 'كمية', 'الكمية']), price: find(['price', 'unitprice', 'سعر', 'سعر الوحدة']), floor: find(['floor', 'دور', 'الدور', 'level']) };
+            const hasHeader = ci.desc !== -1;
+            const body = hasHeader ? rows.slice(1) : rows;
+            const floors = (ctx.S.projects[0] || {}).floors || [];
+            const matchFloor = function (v) { if (!v) return 'GF'; v = String(v).trim(); const byId = floors.find(function (fl) { return fl.id === v; }); if (byId) return byId.id; const byName = floors.find(function (fl) { return fl.name === v; }); return byName ? byName.id : (floors[0] ? floors[0].id : 'GF'); };
+            for (let r = 0; r < body.length; r++) {
+              const row = body[r];
+              const desc = (ci.desc !== -1 ? row[ci.desc] : row[0]) || '';
+              if (!String(desc).trim()) continue;
+              await Api.create('boqItems', {
+                projectId: ctx.projectId, contractorId: c.id, discipline: c.type,
+                floor: matchFloor(ci.floor !== -1 ? row[ci.floor] : ''), zone: created % 6,
+                code: (c.type || 'GN').substring(0, 2).toUpperCase() + '-' + String(created + 1).padStart(3, '0'),
+                description: String(desc).trim(),
+                unit: (ci.unit !== -1 ? row[ci.unit] : '') || 'وحدة',
+                qty: Number(ci.qty !== -1 ? row[ci.qty] : 0) || 0,
+                unitPrice: Number(ci.price !== -1 ? String(row[ci.price]).replace(/[^\d.]/g, '') : 0) || 0,
+                progress: 0, status: 'لم يبدأ'
+              });
+              created++;
+            }
+          }
+        }
+        toast(created
+          ? I18n.t('✅ رُفع جدول الكميات وأُنشئ ') + created + I18n.t(' بنداً للمقاول: ') + esc(c.name)
+          : I18n.t('✅ رُفع الملف. لإنشاء البنود آلياً استخدم CSV/Excel بعناوين: الوصف/الوحدة/الكمية/السعر'));
         ctx.refresh();
-      } catch (e) { toast(e.message, true); }
+      } catch (e) { toast(e.message, true); bqUp.disabled = false; }
     });
     el.querySelectorAll('[data-bq]').forEach(function (r) {
       r.addEventListener('input', function () {
@@ -1023,6 +1062,7 @@
         } catch (e) { toast(e.message, true); }
       });
     });
+    if (window.ViewsExtra && window.ViewsExtra.wireBaselineReview) window.ViewsExtra.wireBaselineReview(el, ctx);
   }
 
   // ============ إعداد التقارير (الاستشاري): يومي / أسبوعي / شهري ============

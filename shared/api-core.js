@@ -10,10 +10,13 @@
   'use strict';
 
   const APPROVAL_COLLECTIONS = [
-    'shopDrawings', 'materials', 'scheduleSubmittals', 'wirs', 'changeOrders', 'payments',
+    'shopDrawings', 'materials', 'scheduleSubmittals', 'boqSubmittals', 'wirs', 'changeOrders', 'payments',
     // موديول المكتب الفني - دورات الاعتماد
     'methodStatements', 'claims', 'valueEngineering', 'handoverDocs'
   ];
+  // مجموعات لها خط أساس مقفل: بعد الاعتماد لا يعدّلها المقاول، وأي تعديل (نسخة) يتطلب
+  // توقيع الاستشاري وممثل المالك معاً (§ طلب المالك)
+  const BASELINE_COLLECTIONS = ['boqSubmittals', 'scheduleSubmittals'];
   // مجموعات المكتب الفني المرتبطة بمقاول محدد (يرى المقاول ما يخصه فقط)
   const TECH_FILTERED = ['rfis', 'rfps', 'ncrs', 'siteInstructions', 'snags', 'hseReports', 'materialTests'];
   // مجموعات مكتب فني عامة لا تُعرض للمقاول
@@ -26,7 +29,7 @@
   const REF_PREFIX = {
     shopDrawings: 'SD', materials: 'MT', scheduleSubmittals: 'SCH', wirs: 'WIR',
     changeOrders: 'CO', payments: 'PAY', methodStatements: 'MS', claims: 'CLM',
-    valueEngineering: 'VE', handoverDocs: 'HND', planDrawings: 'DWG',
+    valueEngineering: 'VE', handoverDocs: 'HND', planDrawings: 'DWG', boqSubmittals: 'BOQ',
     rfis: 'RFI', ncrs: 'NCR', siteInstructions: 'SI', snags: 'SNG',
     hseReports: 'HSE', materialTests: 'MTT', meetings: 'MOM', correspondence: 'COR'
   };
@@ -42,7 +45,7 @@
     shopDrawings: 'مخطط تنفيذي', materials: 'اعتماد مواد', scheduleSubmittals: 'جدول زمني',
     wirs: 'طلب استلام', changeOrders: 'أمر تغيير', payments: 'مستخلص',
     methodStatements: 'أسلوب تنفيذ/ITP', claims: 'مطالبة/EOT', valueEngineering: 'هندسة قيمية',
-    handoverDocs: 'مستند تسليم', rfis: 'استفسار RFI', rfps: 'طلب عرض RFP', ncrs: 'عدم مطابقة NCR',
+    handoverDocs: 'مستند تسليم', boqSubmittals: 'جدول كميات', rfis: 'استفسار RFI', rfps: 'طلب عرض RFP', ncrs: 'عدم مطابقة NCR',
     siteInstructions: 'تعليمات موقعية', snags: 'ملاحظة تسليم', hseReports: 'تقرير سلامة',
     materialTests: 'اختبار مواد', meetings: 'محضر اجتماع', correspondence: 'خطاب',
     dailyReports: 'تقرير يومي', weeklyReports: 'تقرير أسبوعي', monthlyReports: 'تقرير شهري',
@@ -63,7 +66,7 @@
   const DOC_TYPE_CODES = {
     shopDrawings: 'SD', materials: 'MAT', scheduleSubmittals: 'SCH', wirs: 'WIR',
     changeOrders: 'CO', payments: 'IPC', methodStatements: 'MS', claims: 'CLM',
-    valueEngineering: 'VE', handoverDocs: 'HOD', rfis: 'RFI', rfps: 'RFP', ncrs: 'NCR',
+    valueEngineering: 'VE', handoverDocs: 'HOD', boqSubmittals: 'BOQ', rfis: 'RFI', rfps: 'RFP', ncrs: 'NCR',
     siteInstructions: 'SI', snags: 'SNG', hseReports: 'HSE', materialTests: 'TST',
     meetings: 'MOM', correspondence: 'COR', dailyReports: 'DDR', weeklyReports: 'WKR',
     monthlyReports: 'MOR', planDrawings: 'DRW', photos: 'PHT', files: 'FIL',
@@ -76,6 +79,7 @@
     shopDrawings: ['contractor', 'consultant', 'admin'],
     materials: ['contractor', 'consultant', 'admin'],
     scheduleSubmittals: ['contractor', 'consultant', 'admin'],
+    boqSubmittals: ['contractor', 'consultant', 'admin'],
     wirs: ['contractor', 'consultant', 'admin'],
     changeOrders: ['contractor', 'consultant', 'admin'],
     payments: ['contractor', 'consultant', 'admin'],
@@ -514,25 +518,61 @@
      * (فتتحول مناطق المخططات من داكنة إلى ساطعة) ويحدّث المبالغ المستلمة للمقاول.
      */
     function review(user, opts) {
-      if (user.role !== 'consultant' && user.role !== 'admin') throw err('قرار الاعتماد صلاحية الاستشاري', 403);
       const collection = opts.collection, id = opts.id, status = opts.status;
+      const isReviewer = user.role === 'consultant' || user.role === 'admin';
+      const isOwnerRep = user.role === 'owner_rep';
+      const baseline = BASELINE_COLLECTIONS.indexOf(collection) !== -1;
+      // ممثل المالك يشارك في اعتماد تعديلات خط الأساس فقط (جدول الكميات/الجدول الزمني)
+      if (!isReviewer && !(isOwnerRep && baseline)) throw err('قرار الاعتماد صلاحية الاستشاري', 403);
       if (APPROVAL_COLLECTIONS.indexOf(collection) === -1) throw err('هذه المجموعة ليست ضمن دورة الاعتماد', 400);
       if (['approved', 'approved_notes', 'rejected'].indexOf(status) === -1) throw err('حالة غير صالحة', 400);
       const item = db[collection].find(function (x) { return x.id === id; });
       if (!item) throw err('الطلب غير موجود', 404);
+      if (!item.history) item.history = [];
+      if (!item.reviewStartDate) item.reviewStartDate = item.date;
 
+      const isRevision = baseline && item.kind === 'revision';
+
+      // ===== اعتماد مزدوج: تعديل خط أساس معتمد يتطلب توقيع الاستشاري وممثل المالك معاً =====
+      if (isRevision && status !== 'rejected') {
+        item.sig = item.sig || { consultant: null, ownerRep: null };
+        if (isReviewer) item.sig.consultant = { by: user.name, date: todayStr() };
+        if (isOwnerRep) item.sig.ownerRep = { by: user.name, date: todayStr() };
+        item.notes = opts.notes || item.notes || '';
+        item.history.push({ status: 'signed', by: user.name, role: user.role, date: todayStr(), notes: opts.notes || '' });
+        if (item.sig.consultant && item.sig.ownerRep) {
+          item.status = 'approved';
+          item.reviewEndDate = todayStr();
+          item.reviewDays = Math.max(0, Math.round((new Date(item.reviewEndDate) - new Date(item.date)) / 86400000));
+          item.signature = item.sig.consultant.by + ' + ' + item.sig.ownerRep.by;
+          item.signDate = todayStr();
+          applyBaseline(collection, item);
+          if (item.contractorId) pushNotification({ contractorId: item.contractorId }, 'decision', '✅ اعتُمد تعديل ' + labelOf(collection, item) + ' من الاستشاري وممثل المالك', collection, item.id);
+        } else {
+          item.status = 'pending'; // ينتظر توقيع الطرف الآخر
+          const need = item.sig.consultant ? 'owner_rep' : 'consultant';
+          pushNotification({ role: need }, 'decision', '🖊 بانتظار توقيعك على تعديل ' + labelOf(collection, item), collection, item.id);
+        }
+        audit(user, 'review', 'توقيع على تعديل — ' + labelOf(collection, item));
+        persist();
+        return item;
+      }
+
+      // ===== المسار الفردي: بقية الطلبات + الاعتماد الأول لخط الأساس (الاستشاري/الأدمن) =====
+      if (!isReviewer) throw err('اعتماد التعديل يتطلب توقيع الاستشاري أولاً', 403);
       item.status = status;
       item.notes = opts.notes || '';
       item.signature = user.name;
       item.signDate = todayStr();
-      if (!item.reviewStartDate) item.reviewStartDate = item.date;
       item.reviewEndDate = todayStr();
       item.reviewDays = Math.max(0, Math.round((new Date(item.reviewEndDate) - new Date(item.date)) / 86400000));
-      if (!item.history) item.history = [];
       item.history.push({ status: status, by: user.name, role: user.role, date: todayStr(), notes: opts.notes || '' });
 
       if (collection === 'payments' && (status === 'approved' || status === 'approved_notes')) {
         applyPaymentEffects(item);
+      }
+      if (baseline && (status === 'approved' || status === 'approved_notes')) {
+        applyBaseline(collection, item);
       }
       const decision = status === 'rejected' ? 'رفض' : 'اعتماد';
       if (item.contractorId) {
@@ -543,6 +583,52 @@
       audit(user, 'review', decision + ' — ' + labelOf(collection, item));
       persist();
       return item;
+    }
+
+    /** يطبّق أثر اعتماد خط الأساس بحسب نوعه (جدول كميات أو جدول زمني) */
+    function applyBaseline(collection, item) {
+      if (collection === 'scheduleSubmittals') applyScheduleEffects(item);
+      else if (collection === 'boqSubmittals') applyBoqEffects(item);
+    }
+
+    /** أثر اعتماد جدول الكميات المقدَّم: يصبح جدول كميات المقاول الرسمي المقفل.
+       يستبدل بنود المقاول بالبنود المستخرَجة من ملفه المعتمد. */
+    function applyBoqEffects(sub) {
+      const items = sub.parsedItems;
+      if (!Array.isArray(items) || !items.length) return;
+      const cid = sub.contractorId;
+      const contractor = db.contractors.find(function (c) { return c.id === cid; });
+      const pid = sub.projectId || (contractor && contractor.projectId) || 'P1';
+      const disc = (contractor && contractor.type) || 'general';
+      db.boqItems = (db.boqItems || []).filter(function (b) { return b.contractorId !== cid; });
+      items.forEach(function (it, i) {
+        db.boqItems.push({
+          id: nextId('BQ'), projectId: pid, contractorId: cid, discipline: disc,
+          floor: it.floor || 'GF', zone: i % 6,
+          code: (disc || 'GN').substring(0, 2).toUpperCase() + '-' + String(i + 1).padStart(3, '0'),
+          description: it.description || 'بند', unit: it.unit || 'وحدة',
+          qty: Number(it.qty) || 0, unitPrice: Number(it.unitPrice) || 0,
+          progress: 0, status: 'لم يبدأ'
+        });
+      });
+    }
+
+    /** أثر اعتماد البرنامج الزمني المقدَّم: يصبح الجدول الزمني الرسمي للمشروع.
+       يستبدل مراحل الجدول للمشروع بالمهام المستخرَجة من ملف المقاول المعتمد. */
+    function applyScheduleEffects(sub) {
+      const tasks = sub.parsedTasks;
+      if (!Array.isArray(tasks) || !tasks.length) return;
+      const pid = sub.projectId || 'P1';
+      db.scheduleTasks = (db.scheduleTasks || []).filter(function (t) { return (t.projectId || 'P1') !== pid; });
+      tasks.forEach(function (t) {
+        db.scheduleTasks.push({
+          id: nextId('T'), projectId: pid,
+          name: t.name || 'مهمة',
+          startPlanned: t.start || '', endPlanned: t.end || '',
+          startActual: t.startActual || null, endActual: t.endActual || null,
+          progress: Math.max(0, Math.min(100, Number(t.progress) || 0))
+        });
+      });
     }
 
     /** أثر اعتماد المستخلص: تحديث نسب البنود + المبالغ المستلمة */

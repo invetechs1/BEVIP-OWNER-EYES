@@ -302,6 +302,9 @@
       { id: 'SC2', projectId: 'P1', contractorId: 'C7', ref: 'SCH-FUR-R1', title: 'الجدول الزمني المبدئي - أعمال الفرش', date: '2026-06-25', status: 'approved', notes: 'اعتمد مع ربط البدء بجاهزية التشطيبات', signature: 'م. خالد العمران', signDate: '2026-06-28', file: 'schedule-fur-r1.xml' }
     ];
 
+    // ============ اعتماد جداول الكميات (خط أساس مقفل — تعديله يتطلب توقيع الاستشاري وممثل المالك) ============
+    db.boqSubmittals = [];
+
     // ============ طلبات استلام الأعمال (WIR) ============
     db.wirs = [
       { id: 'WIR1', projectId: 'P1', contractorId: 'C2', ref: 'WIR-ARC-087', title: 'استلام لياسة الدور الأول - الجناح الشرقي', date: '2026-07-10', status: 'pending', notes: '', location: 'F1' },
