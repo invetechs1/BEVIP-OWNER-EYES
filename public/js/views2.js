@@ -890,7 +890,9 @@
     const earned = items.reduce(function (a, b) { return a + b.qty * b.unitPrice * b.progress / 100; }, 0);
 
     const boqFiles = (ctx.S.files || []).filter(function (f) { return f.category === 'جداول الكميات BOQ'; });
+    const baselinePanel = (window.ViewsExtra && window.ViewsExtra.baselineReviewHtml) ? window.ViewsExtra.baselineReviewHtml(ctx, 'boqSubmittals') : '';
     el.innerHTML =
+      baselinePanel +
       '<div class="card"><div class="flex" style="justify-content:space-between;flex-wrap:wrap">' +
       '<h3 style="margin:0">' + I18n.t('📊 جدول الكميات BOQ ') + '<span class="hint">' + I18n.t('تحديث نسب الإنجاز هنا يغيّر سطوع المخططات مباشرة') + '</span></h3>' +
       (canEdit ? '<div class="flex"><input class="inp" id="bq-file" type="file" accept=".xlsx,.xls,.csv,.pdf" style="max-width:220px">' +
@@ -981,6 +983,7 @@
         } catch (e) { toast(e.message, true); }
       });
     });
+    if (window.ViewsExtra && window.ViewsExtra.wireBaselineReview) window.ViewsExtra.wireBaselineReview(el, ctx);
   }
 
   // ============ إعداد التقارير (الاستشاري): يومي / أسبوعي / شهري ============

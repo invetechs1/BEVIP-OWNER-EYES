@@ -112,7 +112,24 @@
         '</tr>';
     }).join('');
 
-    el.innerHTML =
+    // ===== رفع جدول الكميات (خط أساس / تعديل) وحالة الاعتماد =====
+    const subs = (ctx.S.boqSubmittals || []).slice().sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); });
+    const pendingSub = subs.find(function (s) { return s.status === 'pending'; });
+    const hasBaseline = items.length > 0 || subs.some(function (s) { return s.status === 'approved'; });
+    const uploadCard =
+      '<div class="card mb"><div class="flex" style="justify-content:space-between;flex-wrap:wrap;gap:10px">' +
+      '<h3 style="margin:0">📤 ' + (hasBaseline ? 'طلب تعديل جدول الكميات' : 'رفع جدول الكميات للاعتماد') + ' <span class="hint">CSV / Excel — الأعمدة: الوصف/الوحدة/الكمية/السعر/الدور</span></h3></div>' +
+      (hasBaseline ? '<div class="small" style="margin:8px 0"><span class="pill p-ok">🔒 جدول الكميات معتمد ومقفل</span> أي تعديل يتطلب موافقة الاستشاري وممثل المالك معاً.</div>' : '<div class="small muted" style="margin:8px 0">ارفع جدول كمياتك ليُراجعه الاستشاري ويعتمده، وبعد الاعتماد يُقفل ولا يُعدَّل إلا بموافقة الاستشاري وممثل المالك.</div>') +
+      (pendingSub
+        ? '<div class="pill p-warn">⏳ لديك جدول كميات قيد المراجعة (' + esc(pendingSub.docCode || pendingSub.ref || '') + ') — بانتظار قرار الاستشاري</div>'
+        : '<div class="flex"><input class="inp" id="cboq-file" type="file" accept=".csv,.tsv,.txt,.xlsx,.xlsm" style="max-width:260px"><button class="btn sm" id="cboq-read">📖 قراءة الملف</button></div>' +
+          '<div id="cboq-prev" class="small muted mt">اختر الملف ثم «قراءة الملف».</div>') +
+      (subs.length ? '<div class="tbl-wrap mt"><table class="tbl"><thead><tr><th>المرجع</th><th>النوع</th><th>البنود</th><th>التاريخ</th><th>الحالة</th></tr></thead><tbody>' +
+        subs.map(function (s) { return '<tr><td class="num small">' + esc(s.docCode || s.ref || '—') + '</td><td>' + (s.kind === 'revision' ? '<span class="pill p-warn">تعديل</span>' : '<span class="pill p-info">خط أساس</span>') + '</td><td class="num small">' + ((s.parsedItems || []).length || '—') + '</td><td class="small muted num">' + esc(s.date || '') + '</td><td>' + VS.pill(s.status) + '</td></tr>'; }).join('') +
+        '</tbody></table></div>' : '') +
+      '</div>';
+
+    el.innerHTML = uploadCard +
       '<div class="grid g4 mb">' +
       '<div class="card kpi"><div class="lbl">إجمالي بنودي</div><div class="val num">' + items.length + '</div><div class="sub">بند في عقدي</div></div>' +
       '<div class="card kpi k-info"><div class="lbl">قيمة عقدي</div><div class="val num">' + Math.round(totVal / 1e6 * 10) / 10 + 'M</div><div class="sub">ر.س</div></div>' +
@@ -132,6 +149,36 @@
         '<span>' + VS.statusPill('p-danger', 'متأخر', '✕') + '</span></div>'
         : '<div class="empty"><div class="e-ico">📐</div>لا بنود في عقدك بعد</div>') +
       '</div>';
+
+    const cRead = el.querySelector('#cboq-read');
+    if (cRead) cRead.addEventListener('click', async function () {
+      const f = el.querySelector('#cboq-file').files[0];
+      const prev = el.querySelector('#cboq-prev');
+      if (!f) { toast('اختر ملف جدول الكميات أولاً', true); return; }
+      prev.innerHTML = '⏳ جارٍ قراءة الملف…';
+      try {
+        const floors = (ctx.S.projects[0] || {}).floors || [];
+        const parsed = await parseBoqFile(f, floors);
+        if (!parsed.length) { prev.innerHTML = '⚠️ لم تُستخرج بنود. استخدم CSV/Excel بعناوين: الوصف/الوحدة/الكمية/السعر.'; return; }
+        const totalVal = parsed.reduce(function (a, b) { return a + b.qty * b.unitPrice; }, 0);
+        prev.innerHTML =
+          '<div class="flex" style="justify-content:space-between;flex-wrap:wrap"><b class="small">✅ استُخرج ' + parsed.length + ' بند (قيمة ' + money(Math.round(totalVal)) + ')</b>' +
+          '<button class="btn sm" id="cboq-send">📤 ' + (hasBaseline ? 'إرسال طلب التعديل للاعتماد' : 'إرسال للاستشاري للاعتماد') + '</button></div>' +
+          '<div class="tbl-wrap mt" style="max-height:32vh;overflow:auto"><table class="tbl"><thead><tr><th>الوصف</th><th>الوحدة</th><th>الكمية</th><th>السعر</th></tr></thead><tbody>' +
+          parsed.slice(0, 200).map(function (p) { return '<tr><td class="small">' + esc(p.description) + '</td><td class="small">' + esc(p.unit) + '</td><td class="num small">' + p.qty + '</td><td class="num small">' + p.unitPrice.toLocaleString('en-US') + '</td></tr>'; }).join('') +
+          '</tbody></table></div>';
+        const sendBtn = el.querySelector('#cboq-send');
+        sendBtn.addEventListener('click', async function () {
+          sendBtn.disabled = true;
+          try {
+            const fileObj = await Api.upload(f, { category: 'جداول الكميات BOQ' });
+            await Api.create('boqSubmittals', { title: (hasBaseline ? 'تعديل جدول الكميات — ' : 'جدول الكميات — ') + f.name, file: fileObj, parsedItems: parsed, kind: hasBaseline ? 'revision' : 'baseline' });
+            toast(hasBaseline ? '📤 أُرسل طلب التعديل — يتطلب موافقة الاستشاري وممثل المالك' : '📤 أُرسل جدول الكميات للاستشاري للاعتماد');
+            ctx.refresh();
+          } catch (e) { toast(e.message, true); sendBtn.disabled = false; }
+        });
+      } catch (e) { prev.innerHTML = '❌ تعذّرت قراءة الملف: ' + esc(e.message); }
+    });
   }
 
   // ============ 2) قرّاء ملفات الجدول الزمني ============
@@ -327,6 +374,8 @@
     const tasks = (ctx.S.scheduleTasks || []).slice();
     // برامج زمنية مقدّمة (دورة الاعتماد): المقاول يرى برامجه، الاستشاري يرى ما ينتظر قراره
     const subs = (ctx.S.scheduleSubmittals || []).slice().sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); });
+    const hasSchedBaseline = tasks.length > 0 || subs.some(function (s) { return s.status === 'approved'; });
+    const schedPending = subs.find(function (s) { return s.status === 'pending'; });
     const th = VS.thresholds(ctx.S.projects[0]);
     let nLate = 0, nSlip = 0;
     const rows = tasks.map(function (tk) {
@@ -352,25 +401,29 @@
       '</div>' +
       (canUpload ?
         '<div class="card mb"><div class="flex" style="justify-content:space-between;flex-wrap:wrap;gap:10px">' +
-        '<h3 style="margin:0">📅 ' + (isContractor ? 'رفع برنامجك الزمني للاعتماد' : t('رفع ملف الجدول الزمني')) + ' <span class="hint">' + t('يقرأ CSV / Primavera XER / P6 XML / Excel / PDF') + '</span></h3>' +
+        '<h3 style="margin:0">📅 ' + (isContractor ? (hasSchedBaseline ? 'طلب تعديل الجدول الزمني' : 'رفع برنامجك الزمني للاعتماد') : t('رفع ملف الجدول الزمني')) + ' <span class="hint">' + t('يقرأ CSV / Primavera XER / P6 XML / Excel / PDF') + '</span></h3>' +
         '<div class="flex"><input class="inp" id="sch-file" type="file" accept=".csv,.txt,.tsv,.xer,.xml,.xlsx,.xlsm,.pdf" style="max-width:260px">' +
         '<button class="btn sm" id="sch-read">📖 قراءة الملف</button></div></div>' +
-        '<div class="small muted mb">' + (isContractor
-          ? 'ارفع برنامجك الزمني — يُقرأ آلياً ويُرسَل للاستشاري للمراجعة والاعتماد، وعند اعتماده يصبح الجدول الرسمي المعتمد للمشروع.'
-          : 'ارفع الجدول الزمني — يُقرأ آلياً وتعتمده مباشرةً كجدول رسمي، أو راجع برامج المقاولين المقدَّمة أدناه/في «التقديمات ← بانتظار قراري».') + '</div>' +
+        '<div class="small mb">' + (isContractor
+          ? (hasSchedBaseline
+            ? '<span class="pill p-ok">🔒 الجدول الزمني معتمد ومقفل</span> أي تعديل يتطلب موافقة الاستشاري وممثل المالك معاً.'
+            : '<span class="muted">ارفع برنامجك الزمني — يُقرأ آلياً ويُرسَل للاستشاري للاعتماد، وبعد الاعتماد يُقفل ولا يُعدَّل إلا بموافقة الاستشاري وممثل المالك.</span>')
+          : '<span class="muted">ارفع الجدول الزمني وتعتمده مباشرةً كخط أساس، أو اعتمد برامج المقاولين المقدَّمة أدناه.</span>') + '</div>' +
+        (isContractor && schedPending ? '<div class="pill p-warn">⏳ لديك جدول زمني قيد المراجعة — بانتظار القرار</div>' : '') +
         '<div id="sch-preview" class="small muted">اختر الملف ثم «قراءة الملف» — سيُستخرج منه المهام والتواريخ ونِسَب الإنجاز.</div></div>'
         : '') +
-      // حالة البرامج الزمنية المقدَّمة (دورة الاعتماد)
-      (subs.length ?
-        '<div class="card mb"><h3 style="margin:0 0 10px">📤 ' + (isContractor ? 'برامجي الزمنية المقدَّمة' : 'برامج زمنية مقدَّمة من المقاولين') + '</h3>' +
-        '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>المرجع</th><th>العنوان</th><th>التاريخ</th><th>مهام</th><th>الحالة</th>' + (isReviewer ? '<th></th>' : '') + '</tr></thead><tbody>' +
+      // لوحة اعتماد خط الأساس (للاستشاري وممثل المالك)
+      baselineReviewHtml(ctx, 'scheduleSubmittals') +
+      // حالة البرامج الزمنية المقدَّمة (عرض للمقاول)
+      (isContractor && subs.length ?
+        '<div class="card mb"><h3 style="margin:0 0 10px">📤 برامجي الزمنية المقدَّمة</h3>' +
+        '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>المرجع</th><th>النوع</th><th>مهام</th><th>التاريخ</th><th>الحالة</th></tr></thead><tbody>' +
         subs.map(function (s) {
           return '<tr><td class="num small">' + esc(s.docCode || s.ref || '—') + '</td>' +
-            '<td class="small">' + esc(s.title || '—') + '</td>' +
-            '<td class="small muted num">' + esc(s.date || '') + '</td>' +
+            '<td>' + (s.kind === 'revision' ? '<span class="pill p-warn">تعديل</span>' : '<span class="pill p-info">خط أساس</span>') + '</td>' +
             '<td class="num small">' + ((s.parsedTasks || []).length || '—') + '</td>' +
-            '<td>' + VS.pill(s.status) + '</td>' +
-            (isReviewer ? '<td>' + (s.status === 'pending' ? '<button class="btn sm" data-nav="submittals">مراجعة وقرار ←</button>' : '') + '</td>' : '') + '</tr>';
+            '<td class="small muted num">' + esc(s.date || '') + '</td>' +
+            '<td>' + VS.pill(s.status) + '</td></tr>';
         }).join('') + '</tbody></table></div></div>'
         : '') +
       '<div class="card"><div class="flex" style="justify-content:space-between;flex-wrap:wrap">' +
@@ -403,15 +456,17 @@
           applyBtn.disabled = true;
           try {
             const fileObj = await Api.upload(f, { category: 'الجدول الزمني' });
-            const title = 'برنامج زمني — ' + f.name;
+            const kind = hasSchedBaseline ? 'revision' : 'baseline';
+            const title = (kind === 'revision' ? 'تعديل الجدول الزمني — ' : 'برنامج زمني — ') + f.name;
             // دورة الاعتماد الموحّدة: يُنشأ تقديم جدول زمني يحمل المهام المستخرَجة والملف
-            const created = await Api.create('scheduleSubmittals', { title: title, file: fileObj, parsedTasks: parsed });
+            const created = await Api.create('scheduleSubmittals', { title: title, file: fileObj, parsedTasks: parsed, kind: kind });
             if (isContractor) {
-              toast('📤 أُرسل برنامجك الزمني للاستشاري للاعتماد (' + parsed.length + ' مهمة)');
+              toast(kind === 'revision' ? '📤 أُرسل طلب التعديل — يتطلب موافقة الاستشاري وممثل المالك' : '📤 أُرسل برنامجك الزمني للاستشاري للاعتماد (' + parsed.length + ' مهمة)');
             } else {
-              // الاستشاري/الأدمن: اعتماد مباشر — يمرّ بنفس المسار فيصبح الجدول الرسمي
-              await Api.review({ collection: 'scheduleSubmittals', id: created.id, status: 'approved', notes: 'اعتماد مباشر' });
-              toast('✅ اعتُمد الجدول الزمني الرسمي للمشروع (' + parsed.length + ' مرحلة)');
+              // الاستشاري/الأدمن: توقيع مباشر — خط الأساس الأول يُعتمد فوراً، والتعديل ينتظر توقيع ممثل المالك
+              const res = await Api.review({ collection: 'scheduleSubmittals', id: created.id, status: 'approved', notes: 'اعتماد مباشر' });
+              if (res && res.status === 'approved') toast('✅ اعتُمد الجدول الزمني الرسمي للمشروع (' + parsed.length + ' مرحلة)');
+              else toast('🖊 وقّعت كاستشاري — تعديل خط الأساس بانتظار توقيع ممثل المالك');
             }
             ctx.refresh();
           } catch (e) { toast(e.message, true); applyBtn.disabled = false; }
@@ -422,6 +477,64 @@
     el.querySelectorAll('[data-nav]').forEach(function (b) {
       b.addEventListener('click', function () { ctx.nav(b.getAttribute('data-nav')); });
     });
+    wireBaselineReview(el, ctx);
+  }
+
+  // يحوّل ملف جدول كميات (CSV/Excel) إلى بنود [{description,unit,qty,unitPrice,floor}]
+  async function parseBoqFile(file, floors) {
+    floors = floors || [];
+    const rows = await parseRows(file);
+    if (!rows.length) return [];
+    const head = rows[0].map(function (h) { return String(h).toLowerCase().trim(); });
+    const find = function (keys) { for (let i = 0; i < head.length; i++) { if (keys.some(function (k) { return head[i].indexOf(k) !== -1; })) return i; } return -1; };
+    const ci = { desc: find(['description', 'item', 'وصف', 'البند', 'الوصف']), unit: find(['unit', 'وحدة', 'الوحدة']), qty: find(['qty', 'quantity', 'كمية', 'الكمية']), price: find(['price', 'unitprice', 'سعر']), floor: find(['floor', 'دور', 'الدور', 'level']) };
+    const hasHeader = ci.desc !== -1;
+    const body = hasHeader ? rows.slice(1) : rows;
+    const dFloor = (floors[0] && floors[0].id) || 'GF';
+    const matchFloor = function (v) { if (!v) return dFloor; v = String(v).trim(); const a = floors.find(function (f) { return f.id === v; }); if (a) return a.id; const b = floors.find(function (f) { return f.name === v; }); return b ? b.id : dFloor; };
+    return body.map(function (r) {
+      return { description: String((ci.desc !== -1 ? r[ci.desc] : r[0]) || '').trim(), unit: (ci.unit !== -1 ? r[ci.unit] : '') || 'وحدة', qty: Number(ci.qty !== -1 ? r[ci.qty] : 0) || 0, unitPrice: Number(ci.price !== -1 ? String(r[ci.price]).replace(/[^\d.]/g, '') : 0) || 0, floor: matchFloor(ci.floor !== -1 ? r[ci.floor] : '') };
+    }).filter(function (x) { return x.description; });
+  }
+
+  // لوحة اعتماد خط الأساس (جداول الكميات/الجداول الزمنية) — اعتماد فردي لخط الأساس، وتوقيع مزدوج للتعديلات
+  function baselineReviewHtml(ctx, collection) {
+    const role = ctx.U.role;
+    const canConsult = role === 'consultant' || role === 'admin';
+    const canRep = role === 'owner_rep';
+    if (!canConsult && !canRep) return '';
+    const subs = (ctx.S[collection] || []).filter(function (s) { return s.status === 'pending'; });
+    if (!subs.length) return '';
+    const title = collection === 'boqSubmittals' ? 'جداول الكميات المقدَّمة' : 'الجداول الزمنية المقدَّمة';
+    return '<div class="card mb"><h3 style="margin:0 0 10px">🖊 اعتماد ' + title + ' <span class="hint">اعتماد خط الأساس من الاستشاري؛ تعديله لاحقاً يتطلب توقيع الاستشاري وممثل المالك معاً</span></h3>' +
+      '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>المرجع</th><th>العنوان</th><th>النوع</th><th>البنود</th><th>التوقيعات</th><th>الإجراء</th></tr></thead><tbody>' +
+      subs.map(function (s) {
+        const rev = s.kind === 'revision'; const sig = s.sig || {};
+        const n = ((s.parsedItems || s.parsedTasks || []).length) || '—';
+        const sigCell = rev ? ('استشاري ' + (sig.consultant ? '✓' : '—') + ' · ممثل المالك ' + (sig.ownerRep ? '✓' : '—')) : '—';
+        let act = '';
+        if (rev) {
+          if (canConsult && !sig.consultant) act += '<button class="btn sm" data-sign="' + s.id + '" data-col="' + collection + '">🖊 توقيع الاستشاري</button> ';
+          if (canRep && !sig.ownerRep) act += '<button class="btn sm" data-sign="' + s.id + '" data-col="' + collection + '">🖊 توقيع ممثل المالك</button> ';
+          act += '<button class="btn danger sm" data-rej="' + s.id + '" data-col="' + collection + '">↩ رفض</button>';
+        } else if (canConsult) {
+          act += '<button class="btn sm" data-sign="' + s.id + '" data-col="' + collection + '">✅ اعتماد</button> <button class="btn danger sm" data-rej="' + s.id + '" data-col="' + collection + '">↩ إرجاع</button>';
+        }
+        return '<tr><td class="num small">' + esc(s.docCode || s.ref || '—') + '</td><td class="small">' + esc(s.title || '—') + '</td><td>' + (rev ? '<span class="pill p-warn">تعديل</span>' : '<span class="pill p-info">خط أساس</span>') + '</td><td class="num small">' + n + '</td><td class="small">' + sigCell + '</td><td>' + (act || '<span class="muted small">بانتظار الطرف الآخر</span>') + '</td></tr>';
+      }).join('') + '</tbody></table></div></div>';
+  }
+  function wireBaselineReview(el, ctx) {
+    el.querySelectorAll('[data-sign]').forEach(function (b) {
+      b.addEventListener('click', async function () {
+        try { await Api.review({ collection: b.getAttribute('data-col'), id: b.getAttribute('data-sign'), status: 'approved' }); toast('✅ سُجّل قرارك'); ctx.refresh(); } catch (e) { toast(e.message, true); }
+      });
+    });
+    el.querySelectorAll('[data-rej]').forEach(function (b) {
+      b.addEventListener('click', async function () {
+        const notes = (window.prompt && window.prompt('سبب الإرجاع (اختياري):')) || '';
+        try { await Api.review({ collection: b.getAttribute('data-col'), id: b.getAttribute('data-rej'), status: 'rejected', notes: notes }); toast('↩ أُرجع للمقاول'); ctx.refresh(); } catch (e) { toast(e.message, true); }
+      });
+    });
   }
 
   window.ViewsExtra = {
@@ -429,6 +542,9 @@
     renderSchedule: renderSchedule,
     parseScheduleFile: parseScheduleFile,
     parseRows: parseRows,
+    parseBoqFile: parseBoqFile,
+    baselineReviewHtml: baselineReviewHtml,
+    wireBaselineReview: wireBaselineReview,
     delayStatus: delayStatus, expectedPct: expectedPct
   };
 })();

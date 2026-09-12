@@ -108,7 +108,7 @@
         { id: 'rfi', label: 'RFI · RFP', render: VM.renderRfx }
       ]) },
     { id: 'tech-office', title: 'سجلات المكتب الفني', icon: '🏛️', sec: 'الأعمال والاعتمادات', roles: ['admin', 'consultant'], render: VR.renderTechOffice },
-    { id: 'boq', title: 'جداول الكميات', icon: '📐', sec: 'الأعمال والاعتمادات', roles: ['admin', 'consultant'], render: VR.renderBoq },
+    { id: 'boq', title: 'جداول الكميات', icon: '📐', sec: 'الأعمال والاعتمادات', roles: ['admin', 'consultant', 'owner_rep'], render: VR.renderBoq },
 
     // === 3 · المقاولون ===
     { id: 'contractors', title: 'المقاولون', icon: '👷', sec: 'المقاولون', roles: OWNER_SET,

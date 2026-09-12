@@ -136,6 +136,14 @@ New module `window.ViewsExtra`, loaded after `views4.js` (added to `index.html` 
 - Helpers exported: `delayStatus(actual,start,end,amberTh,redTh)`, `expectedPct(start,end)`.
 - **Maintenance:** if you change `index.html` script tags, keep `tools/build-demo.js` `SCRIPTS[]` in sync (views5.js is included).
 
+## 9c. BOQ & Schedule baseline lock + dual-approval revisions (`shared/api-core.js`, `views5.js`, `views2.js`)
+Per owner request: the **contractor uploads his own BOQ and schedule**; once the consultant approves it becomes a **locked baseline**; any later change needs **consultant + owner-rep** signatures.
+- **Collections:** `boqSubmittals` (new) and `scheduleSubmittals`, both listed in `BASELINE_COLLECTIONS`. Each submittal carries `kind: 'baseline' | 'revision'`, `parsedItems`/`parsedTasks`, the file, and (for revisions) `sig: {consultant, ownerRep}`.
+- **`review()` (api-core):** for `BASELINE_COLLECTIONS`, a `revision` requires two signatures — consultant **and** owner-rep — before it applies (owner-rep is allowed to co-sign only these two collections; any single reviewer leaves it `pending`). A `baseline` (first submission) applies on a single consultant/admin approval. On full approval it calls `applyBaseline()` → `applyBoqEffects()` (replaces the contractor's `boqItems`) or `applyScheduleEffects()` (replaces the project's `scheduleTasks`).
+- **Contractor UI (`views5.js`):** `renderContractorBoq` and `renderSchedule` show an upload control that parses the file (`parseBoqFile` / `parseScheduleFile`) and submits it. If an approved baseline exists, the UI shows a 🔒 lock banner and the upload becomes a "revision" request; otherwise a "baseline" submission. Contractors see their submissions' status + which signatures are collected.
+- **Reviewer UI:** `baselineReviewHtml(ctx, collection)` + `wireBaselineReview(el, ctx)` (exported from `ViewsExtra`) render a pending-approvals panel with per-role sign/reject buttons; embedded in the Schedule page (`renderSchedule`) and the consultant/owner-rep BOQ page (`renderBoq`). The `boq` page is now also visible to `owner_rep` so they can co-sign BOQ revisions.
+- **Seed:** `db.boqSubmittals = []` added.
+
 ## 10. Suggested review order for you
 1. `public/js/app.js` — nav model, `tabbed()`, `ALIAS`/`resolveId`, sidebar/breadcrumbs. (Highest impact.)
 2. `public/js/views.js` — `ViewsShared` helpers (`statusPill/barClass/progressBar/fmtInt`), STATUS map.
