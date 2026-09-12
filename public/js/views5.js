@@ -239,7 +239,8 @@
     }
     return null;
   }
-  async function parseXlsx(buf) {
+  // يعيد شبكة الخلايا (مصفوفة صفوف من نصوص) من ملف XLSX
+  async function xlsxGrid(buf) {
     const dec = new TextDecoder();
     const ssBytes = await readZipEntry(buf, function (n) { return /sharedStrings\.xml$/i.test(n); });
     const shared = [];
@@ -256,12 +257,36 @@
         const type = c.getAttribute('t'); const v = c.getElementsByTagName('v')[0];
         let val = v ? v.textContent : (c.getElementsByTagName('t')[0] ? c.getElementsByTagName('t')[0].textContent : '');
         if (type === 's') val = shared[parseInt(val, 10)] || '';
-        arr[col >= 0 ? col : arr.length] = val;
+        arr[col >= 0 ? col : arr.length] = (val == null ? '' : val);
       }
       grid.push(arr);
     }
-    // حوّل الشبكة إلى نص مفصول بجدولة ثم استخدم محلّل CSV
+    return grid;
+  }
+  async function parseXlsx(buf) {
+    const grid = await xlsxGrid(buf);
     return parseDelimited(grid.map(function (r) { return r.map(function (c) { return (c == null ? '' : c); }).join('\t'); }).join('\n'));
+  }
+
+  // قارئ جداول عام (CSV/TSV/XLSX) يعيد صفوفاً خامة (مصفوفة مصفوفات) — لجداول الكميات وغيرها
+  function csvRows(text) {
+    const rows = []; let row = [], field = '', q = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i], n = text[i + 1];
+      if (q) { if (c === '"' && n === '"') { field += '"'; i++; } else if (c === '"') q = false; else field += c; }
+      else if (c === '"') q = true;
+      else if (c === ',' || c === '\t' || c === ';') { row.push(field); field = ''; }
+      else if (c === '\r') { /* skip */ }
+      else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+      else field += c;
+    }
+    if (field.length || row.length) { row.push(field); rows.push(row); }
+    return rows.filter(function (r) { return r.some(function (c) { return String(c).trim(); }); });
+  }
+  async function parseRows(file) {
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+    if (ext === 'xlsx' || ext === 'xlsm') return xlsxGrid(await file.arrayBuffer());
+    return csvRows(await file.text());
   }
 
   async function parsePdf(url) {
@@ -403,6 +428,7 @@
     renderContractorBoq: renderContractorBoq,
     renderSchedule: renderSchedule,
     parseScheduleFile: parseScheduleFile,
+    parseRows: parseRows,
     delayStatus: delayStatus, expectedPct: expectedPct
   };
 })();

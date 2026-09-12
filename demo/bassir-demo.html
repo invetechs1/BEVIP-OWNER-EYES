@@ -6228,6 +6228,7 @@ textarea.inp { resize: vertical; min-height: 80px; }
       try {
         const res = await Api.addContractor({
           name: name, type: el.querySelector('#nc-type').value,
+          projectId: ctx.projectId, // اربط المقاول بالمشروع الحالي (وإلا يذهب افتراضياً لأول مشروع فيختفي)
           contractValue: el.querySelector('#nc-value').value,
           phone: el.querySelector('#nc-phone').value,
           startDate: el.querySelector('#nc-start').value, endDate: el.querySelector('#nc-end').value,
@@ -6293,11 +6294,47 @@ textarea.inp { resize: vertical; min-height: 80px; }
     if (bqUp) bqUp.addEventListener('click', async function () {
       const f = el.querySelector('#bq-file').files[0];
       if (!f) { toast(I18n.t('اختر ملف جدول الكميات أولاً'), true); return; }
+      // يجب اختيار مقاول لربط البنود به (لا يمكن رفع بنود بلا مالك)
+      if (boqState.contractor === 'all') { toast(I18n.t('اختر المقاول من القائمة أولاً ليُربط جدول الكميات به'), true); return; }
+      const c = ctx.S.contractors.find(function (x) { return x.id === boqState.contractor; });
+      if (!c) { toast(I18n.t('المقاول غير موجود'), true); return; }
+      bqUp.disabled = true;
       try {
-        await Api.upload(f, { category: 'جداول الكميات BOQ' });
-        toast(I18n.t('✅ رُفع جدول الكميات وكُوّد وربط بالمشروع — حدّث نسب البنود لتُربط بالإنجاز'));
+        const fileObj = await Api.upload(f, { category: 'جداول الكميات BOQ' });
+        let created = 0;
+        if (window.ViewsExtra && window.ViewsExtra.parseRows && /\.(csv|tsv|txt|xlsx|xlsm)$/i.test(f.name)) {
+          const rows = await window.ViewsExtra.parseRows(f);
+          if (rows.length) {
+            const head = rows[0].map(function (h) { return String(h).toLowerCase().trim(); });
+            const find = function (keys) { for (let i = 0; i < head.length; i++) { if (keys.some(function (k) { return head[i].indexOf(k) !== -1; })) return i; } return -1; };
+            const ci = { desc: find(['description', 'item', 'وصف', 'البند', 'الوصف']), unit: find(['unit', 'وحدة', 'الوحدة']), qty: find(['qty', 'quantity', 'كمية', 'الكمية']), price: find(['price', 'unitprice', 'سعر', 'سعر الوحدة']), floor: find(['floor', 'دور', 'الدور', 'level']) };
+            const hasHeader = ci.desc !== -1;
+            const body = hasHeader ? rows.slice(1) : rows;
+            const floors = (ctx.S.projects[0] || {}).floors || [];
+            const matchFloor = function (v) { if (!v) return 'GF'; v = String(v).trim(); const byId = floors.find(function (fl) { return fl.id === v; }); if (byId) return byId.id; const byName = floors.find(function (fl) { return fl.name === v; }); return byName ? byName.id : (floors[0] ? floors[0].id : 'GF'); };
+            for (let r = 0; r < body.length; r++) {
+              const row = body[r];
+              const desc = (ci.desc !== -1 ? row[ci.desc] : row[0]) || '';
+              if (!String(desc).trim()) continue;
+              await Api.create('boqItems', {
+                projectId: ctx.projectId, contractorId: c.id, discipline: c.type,
+                floor: matchFloor(ci.floor !== -1 ? row[ci.floor] : ''), zone: created % 6,
+                code: (c.type || 'GN').substring(0, 2).toUpperCase() + '-' + String(created + 1).padStart(3, '0'),
+                description: String(desc).trim(),
+                unit: (ci.unit !== -1 ? row[ci.unit] : '') || 'وحدة',
+                qty: Number(ci.qty !== -1 ? row[ci.qty] : 0) || 0,
+                unitPrice: Number(ci.price !== -1 ? String(row[ci.price]).replace(/[^\d.]/g, '') : 0) || 0,
+                progress: 0, status: 'لم يبدأ'
+              });
+              created++;
+            }
+          }
+        }
+        toast(created
+          ? I18n.t('✅ رُفع جدول الكميات وأُنشئ ') + created + I18n.t(' بنداً للمقاول: ') + esc(c.name)
+          : I18n.t('✅ رُفع الملف. لإنشاء البنود آلياً استخدم CSV/Excel بعناوين: الوصف/الوحدة/الكمية/السعر'));
         ctx.refresh();
-      } catch (e) { toast(e.message, true); }
+      } catch (e) { toast(e.message, true); bqUp.disabled = false; }
     });
     el.querySelectorAll('[data-bq]').forEach(function (r) {
       r.addEventListener('input', function () {
@@ -9512,7 +9549,8 @@ textarea.inp { resize: vertical; min-height: 80px; }
     }
     return null;
   }
-  async function parseXlsx(buf) {
+  // يعيد شبكة الخلايا (مصفوفة صفوف من نصوص) من ملف XLSX
+  async function xlsxGrid(buf) {
     const dec = new TextDecoder();
     const ssBytes = await readZipEntry(buf, function (n) { return /sharedStrings\.xml$/i.test(n); });
     const shared = [];
@@ -9529,12 +9567,36 @@ textarea.inp { resize: vertical; min-height: 80px; }
         const type = c.getAttribute('t'); const v = c.getElementsByTagName('v')[0];
         let val = v ? v.textContent : (c.getElementsByTagName('t')[0] ? c.getElementsByTagName('t')[0].textContent : '');
         if (type === 's') val = shared[parseInt(val, 10)] || '';
-        arr[col >= 0 ? col : arr.length] = val;
+        arr[col >= 0 ? col : arr.length] = (val == null ? '' : val);
       }
       grid.push(arr);
     }
-    // حوّل الشبكة إلى نص مفصول بجدولة ثم استخدم محلّل CSV
+    return grid;
+  }
+  async function parseXlsx(buf) {
+    const grid = await xlsxGrid(buf);
     return parseDelimited(grid.map(function (r) { return r.map(function (c) { return (c == null ? '' : c); }).join('\t'); }).join('\n'));
+  }
+
+  // قارئ جداول عام (CSV/TSV/XLSX) يعيد صفوفاً خامة (مصفوفة مصفوفات) — لجداول الكميات وغيرها
+  function csvRows(text) {
+    const rows = []; let row = [], field = '', q = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i], n = text[i + 1];
+      if (q) { if (c === '"' && n === '"') { field += '"'; i++; } else if (c === '"') q = false; else field += c; }
+      else if (c === '"') q = true;
+      else if (c === ',' || c === '\t' || c === ';') { row.push(field); field = ''; }
+      else if (c === '\r') { /* skip */ }
+      else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+      else field += c;
+    }
+    if (field.length || row.length) { row.push(field); rows.push(row); }
+    return rows.filter(function (r) { return r.some(function (c) { return String(c).trim(); }); });
+  }
+  async function parseRows(file) {
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+    if (ext === 'xlsx' || ext === 'xlsm') return xlsxGrid(await file.arrayBuffer());
+    return csvRows(await file.text());
   }
 
   async function parsePdf(url) {
@@ -9676,6 +9738,7 @@ textarea.inp { resize: vertical; min-height: 80px; }
     renderContractorBoq: renderContractorBoq,
     renderSchedule: renderSchedule,
     parseScheduleFile: parseScheduleFile,
+    parseRows: parseRows,
     delayStatus: delayStatus, expectedPct: expectedPct
   };
 })();
